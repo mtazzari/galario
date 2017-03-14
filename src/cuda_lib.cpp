@@ -52,8 +52,6 @@ void C_acc_init() {
     // TODO add a macro to catch if status = 0 (some errors occurred)
 
     fftw_plan_with_nthreads(omp_get_max_threads());
-
-
 }
 
 // TODO: define macro FFTW as fftw or fftwf
@@ -353,7 +351,7 @@ inline void apply_phase_core
 
     dreal const angle = u*y0 + v*x0;
 
-    dcomplex const phase = dcomplex{cos(angle), -sin(angle)};
+    dcomplex const phase = dcomplex{dreal(cos(angle)), -dreal(sin(angle))};
 
     auto const idx = idx_x + idx_y*nx;
 
@@ -777,4 +775,3 @@ void C_acc_do_everything(int nx, void* data, dreal x0, dreal y0, void* vpixel_ce
 #endif
 
 }
-
