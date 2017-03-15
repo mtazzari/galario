@@ -1,7 +1,4 @@
-# ship extra findXXX.cmake in `cmake/`
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 find_package(FFTW REQUIRED)
-
 
 # C++ 11 support http://stackoverflow.com/questions/37621342/
 add_compile_options(-std=c++11) # CMake 2.8.12 or newer
