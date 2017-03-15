@@ -1,13 +1,9 @@
 cimport numpy as np
 import numpy as np
 
-# cdef extern from "galario_config.hpp":
-#     cdef int DOUBLE_PRECISION
+include "galario_config.pxi"
 
-# include "galario_config.pxi"
-DEF DOUBLE_PRECISION = 1
-
-IF DOUBLE_PRECISION == 1:
+IF DOUBLE_PRECISION:
     ctypedef double dreal
     real_dtype = np.float64
 
