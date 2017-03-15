@@ -8,5 +8,5 @@ __version__ = ${PACKAGE_VERSION}
 # except ImportError:
 #     print("cuda/: pyvfit_libgpu not available.")
 
-# from . import single
+from . import single
 from . import double

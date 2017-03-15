@@ -51,15 +51,18 @@ target_link_libraries(libcommon galario)
 ###
 # then single precision
 ###
-# set(GALARIO_DOUBLE_PRECISION 0)
-# configure_file(
-#   "${CMAKE_CURRENT_SOURCE_DIR}/galario_config.pxi.in"
-#   "${CMAKE_CURRENT_BINARY_DIR}/single/galario_config.pxi"
-#   )
-# set(CYTHON_FLAGS -I "${CMAKE_CURRENT_BINARY_DIR}/single")
-# cython_add_module(pygalariof "${common_in_pyx}")
-# # don't set DOUBLE_PRECISION
-# target_include_directories(pygalariof PUBLIC "${CMAKE_SOURCE_DIR}/src")
-# target_link_libraries(pygalariof galariof)
+set(GALARIO_DOUBLE_PRECISION 0)
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/galario_config.pxi.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/single/galario_config.pxi"
+  )
+set(CYTHON_FLAGS -I "${CMAKE_CURRENT_BINARY_DIR}/single")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PYGALARIO_DIR}/single")
+cython_add_module(libcommonf "${common_in_pyx}")
+# don't set DOUBLE_PRECISION
+target_include_directories(libcommonf PUBLIC "${CMAKE_SOURCE_DIR}/src")
+target_link_libraries(libcommonf galariof)
+# rename the library because targets need to be unique
+set_target_properties(libcommonf PROPERTIES OUTPUT_NAME libcommon)
 
 add_test(NAME CanImport COMMAND python3 -c "import pygalario")
