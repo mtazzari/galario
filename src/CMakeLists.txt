@@ -18,6 +18,8 @@ endif()
 
 if (FFTW_FOUND)
   # TODO doesn't include openmp or mpi versions
+  # we need (single+double)x(serial+threads)
+  set(FFTW_LIBRARIES ${FFTW_LIB} ${FFTWF_LIB} ${FFTW_THREADS_LIB} ${FFTWF_THREADS_LIB})
   target_link_libraries(galario "${FFTW_LIBRARIES}")
   target_link_libraries(galariof "${FFTW_LIBRARIES}")
 endif()
