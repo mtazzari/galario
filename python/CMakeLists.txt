@@ -38,3 +38,5 @@ cython_add_module(pygalariof "${common_in_pyx}")
 # don't set DOUBLE_PRECISION
 target_include_directories(pygalariof PUBLIC "${CMAKE_SOURCE_DIR}/src")
 target_link_libraries(pygalariof galariof)
+
+add_test(NAME CanImport COMMAND python3 -c "import pygalario")
