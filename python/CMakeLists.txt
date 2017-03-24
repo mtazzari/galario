@@ -113,4 +113,4 @@ set_target_properties(libcommonf_cuda PROPERTIES OUTPUT_NAME libcommon)
 ###
 # tests
 ###
-add_test(NAME CanImport COMMAND python3 -c "import pygalario")
+add_test(NAME CanImport COMMAND ${PYTHON_EXECUTABLE} -c "import pygalario")
