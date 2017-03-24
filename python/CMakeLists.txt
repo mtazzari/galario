@@ -45,29 +45,6 @@ target_compile_definitions(libcommon PUBLIC DOUBLE_PRECISION)
 target_link_libraries(libcommon galario)
 
 ###
-# cuda double precision
-###
-set(outdir double_cuda)
-set(GALARIO_DOUBLE_PRECISION 1)
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/galario_config.pxi.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/${outdir}/galario_config.pxi"
-  )
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${outdir}/__init__.py.in"
-  "${PYGALARIO_DIR}/${outdir}/__init__.py"
-  )
-set(CYTHON_FLAGS -I "${CMAKE_CURRENT_BINARY_DIR}/${outdir}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PYGALARIO_DIR}/${outdir}")
-cython_add_module(libcommon_cuda "${common_in_pyx}")
-# don't set DOUBLE_PRECISION
-target_include_directories(libcommon_cuda PUBLIC "${CMAKE_SOURCE_DIR}/src")
-target_link_libraries(libcommon_cuda galario_cuda)
-target_compile_definitions(libcommon_cuda PUBLIC DOUBLE_PRECISION)
-# rename the library because targets need to be unique
-set_target_properties(libcommon_cuda PROPERTIES OUTPUT_NAME libcommon)
-
-###
 # then single precision
 ###
 set(GALARIO_DOUBLE_PRECISION 0)
@@ -88,29 +65,64 @@ target_link_libraries(libcommonf galariof)
 # rename the library because targets need to be unique
 set_target_properties(libcommonf PROPERTIES OUTPUT_NAME libcommon)
 
-###
-# cuda single precision
-###
-set(GALARIO_DOUBLE_PRECISION 0)
-set(outdir single_cuda)
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/galario_config.pxi.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/${outdir}/galario_config.pxi"
-  )
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${outdir}/__init__.py.in"
-  "${PYGALARIO_DIR}/${outdir}/__init__.py"
-  )
-set(CYTHON_FLAGS -I "${CMAKE_CURRENT_BINARY_DIR}/${outdir}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PYGALARIO_DIR}/${outdir}")
-cython_add_module(libcommonf_cuda "${common_in_pyx}")
-# don't set DOUBLE_PRECISION
-target_include_directories(libcommonf_cuda PUBLIC "${CMAKE_SOURCE_DIR}/src")
-target_link_libraries(libcommonf_cuda galariof_cuda)
-# rename the library because targets need to be unique
-set_target_properties(libcommonf_cuda PROPERTIES OUTPUT_NAME libcommon)
+if (CUDA_FOUND)
+  ###
+  # cuda double precision
+  ###
+  set(outdir double_cuda)
+  set(GALARIO_DOUBLE_PRECISION 1)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/galario_config.pxi.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${outdir}/galario_config.pxi"
+    )
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/${outdir}/__init__.py.in"
+    "${PYGALARIO_DIR}/${outdir}/__init__.py"
+    )
+  set(CYTHON_FLAGS -I "${CMAKE_CURRENT_BINARY_DIR}/${outdir}")
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PYGALARIO_DIR}/${outdir}")
+  cython_add_module(libcommon_cuda "${common_in_pyx}")
+  # don't set DOUBLE_PRECISION
+  target_include_directories(libcommon_cuda PUBLIC "${CMAKE_SOURCE_DIR}/src")
+  target_link_libraries(libcommon_cuda galario_cuda)
+  target_compile_definitions(libcommon_cuda PUBLIC DOUBLE_PRECISION)
+  # rename the library because targets need to be unique
+  set_target_properties(libcommon_cuda PROPERTIES OUTPUT_NAME libcommon)
+
+  ###
+  # cuda single precision
+  ###
+  set(GALARIO_DOUBLE_PRECISION 0)
+  set(outdir single_cuda)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/galario_config.pxi.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${outdir}/galario_config.pxi"
+    )
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/${outdir}/__init__.py.in"
+    "${PYGALARIO_DIR}/${outdir}/__init__.py"
+    )
+  set(CYTHON_FLAGS -I "${CMAKE_CURRENT_BINARY_DIR}/${outdir}")
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PYGALARIO_DIR}/${outdir}")
+  cython_add_module(libcommonf_cuda "${common_in_pyx}")
+  # don't set DOUBLE_PRECISION
+  target_include_directories(libcommonf_cuda PUBLIC "${CMAKE_SOURCE_DIR}/src")
+  target_link_libraries(libcommonf_cuda galariof_cuda)
+  # rename the library because targets need to be unique
+  set_target_properties(libcommonf_cuda PROPERTIES OUTPUT_NAME libcommon)
+endif(CUDA_FOUND)
 
 ###
 # tests
 ###
 add_test(NAME CanImport COMMAND ${PYTHON_EXECUTABLE} -c "import pygalario")
+
+# https://github.com/UCL/GreatCMakeCookOff/wiki/Adding-py.test-to-ctest
+# https://github.com/UCL/GreatCMakeCookOff/issues/56
+include(AddPyTest)
+
+# I don't understand the first arg but it seems to work if py.test already installed
+setup_pytest("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/py.test.sh")
+
+# the source name has to match test_*.py
+add_pytest("${CMAKE_CURRENT_SOURCE_DIR}/test_all.py" WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")

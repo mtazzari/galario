@@ -1,3 +1,4 @@
+# TODO nicer cmake stuff in https://github.com/UCL/GreatCMakeCookOff/tree/master/modules
 find_package(FFTW REQUIRED)
 
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
@@ -35,7 +36,6 @@ set(FFTW_LIBRARIES ${FFTW_LIB} ${FFTWF_LIB} ${FFTW_THREADS_LIB} ${FFTWF_THREADS_
 target_link_libraries(galario "${FFTW_LIBRARIES}")
 target_link_libraries(galariof "${FFTW_LIBRARIES}")
 
-find_package(CUDA)
 if (CUDA_FOUND)
 # if (0)
 
