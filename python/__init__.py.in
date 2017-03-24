@@ -1,12 +1,10 @@
 __version__ = ${PACKAGE_VERSION}
 
-# TODO import only when available
-# try:
-#     from . import pyvfit_libgpu
-#     # do init
-
-# except ImportError:
-#     print("cuda/: pyvfit_libgpu not available.")
+try:
+    from . import single_cuda
+    from . import double_cuda
+except ImportError:
+    print("cuda libs not available.")
 
 from . import single
 from . import double
