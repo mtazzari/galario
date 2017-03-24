@@ -1,10 +1,10 @@
 __version__ = ${PACKAGE_VERSION}
 
-try:
+HAVE_CUDA = ("${CUDA_FOUND}" == "TRUE")
+
+if HAVE_CUDA:
     from . import single_cuda
     from . import double_cuda
-except ImportError:
-    print("cuda libs not available.")
 
 from . import single
 from . import double

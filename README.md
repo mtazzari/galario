@@ -12,9 +12,17 @@ With the default configuration
     mkdir build && cd build
     cmake .. && make
 
+Before changing the basics, it's best to remove the cache
+
+    rm build/CMakeCache.txt
+
 Specify a python version. In `build/`, do
 
-    rm CMakeCache.txt; cmake -DPython_ADDITIONAL_VERSIONS=3.5 ..
+    cmake -DPython_ADDITIONAL_VERSIONS=3.5 ..
+
+Where are GreatCMakeCookOff files
+
+    cmake -DGreatCMakeCookOff_DIR=/home/beaujean/software/GreatCMakeCookOff/cmake ..
 
 
 python environment
@@ -32,3 +40,12 @@ testing
 -------
 
 After building, just run `ctest --output-on-failure` in `build/`.
+
+To compare with pyvfit need python2.7 and directory of pyvfit's static directory
+
+    cmake \
+        -DGreatCMakeCookOff_DIR=/home/beaujean/software/GreatCMakeCookOff/cmake \
+        -DPython_ADDITIONAL_VERSIONS=2.7 \
+        -D/home/beaujean/workspace/protoplanetary/pyvfit/pyvfit/static \
+        .. \
+        && make && make test
