@@ -55,4 +55,6 @@ function(wrap_lib)
     target_compile_definitions(${libcommon} PUBLIC DOUBLE_PRECISION)
   endif()
   target_link_libraries(${libcommon} galario${suffix})
+  # rename the library because targets need to be unique
+  set_target_properties(${libcommon} PROPERTIES OUTPUT_NAME libcommon)
 endfunction()

@@ -10,7 +10,9 @@ import pytest
 ARR_2D_TYPE = 'complex128'
 ARR_TYPE = 'float64'
 
-STATIC_DIR = "${PYVFIT_STATIC_DIR}"
+# infer static dir from the pyvfit location. This only works if pyvfit is installed in developer mode
+STATIC_DIR = os.path.join(os.path.split(pyvfit.__file__)[0], 'static')
+# STATIC_DIR = "${PYVFIT_STATIC_DIR}"
 # TEST_REFERENCE_DIR = ${PYVFIT_REFERENCE_DIR}
 TEST_REFERENCE_DIR = os.path.join(STATIC_DIR, 'test_reference')
 TEST_SAMPLING_01 = os.path.join(TEST_REFERENCE_DIR, 'sampling_1024_100.npy')
