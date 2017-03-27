@@ -29,12 +29,12 @@ endif()
 ###
 # tests
 ###
-set(py_test_file test_all.py)
+set(pyvfit_test test_pyvfit.py)
 
 # use configure_file so it's copied on every change of the source
 # http://stackoverflow.com/a/34800667/987623
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${py_test_file}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/${pyvfit_test}"
   "${CMAKE_CURRENT_BINARY_DIR}/"
   COPYONLY
   )
@@ -50,4 +50,4 @@ setup_pytest("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/py.test.
 # https://github.com/UCL/GreatCMakeCookOff/issues/56
 #
 # need to run in binary_dir so import of pygalario works
-add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${py_test_file}")
+add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${pyvfit_test}")
