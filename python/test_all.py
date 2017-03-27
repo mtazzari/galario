@@ -1,10 +1,14 @@
 import pygalario
-# from pygalario import HAVE_CUDA
 import pyvfit
-from pyvfit.cuda import pyvfit_libcpu as acc_lib
 import numpy as np
 import os
 import pytest
+
+# TODO make configurable
+if pygalario.HAVE_CUDA:
+    from pygalario import double_cuda as acc_lib
+else:
+    from pygalario import double as acc_lib
 
 # TODO only test double precision
 ARR_2D_TYPE = 'complex128'
@@ -108,13 +112,13 @@ def test_rotix():
     udat = udat.astype(ARR_TYPE)
     vdat = vdat.astype(ARR_TYPE)
 
-    # ui, vi = pyvfit.vfit_ffun.get_rotix_nf(uv, uv, udat, vdat, len(udat), size)
-    # ui = ui.astype(ARR_TYPE)
-    # vi = vi.astype(ARR_TYPE)
-    ui, vi = pygalario.double.acc_rotix(uv, udat, vdat)
+    ui, vi = pyvfit.vfit_ffun.get_rotix_nf(uv, uv, udat, vdat, len(udat), size)
+    ui = ui.astype(ARR_TYPE)
+    vi = vi.astype(ARR_TYPE)
 
-    ui1, vi1 = acc_lib.acc_rotix(uv, udat, vdat)
+    ui1, vi1 = pygalario.double_cuda.acc_rotix(uv, udat, vdat)
+    # ui1, vi1 = acc_lib.acc_rotix(uv, udat, vdat)
 
-    tol = 1.e-16  # for SINGLE PRECISION
+    tol = 1.e-4  # for SINGLE PRECISION
     np.testing.assert_allclose(ui1, ui, rtol=tol)
     np.testing.assert_allclose(vi1, vi, rtol=tol)

@@ -63,3 +63,9 @@ My current one liner to get going is
         -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} \
         .. \
     && make && make test
+
+Every time `python/test_all.py` is modified, it has to be copied over
+to the build directory: only when run there, `import pygalario`
+works. The copy is performed in the build step but I couldn't get the
+dependency injected, so to run the tests, you have to do `make && make
+test`.
