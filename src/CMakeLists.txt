@@ -32,9 +32,9 @@ endif()
 
 # TODO doesn't include openmp or mpi versions
 # we need (single+double)x(serial+threads)
-set(FFTW_LIBRARIES ${FFTW_LIB} ${FFTWF_LIB} ${FFTW_THREADS_LIB} ${FFTWF_THREADS_LIB})
-target_link_libraries(galario "${FFTW_LIBRARIES}")
-target_link_libraries(galariof "${FFTW_LIBRARIES}")
+foreach(t IN ITEMS galariof galario)
+  target_link_libraries(${t} ${FFTW_LIB} ${FFTWF_LIB} ${FFTW_THREADS_LIB} ${FFTWF_THREADS_LIB})
+endforeach()
 
 if (CUDA_FOUND)
 # if (0)
@@ -68,14 +68,11 @@ if (CUDA_FOUND)
   list(APPEND CUDA_NVCC_FLAGS -DDOUBLE_PRECISION)
   cuda_add_library(galario_cuda ${common_cu})
 
+  foreach(t IN ITEMS galariof_cuda galario_cuda)
+    cuda_add_cublas_to_target(${t})
+    cuda_add_cufft_to_target(${t})
+  endforeach()
+
   # ignored
   # target_compile_definitions(galario_cuda PUBLIC DOUBLE_PRECISION)
-
-  # For linking ...
-  # Specify target & libraries to link it with
-  target_link_libraries(
-    galario_cuda
-    # -lfoobar
-    # -ljoestuff
-    )
 endif()
