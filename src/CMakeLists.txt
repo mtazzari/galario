@@ -42,7 +42,7 @@ if (CUDA_FOUND)
   # TODO I couldn't get nvcc to work with flags propagated and I still
   # need to pass every arg in ${extra_compile_options} to
   # nvcc. Probably a function will do it that emits "-Xcompiler arg1 -Xcompiler arg2 ..."
-  list(APPEND CUDA_NVCC_FLAGS ${compile_options} -Wno-deprecated-gpu-targets)
+  list(APPEND CUDA_NVCC_FLAGS ${compile_options})
 
   SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
