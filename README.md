@@ -36,7 +36,7 @@ galario should work with both python 2 and 3
 
 If you want to run the unit test, you need some more packages
 
-    conda install astropy pytest
+    conda create --name galario2 python=2 numpy cython astropy pytest
 
 cmake may get confused with the conda python and the system
 python. This is a general problem
@@ -50,7 +50,7 @@ conda environment is
 testing
 -------
 
-After building, just run `ctest --output-on-failure` in `build/`.
+After building, just run `ctest -V --output-on-failure` in `build/`.
 
 To compare with pyvfit need `python2.7` and `pyvfit` installed in
 developer mode so we can pick up the `static` directory from the
@@ -62,10 +62,10 @@ My current one liner to get going is
         -DGreatCMakeCookOff_DIR=$HOME/workspace/GreatCMakeCookOff/cmake \
         -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} \
         .. \
-    && make && make test
+    && make all test
 
 Every time `python/test_all.py` is modified, it has to be copied over
 to the build directory: only when run there, `import pygalario`
 works. The copy is performed in the build step but I couldn't get the
 dependency injected, so to run the tests, you have to do `make && make
-test`.
+test` or `make && ctest`.
