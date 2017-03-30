@@ -27,6 +27,18 @@ if (CUDA_FOUND)
 endif()
 
 ###
+# installation
+###
+include(PythonInstall)
+message(${CMAKE_SHARED_LIBRARY_SUFFIX})
+message("${PYTHON_PKG_DIR}")
+# install(DIRECTORY ${PYGALARIO_DIR}
+install(DIRECTORY ${PYGALARIO_DIR}
+  DESTINATION /tmp
+  FILES_MATCHING REGEX ".*py$|.*${CMAKE_SHARED_LIBRARY_SUFFIX}$"
+  )
+
+###
 # tests
 ###
 set(pyvfit_test test_pyvfit.py)
