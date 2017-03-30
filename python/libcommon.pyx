@@ -16,7 +16,7 @@ ELSE:
     ctypedef float complex dcomplex
     complex_dtype = np.complex64
 
-cdef extern from "cuda_lib.hpp":
+cdef extern from "galario.hpp":
     # todo avoid void*
     void C_acc_fft(int nx, void* data)
     void C_acc_shift(int nx, void* data)

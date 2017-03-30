@@ -14,7 +14,7 @@ add_compile_options(${compile_options} ${extra_compile_options})
 # add_compile_options("${compile_options}" -pthread -fwrapv)
 
 # we compile the same source file multiple times, varying preprocessor definitions
-set(common_cpp "${CMAKE_CURRENT_SOURCE_DIR}/cuda_lib.cpp")
+set(common_cpp "${CMAKE_CURRENT_SOURCE_DIR}/galario.cpp")
 
 # compile single and double precision in separate libraries
 add_library(galario_single ${common_cpp})
