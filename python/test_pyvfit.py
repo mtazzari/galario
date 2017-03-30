@@ -1,6 +1,6 @@
 import galario
-
-import pyvfit
+import pytest
+pyvfit = pytest.importorskip("pyvfit")
 from pyvfit.imager import Imager
 from pyvfit.constants import sec2rad
 from pyvfit import vfit_ffun
@@ -10,7 +10,6 @@ from pyvfit.uvtable import Uvtable
 
 import numpy as np
 import os
-import pytest
 
 # TODO make configurable
 if galario.HAVE_CUDA:
