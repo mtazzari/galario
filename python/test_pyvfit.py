@@ -1,4 +1,4 @@
-import pygalario
+import galario
 
 import pyvfit
 from pyvfit.imager import Imager
@@ -13,10 +13,10 @@ import os
 import pytest
 
 # TODO make configurable
-if pygalario.HAVE_CUDA:
-    from pygalario import double_cuda as acc_lib
+if galario.HAVE_CUDA:
+    from galario import double_cuda as acc_lib
 else:
-    from pygalario import double as acc_lib
+    from galario import double as acc_lib
 
 # TODO only tests double precision
 ARR_2D_TYPE = 'complex128'
@@ -318,7 +318,7 @@ def test_chi2():
     print("Absolute diff: {0}".format(chi2_loc-chi2_ref))
     print("Relative diff: {0}".format((chi2_loc-chi2_ref)*2./(chi2_loc+chi2_ref)))
 
-    if pygalario.HAVE_CUDA:
+    if galario.HAVE_CUDA:
         rtol = 1.e-15
     else:
         rtol = 1.e-14

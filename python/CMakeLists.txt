@@ -11,7 +11,7 @@ set_source_files_properties(${common_in_pyx} PROPERTIES CYTHON_IS_CXX TRUE)
 # precision. This requires some hacking because the files and python
 # modules have the same name, so they need to appear in different folders
 ###
-set(PYGALARIO_DIR "${CMAKE_CURRENT_BINARY_DIR}/pygalario")
+set(PYGALARIO_DIR "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}")
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in"
   "${PYGALARIO_DIR}/__init__.py"
@@ -38,7 +38,7 @@ configure_file(
   "${CMAKE_CURRENT_BINARY_DIR}/"
   COPYONLY
   )
-add_test(NAME CanImport COMMAND ${PYTHON_EXECUTABLE} -c "import pygalario")
+add_test(NAME CanImport COMMAND ${PYTHON_EXECUTABLE} -c "import ${PROJECT_NAME}")
 
 # https://github.com/UCL/GreatCMakeCookOff/wiki/Adding-py.test-to-ctest
 include(AddPyTest)
