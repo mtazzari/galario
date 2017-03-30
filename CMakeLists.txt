@@ -5,12 +5,10 @@ set(PACKAGE_VERSION 0.1)
 # ship extra findXXX.cmake in `cmake/`
 # APPEND doesn't propagate variable to subdirectory
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-# set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake )
 
 # many more useful cmake module and scripts
-# cmake -DGreatCMakeCookOff_DIR=/home/beaujean/software/GreatCMakeCookOff/cmake ..
-find_package(GreatCMakeCookOff)
-initialize_cookoff()
+# are downloaded into the build directory
+include(LookUp-GreatCMakeCookOff)
 
 ###
 # the optional and required packages
