@@ -19,7 +19,7 @@ function(wrap_lib)
     set(GALARIO_DOUBLE_PRECISION 0)
     set(outdir "${PYGALARIO_DIR}/single")
     # append `f` for single precision as for FFTW3
-    set(suffix "f")
+    set(suffix "_single")
   endif()
   if(WRAP_LIB_CUDA)
     set(suffix "${suffix}_cuda")

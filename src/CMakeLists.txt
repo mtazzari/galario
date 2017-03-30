@@ -17,7 +17,7 @@ add_compile_options(${compile_options} ${extra_compile_options})
 set(common_cpp "${CMAKE_CURRENT_SOURCE_DIR}/cuda_lib.cpp")
 
 # compile single and double precision in separate libraries
-add_library(galariof ${common_cpp})
+add_library(galario_single ${common_cpp})
 
 add_library(galario ${common_cpp})
 target_compile_definitions(galario PUBLIC DOUBLE_PRECISION)
@@ -32,7 +32,7 @@ endif()
 
 # TODO doesn't include openmp or mpi versions
 # we need (single+double)x(serial+threads)
-foreach(t IN ITEMS galariof galario)
+foreach(t IN ITEMS galario_single galario)
   target_link_libraries(${t} ${FFTW_LIB} ${FFTWF_LIB} ${FFTW_THREADS_LIB} ${FFTWF_THREADS_LIB})
 endforeach()
 
@@ -60,7 +60,7 @@ if (CUDA_FOUND)
   configure_file(${common_cpp} ${common_cu})
 
   # first compile float version
-  cuda_add_library(galariof_cuda ${common_cu})
+  cuda_add_library(galario_single_cuda ${common_cu})
 
   # add_definitions(-DDOUBLE_PRECISION) only add now because undefined
   # means single precision, else we'd have to remove the -D... from
@@ -68,7 +68,7 @@ if (CUDA_FOUND)
   list(APPEND CUDA_NVCC_FLAGS -DDOUBLE_PRECISION)
   cuda_add_library(galario_cuda ${common_cu})
 
-  foreach(t IN ITEMS galariof_cuda galario_cuda)
+  foreach(t IN ITEMS galario_single_cuda galario_cuda)
     cuda_add_cublas_to_target(${t})
     cuda_add_cufft_to_target(${t})
   endforeach()
