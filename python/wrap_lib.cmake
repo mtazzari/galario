@@ -54,6 +54,8 @@ function(wrap_lib)
   if (WRAP_LIB_DOUBLE)
     target_compile_definitions(${libcommon} PUBLIC DOUBLE_PRECISION)
   endif()
+  # get rid of cython/numpy deprecation warning, gets rid of all other preprocessor warnings, too
+  target_compile_options(${libcommon} PUBLIC "-Wno-cpp")
   target_link_libraries(${libcommon} galario${suffix})
   # rename the library because targets need to be unique
   set_target_properties(${libcommon} PROPERTIES OUTPUT_NAME libcommon)
