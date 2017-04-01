@@ -41,6 +41,9 @@ install(DIRECTORY ${PYGALARIO_DIR}
 ###
 # tests
 ###
+
+# TODO avoid installation of test scripts
+# http://stackoverflow.com/questions/13381742/cmake-exclude-executable-during-install
 set(pyvfit_test test_pyvfit.py)
 
 # use configure_file so it's copied on every change of the source
