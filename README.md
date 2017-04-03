@@ -16,15 +16,11 @@ Before changing the basics, it's best to remove the cache
 
     rm build/CMakeCache.txt
 
-Specify a python version. In `build/`, do
+Specify a python version. This is useful if python 2.7 and 3.x are in
+the system and conflicting versions of the interpreter and the
+libraries are found. In `build/`, do
 
     cmake -DPython_ADDITIONAL_VERSIONS=3.5 ..
-
-For now we depend on GreatCMakeCookOff, clone it from https://github.com/UCL/GreatCMakeCookOff and let cmake know where it is, for example
-
-    cmake -DGreatCMakeCookOff_DIR=/home/beaujean/software/GreatCMakeCookOff/cmake ..
-
-If we decide to keep this dependency, we can include it into the cmake configure step and it is downloaded automatically.
 
 python environment
 ------------------
@@ -69,3 +65,25 @@ to the build directory: only when run there, `import pygalario`
 works. The copy is performed in the build step but I couldn't get the
 dependency injected, so to run the tests, you have to do `make && make
 test` or `make && ctest`.
+
+installation
+------------
+
+Do the conventional
+
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/lib
+
+Note that by default the C libraries and the python bindings are
+installed under the same prefix. If you want to install python
+elsewhere, there is an extra cache variable `GALARIO_PYTHON_PKG_DIR`
+that you can edit with `ccmake .` after running `cmake`. If conda is
+used, we give it higher precedence. For example,
+
+    conda activate myenv
+    cmake -DCMAKE_INSTALL_PREFIX=/some/prefix ..
+    make && make install
+
+will output the following in the install step
+
+    -- Installing: /some/prefix/lib/libgalario.so
+    -- Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py
