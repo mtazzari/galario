@@ -22,6 +22,8 @@ add_library(galario_single ${common_cpp})
 add_library(galario ${common_cpp})
 target_compile_definitions(galario PUBLIC DOUBLE_PRECISION)
 
+set(install_libs galario_single galario)
+
 find_package(OpenMP)
 if(OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -71,8 +73,18 @@ if (CUDA_FOUND)
   foreach(t IN ITEMS galario_single_cuda galario_cuda)
     cuda_add_cublas_to_target(${t})
     cuda_add_cufft_to_target(${t})
+    list(APPEND install_libs ${t})
   endforeach()
 
   # ignored
   # target_compile_definitions(galario_cuda PUBLIC DOUBLE_PRECISION)
 endif()
+
+
+# it would be nice if directory would let me access all libraries but there is no such property
+# https://cmake.org/cmake/help/v3.0/manual/cmake-properties.7.html
+install (TARGETS ${install_libs}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  )

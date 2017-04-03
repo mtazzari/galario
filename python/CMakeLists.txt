@@ -29,12 +29,25 @@ endif()
 ###
 # installation
 ###
+# to set ${PYTHON_PKG_DIR}. It is prepended by ${CMAKE_INSTALL_PREFIX} if set by user
+# message("using ${PYTHON_PKG_DIR}")
 include(PythonInstall)
-message(${CMAKE_SHARED_LIBRARY_SUFFIX})
-message("${PYTHON_PKG_DIR}")
-# install(DIRECTORY ${PYGALARIO_DIR}
+
+# if conda environment is found, prefer that. I know, the name
+# DEFAULT_PYTHON_PKG_DIR is confusing but I didn't choose it
+if(DEFINED ENV{CONDA_PREFIX})
+  set(GALARIO_PYTHON_PKG_DIR "${DEFAULT_PYTHON_PKG_DIR}" CACHE PATH
+    "Current python install path"
+    )
+  message(STATUS "Found conda prefix: $ENV{CONDA_PREFIX}")
+else()
+  set(GALARIO_PYTHON_PKG_DIR "${PYTHON_PKG_DIR}" CACHE PATH
+  "Current python install path"
+  )
+endif()
+# on unix: install .py and .so relative to ${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT}
 install(DIRECTORY ${PYGALARIO_DIR}
-  DESTINATION /tmp
+  DESTINATION "${GALARIO_PYTHON_PKG_DIR}"
   FILES_MATCHING REGEX ".*py$|.*${CMAKE_SHARED_LIBRARY_SUFFIX}$"
   )
 

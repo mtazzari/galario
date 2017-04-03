@@ -19,6 +19,9 @@ find_package(CUDA)
 # several in cache with `cmake-gui .` or `ccmake .`
 # set(Python_ADDITIONAL_VERSIONS 3;2 CACHE STRING "List of python versions to look for. First come, first served, for example '2;3.5' prefers 2.x over 3.5")
 
+# the name sounds promising but it didn't go well with UseCython below
+# include(FindCoherentPython)
+
 # Include the CMake script UseCython.cmake.  This defines add_cython_module().
 # Instruction for use can be found at the top of cmake/UseCython.cmake.
 include(UseCython)
