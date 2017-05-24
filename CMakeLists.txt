@@ -38,3 +38,5 @@ add_subdirectory(src)
 # if(PYTHONLIBS_FOUND)
 add_subdirectory(python)
 # endif()
+
+add_subdirectory(docs)
