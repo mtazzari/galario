@@ -87,3 +87,11 @@ will output the following in the install step
 
     -- Installing: /some/prefix/lib/libgalario.so
     -- Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py
+
+documentation
+-------------
+
+    make docs
+
+creates output in `docs/html` under the build directory. Add content to
+`docs/index.rst` or the files linked to therein.
