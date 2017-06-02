@@ -1,3 +1,11 @@
+# to avoid fatal error: numpy/arrayobject.h: No such file or directory
+find_package(Numpy)
+if (NUMPY_INCLUDE_DIRS) # should check NUMPY_FOUND but there is a bug in GreatCmakeCookoff (reported)
+  include_directories("${NUMPY_INCLUDE_DIRS}")
+else ()
+  message( FATAL_ERROR "NumPy not found")
+endif()
+
 ###
 # follow https://github.com/thewtex/cython-cmake-example
 ###
@@ -48,7 +56,7 @@ endif()
 # on unix: install .py and .so relative to ${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT}
 install(DIRECTORY ${PYGALARIO_DIR}
   DESTINATION "${GALARIO_PYTHON_PKG_DIR}"
-  FILES_MATCHING REGEX ".*py$|.*${CMAKE_SHARED_LIBRARY_SUFFIX}$"
+  FILES_MATCHING REGEX ".*py$|.*so$"
   )
 
 ###
