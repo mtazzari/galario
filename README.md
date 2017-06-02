@@ -54,11 +54,7 @@ location of `pyvfit` itself.
 
 My current one liner to get going is
 
-    cmake \
-        -DGreatCMakeCookOff_DIR=$HOME/workspace/GreatCMakeCookOff/cmake \
-        -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} \
-        .. \
-    && make all test
+    cmake -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} .. && make all test
 
 Every time `python/test_all.py` is modified, it has to be copied over
 to the build directory: only when run there, `import pygalario`
