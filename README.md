@@ -22,6 +22,10 @@ libraries are found. In `build/`, do
 
     cmake -DPython_ADDITIONAL_VERSIONS=3.5 ..
 
+Bug to be fixed: before doing make, you have to manually create the directory:
+    
+    mkdir galario/docs/_static
+
 python environment
 ------------------
 
@@ -54,6 +58,7 @@ location of `pyvfit` itself.
 
 My current one liner to get going is
 
+    FFTW_HOME="/usr/local/lib" CXX="/usr/local/bin/g++" CC="/usr/local/bin/gcc" LD="/usr/local/bin/g++" \
     cmake -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} .. && make all test
 
 Every time `python/test_all.py` is modified, it has to be copied over
@@ -61,6 +66,50 @@ to the build directory: only when run there, `import pygalario`
 works. The copy is performed in the build step but I couldn't get the
 dependency injected, so to run the tests, you have to do `make && make
 test` or `make && ctest`.
+
+requirements
+------------
+
+The FFTW libraries are required for the CPU version of galario. 
+To install FFTW follow the instructions at http://www.fftw.org. 
+galario requires the following FFTW libraries:
+    
+    * libfftw3              # double precision
+    * libfftw3f             # single precision
+    * libfftw3_omp          # double precision with OpenMP
+    * libfftw3f_omp         # single precision with OpenMP
+    * libfftw3_threads      # double precision with threads
+    * libfftw3f_threads     # single precision with threads
+
+galario has been tested with FFTW 3.3.6.
+
+To compile FFTW on a Mac download the .tar.gz from FFTW website you have to explicitly
+enable the build of dynamic (shared) library with --enable-shared option, and run multiple times 
+./configure && make && make install in order to create the libraries listed above:
+
+    cd fftw-<version>/
+    mkdir d_p && cd d_p && \ 
+      CC=/usr/local/bin/gcc ../configure --enable-shared && make && sudo make install && cd ..
+    mkdir s_p && cd s_p && \
+      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-single && make && sudo make install && cd ..
+    mkdir d_p_omp && cd d_p_omp && \
+      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-openmp && make && sudo make install && cd ..
+    mkdir s_p_omp && cd s_p_omp && \
+      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-single --enable-openmp && make && sudo make install && cd ..
+    mkdir d_p_threads && cd d_p_threads && \
+      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-threads && make && sudo make install && cd ..
+    mkdir s_p_threads && cd s_p_threads && \
+      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-single --enable-threads && make && sudo make install && cd ..
+
+If you have no sudo rights to install FFTW libraries, then provide a directory via make install --prefix="/path/to/fftw".
+Before building galario, FFTW_HOME has to be set equal to the installation directory of FFTW, e.g. FFTW_HOME="/usr/local/lib/"
+in the default case, or to the prefix specified during the fftw installation.
+
+To speedup building FFTW, you may add the -jN flag to the make commands above, e.g. make -jN, where N is an integer 
+equal to the number of cores you want to use. E.g., on a 4-cores machine, you can do make -j4. To use -j4 as default, you can 
+create an alias with:
+    
+    alias make="make -j4"
 
 installation
 ------------
