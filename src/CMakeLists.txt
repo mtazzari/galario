@@ -1,6 +1,3 @@
-# TODO nicer cmake stuff in https://github.com/UCL/GreatCMakeCookOff/tree/master/modules
-find_package(FFTW REQUIRED)
-
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
 # these options are understood by both gcc and nvcc
 set(compile_options -std=c++11 -O3)
@@ -32,10 +29,11 @@ if(OPENMP_FOUND)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-# TODO doesn't include openmp or mpi versions
-# we need (single+double)x(serial+threads)
+# we need fftw with (single+double)x(serial+openmp)
+find_package(FFTW3 COMPONENTS SINGLE DOUBLE OPENMP)
+
 foreach(t IN ITEMS galario_single galario)
-  target_link_libraries(${t} ${FFTW_LIB} ${FFTWF_LIB} ${FFTW_THREADS_LIB} ${FFTWF_THREADS_LIB})
+  target_link_libraries(${t} ${FFTW3_LIBRARIES})
 endforeach()
 
 if (CUDA_FOUND)
@@ -88,3 +86,4 @@ install (TARGETS ${install_libs}
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
   )
+install(FILES galario.hpp DESTINATION include)

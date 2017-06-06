@@ -31,7 +31,10 @@
 //# TODO consistent notation dreal -> real_t, dcomplex -> complex_t
 //# to avoid confusion with host vs. device
 
-extern "C" {
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* __cplusplus */
     void C_fft2d(int nx, void* data);
     void C_fftshift(int nx, void* data);
     void C_fftshift_fft2d_fftshift(int nx, void* data);
@@ -42,4 +45,6 @@ extern "C" {
     void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2, int rank);
     void C_acc_init();
     void C_acc_cleanup();
-}
+#ifdef __cplusplus
+}  /* extern "C" */
+#endif /* __cplusplus */
