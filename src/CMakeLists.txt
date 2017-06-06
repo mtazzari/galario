@@ -86,3 +86,4 @@ install (TARGETS ${install_libs}
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
   )
+install(FILES galario.hpp DESTINATION include)
