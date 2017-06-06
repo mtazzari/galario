@@ -153,7 +153,7 @@ void fft_h(int nx, dcomplex* data) {
 
 #endif
 
-void C_acc_fft(int nx, void* data) {
+void C_fft2d(int nx, void* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
      size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -224,7 +224,7 @@ void shift_h(int const nx, dcomplex* const __restrict__ a) {
     }
 }
 
-void C_acc_shift(int nx, void* data) {
+void C_fftshift(int nx, void* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
      size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -241,7 +241,7 @@ void C_acc_shift(int nx, void* data) {
 #endif
 }
 
-void C_acc_shift_fft_shift(int nx, void* data) {
+void C_fftshift_fft2d_fftshift(int nx, void* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
      size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -256,7 +256,7 @@ void C_acc_shift_fft_shift(int nx, void* data) {
      CCheck(cudaFree(data_d));
 #else
     shift_h(nx, (dcomplex*) data);
-    C_acc_fft(nx, (dcomplex*) data);
+    C_fft2d(nx, (dcomplex*) data);
     shift_h(nx, (dcomplex*) data);
 #endif
 }
@@ -325,7 +325,7 @@ void interpolate_h(int const nx, dcomplex* const __restrict__ data, int const nd
     }
 }
 
-void C_acc_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
+void C_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
 {
 #ifdef __CUDACC__
     // copy the image data
@@ -417,7 +417,7 @@ void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal const 
 }
 
 
-void C_acc_apply_phase(int nx, void* data, dreal x0, dreal y0) {
+void C_apply_phase_2d(int nx, void* data, dreal x0, dreal y0) {
 #ifdef __CUDACC__
     dcomplex *data_d;
 
@@ -585,7 +585,7 @@ void diff_weighted_h
     }
 }
 
-void C_acc_chi2
+void C_reduce_chi2
         (int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
 {
 #ifdef __CUDACC__
@@ -652,7 +652,7 @@ void C_acc_chi2
 #endif
 }
 
-void C_acc_do_everything(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2, int rank) {
+void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2, int rank) {
 
     // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
 
@@ -682,16 +682,16 @@ void C_acc_do_everything(int nx, void* data, dreal x0, dreal y0, void* vpixel_ce
 
      CCheck(cudaMalloc((void**)&data_d, nbytes));
      CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
-#if 0
-     // TODO copy memory asynchronously or create streams to define dependencies
-     // use nonzero cudaStream_t
-     kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
 
-     // all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
-     // same for cublas
+     /* async memory copy:
+      TODO copy memory asynchronously or create streams to define dependencies
+      use nonzero cudaStream_t
+      kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
 
-     // draw dependcies on paper: first thing is to do fft while other data is transferred
-#endif
+      all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
+      same for cublas
+      draw dependcies on paper: first thing is to do fft while other data is transferred
+     */
 
      dreal *u_d, *v_d;
      size_t nbytes_ndat = sizeof(dreal)*nd;
