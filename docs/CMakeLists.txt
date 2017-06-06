@@ -21,7 +21,7 @@ configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/_static/" DESTINATION "${BINARY_BUILD_DIR}/_static")
+# file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/_static/" DESTINATION "${BINARY_BUILD_DIR}/_static")
 add_custom_target(docs ALL
     ${SPHINX_EXECUTABLE}
         -q -b html
