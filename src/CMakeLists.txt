@@ -27,10 +27,11 @@ if(OPENMP_FOUND)
   # https://cmake.org/Bug/view.php?id=9075
   # http://stackoverflow.com/questions/24532853/how-to-add-linker-flag-for-libraries-with-cmake
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(FFTW_PARALLEL "OPENMP")
 endif()
 
 # we need fftw with (single+double)x(serial+openmp)
-find_package(FFTW3 COMPONENTS SINGLE DOUBLE OPENMP)
+find_package(FFTW3 COMPONENTS SINGLE DOUBLE ${FFTW_PARALLEL})
 
 foreach(t IN ITEMS galario_single galario)
   target_link_libraries(${t} ${FFTW3_LIBRARIES})
