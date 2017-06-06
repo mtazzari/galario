@@ -22,10 +22,6 @@ find_package(CUDA)
 # the name sounds promising but it didn't go well with UseCython below
 # include(FindCoherentPython)
 
-# Include the CMake script UseCython.cmake.  This defines add_cython_module().
-# Instruction for use can be found at the top of cmake/UseCython.cmake.
-include(UseCython)
-
 # has to come before subdirectories are added
 enable_testing()
 
@@ -33,8 +29,18 @@ enable_testing()
 set(BUILD_SHARED_LIBS ON)
 add_subdirectory(src)
 
+###
 # python not required but optional
+###
 set(BUILD_WRAPPER FALSE)
+
+# Include the CMake script UseCython.cmake.  This defines add_cython_module().
+# Instruction for use can be found at the top of cmake/UseCython.cmake.
+find_package(Cython)
+if (CYTHON_EXECUTABLE)
+  include(UseCython)
+endif()
+
 if(PYTHONLIBS_FOUND AND CYTHON_FOUND)
   # to avoid fatal error: numpy/arrayobject.h: No such file or directory
   find_package(Numpy)
@@ -50,8 +56,10 @@ if(PYTHONLIBS_FOUND AND CYTHON_FOUND)
 endif()
 
 if(BUILD_WRAPPER)
-  message(STATUS "Attempting to build cython wrapper")
+  message(STATUS "Building the ${PROJECT_NAME} python wrapper")
   add_subdirectory(python)
+else()
+  message(STATUS "Skipping the ${PROJECT_NAME} python wrapper")
 endif()
 
 find_package(Sphinx)
