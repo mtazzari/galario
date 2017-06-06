@@ -33,10 +33,30 @@ enable_testing()
 set(BUILD_SHARED_LIBS ON)
 add_subdirectory(src)
 
-# TODO perhaps python not required but optional?
+# python not required but optional
+set(BUILD_WRAPPER FALSE)
+if(PYTHONLIBS_FOUND AND CYTHON_FOUND)
+  # to avoid fatal error: numpy/arrayobject.h: No such file or directory
+  find_package(Numpy)
 
-# if(PYTHONLIBS_FOUND)
-add_subdirectory(python)
-# endif()
+  # should check NUMPY_FOUND but there is a bug in GreatCmakeCookoff
+  # https://github.com/UCL/GreatCMakeCookOff/issues/57
+  if (NUMPY_INCLUDE_DIRS)
+    set(BUILD_WRAPPER TRUE)
+    include_directories("${NUMPY_INCLUDE_DIRS}")
+  else ()
+    message(STATUS "NumPy not found")
+  endif()
+endif()
 
-add_subdirectory(docs)
+if(BUILD_WRAPPER)
+  message(STATUS "Attempting to build cython wrapper")
+  add_subdirectory(python)
+endif()
+
+find_package(Sphinx)
+if(SPHINX_FOUND)
+  add_subdirectory(docs)
+else()
+  message(STATUS "Cannot build the documentation without sphinx")
+endif()

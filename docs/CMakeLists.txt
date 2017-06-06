@@ -1,7 +1,5 @@
 # https://eb2.co/blog/2012/03/sphinx-and-cmake-beautiful-documentation-for-c-projects/
 
-find_package(Sphinx REQUIRED)
-
 if(NOT DEFINED SPHINX_THEME)
     set(SPHINX_THEME default)
 endif()
