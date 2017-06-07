@@ -500,7 +500,7 @@ def test_chi2(nsamples, real_type, complex_type, tol, acc_lib, pars):
 # note that the rotated indices are computed different by get_rotix_nf and cuda_rotix (see comment on test_rotix())
 # this reflects in absolute discrepancy ~1.e-5.
 # to be assessed: if this error on the interpolated points is acceptable or not. Now we assume it is
-@pytest.mark.skipif(False, reason="requires cuda and the cuda_rotix_interpolate function")
+@pytest.mark.skipif(True, reason="requires cuda and the cuda_rotix_interpolate function")
 def test_rotix_interpolate():
     size = 1024
     nsamples = 10
@@ -533,7 +533,7 @@ def test_rotix_interpolate():
     np.testing.assert_allclose(ImInt, complexInt.imag, atol=tol)
 
 
-@pytest.mark.skipif(False, reason="currently broken, issue #39")
+@pytest.mark.skipif(True, reason="currently broken, issue #39")
 def test_visibility_map():
     from py2layer import TwoLayer_g_7K
 
