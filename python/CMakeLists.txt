@@ -57,12 +57,12 @@ install(DIRECTORY ${PYGALARIO_DIR}
 
 # TODO avoid installation of test scripts
 # http://stackoverflow.com/questions/13381742/cmake-exclude-executable-during-install
-set(pyvfit_test test_pyvfit.py)
+set(galario_test test_galario.py)
 
 # use configure_file so it's copied on every change of the source
 # http://stackoverflow.com/a/34800667/987623
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${pyvfit_test}"
+  "${CMAKE_CURRENT_SOURCE_DIR}/${galario_test}"
   "${CMAKE_CURRENT_BINARY_DIR}/"
   COPYONLY
   )
@@ -78,4 +78,4 @@ setup_pytest("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/py.test.
 # https://github.com/UCL/GreatCMakeCookOff/issues/56
 #
 # need to run in binary_dir so import of pygalario works
-add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${pyvfit_test}")
+add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${galario_test}")
