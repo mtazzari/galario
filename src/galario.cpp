@@ -593,6 +593,27 @@ void diff_weighted_h
     }
 }
 
+#ifdef __CUDACC__
+void reduce_chi2_d
+(int nd, dreal const* const __restrict__ fobs_re, dreal const* const __restrict__ fobs_im, dcomplex * const __restrict__ fint, dreal const* const __restrict__ weights, dreal* chi2)
+{
+    cublasHandle_t handle;
+    CBlasCheck(cublasCreate(&handle));
+
+    /* compute weighted difference */
+    static const int nthreads = 32;
+    diff_weighted_d<<<nd / nthreads + 1, nthreads>>>(nd, fobs_re, fobs_im, fint, weights);
+
+    // only device pointers! maybe not ... check with jiri
+    // compute the Euclidean norm
+    CUBLASNRM2(handle, nd, fint, 1, chi2);
+    // but we want the square of the norm
+    *chi2 *= *chi2;
+
+    CBlasCheck(cublasDestroy(handle));
+}
+#endif
+
 void C_reduce_chi2
         (int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
 {
@@ -620,18 +641,7 @@ void C_reduce_chi2
      CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
      CCheck(cudaMemcpy(fint_d, fint, nbytes_fint, cudaMemcpyHostToDevice));
 
-     cublasHandle_t handle;
-     CBlasCheck(cublasCreate(&handle));
-
-     /* compute weighted difference */
-     static const int nthreads = 32;
-     diff_weighted_d<<<nd / nthreads + 1, nthreads>>>(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
-
-     // only device pointers! maybe not ... check with jiri
-     // compute the Euclidean norm
-     CUBLASNRM2(handle, nd, fint_d, 1, chi2);
-     // but we want the square of the norm
-     *chi2 *= *chi2;
+     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
 
      // CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
 
@@ -640,7 +650,6 @@ void C_reduce_chi2
      CCheck(cudaFree(fobs_im_d));
      CCheck(cudaFree(weights_d));
      CCheck(cudaFree(fint_d));
-     CBlasCheck(cublasDestroy(handle));
 
 #else
 
