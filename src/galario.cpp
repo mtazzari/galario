@@ -55,7 +55,9 @@
     #define CMPLXSUB(a, b) ((a) - (b))
     #define CMPLXADD(a, b) ((a) + (b))
     #define CMPLXMUL(a, b) ((a) * (b))
+#if defined(_OPENMP)
     #include <omp.h>  // for FFTW
+#endif
     #include <fftw3.h>
 #endif
 
@@ -77,19 +79,25 @@ void C_acc_cleanup() {}
 
 #else
 void C_acc_init() {
+#ifdef _OPENMP
     int status = fftw_init_threads();
     // TODO add a macro to catch if status = 0 (some errors occurred)
 
     fftw_plan_with_nthreads(omp_get_max_threads());
+#endif
 }
 
 // TODO: define macro FFTW as fftw or fftwf
 void C_acc_cleanup() {
 #ifdef DOUBLE_PRECISION
+#ifdef _OPENMP
     fftw_cleanup_threads();
+#endif
     fftw_cleanup();
 #else
+#ifdef _OPENMP
     fftwf_cleanup_threads();
+#endif
     fftwf_cleanup();
 #endif
 }
