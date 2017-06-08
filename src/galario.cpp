@@ -73,6 +73,14 @@
 #define NRANK 2
 #define BATCH 1
 
+int nthreads(int x)
+{
+    static int mynthreads = 32;
+    if (x > 0)
+        mynthreads = x;
+    return mynthreads;
+}
+
 #ifdef __CUDACC__
 void C_acc_init() {}
 void C_acc_cleanup() {}
