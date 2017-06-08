@@ -28,6 +28,11 @@ sec2rad = 4.848136811e-06  # from arcsec to radians
 # END TO BE REMOVED
 
 
+# use last gpu if available. Check `watch -n 0.1 nvidia-smi` to see which gpu is
+# used during test execution.
+ngpus = g_double.ngpus()
+g_double.use_gpu(max(0, ngpus-1))
+
 ########################################################
 #                                                      #
 #                  REFERENCE FUNCTIONS                 #
@@ -477,10 +482,9 @@ def test_chi2(nsamples, real_type, complex_type, tol, acc_lib, pars):
 
     # GPU
     factor = 2.*np.pi*sec2rad/wle_m*maxuv
-    rank = 0  # MPI rank
+
     chi2_cuda = acc_lib.chi2(ref_complex, x0_arcsec * factor, y0_arcsec * factor,
-                             uv, udat, vdat, x.real.copy(), x.imag.copy(), w,
-                             rank)
+                             uv, udat, vdat, x.real.copy(), x.imag.copy(), w)
 
     np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=tol, atol=0.1)
 

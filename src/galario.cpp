@@ -660,7 +660,23 @@ void C_reduce_chi2
 #endif
 }
 
-void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2, int rank) {
+int C_ngpus()
+{
+    int num_devices = 0;
+#ifdef __CUDACC__
+    CCheck(cudaGetDeviceCount(&num_devices));
+#endif
+    return num_devices;
+}
+
+void C_use_gpu(int device_id)
+{
+#ifdef __CUDACC__
+    CCheck(cudaSetDevice(device_id));
+#endif
+}
+
+void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
 
     // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
 
@@ -673,15 +689,9 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
 #ifdef __CUDACC__
 
     // ################################
-     // ### ALLOCATION, INITLIZATION ###
+     // ### ALLOCATION, INITIALIZATION ###
      // ################################
      // General allocation
-     int num_devices;
-     int device_id;
-     CCheck(cudaGetDeviceCount(&num_devices));
-     device_id = rank % num_devices;
-     CCheck(cudaSetDevice(device_id));
-
      static const int nthreads = 32;
 
      // Initialization for FFT, shift (and apply phase)

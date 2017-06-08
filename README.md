@@ -53,7 +53,7 @@ testing
 After building, just run `ctest -V --output-on-failure` in `build/`. To see just
 the `py.test` results live,
 
-    make && cd python && py.test.sh test_pyvfit.py
+    make && python/py.test.sh python/test_galario.py
 
 My current one liner to get going is
 
