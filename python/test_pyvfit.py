@@ -17,20 +17,9 @@ par1 = {'wle_m': 0.003, 'x0_arcsec': 0.4, 'y0_arcsec': 4.}
 par2 = {'wle_m': 0.00088, 'x0_arcsec': -3.5, 'y0_arcsec': 7.2}
 par3 = {'wle_m': 0.00088, 'x0_arcsec': 0., 'y0_arcsec': 0.}
 
-# TO BE REMOVED
-pyvfit = pytest.importorskip("pyvfit")
-from pyvfit.imager import Imager
-from pyvfit.constants import sec2rad
-from pyvfit.observations import ObsData
-from pyvfit.star import Star
+sec2rad = 4.848136811e-06  # from arcsec to radians
 
-# infer static dir from the pyvfit location. This only works if pyvfit is installed in developer mode
-STATIC_DIR = os.path.join(os.path.split(pyvfit.__file__)[0], 'static')
-TEST_REFERENCE_DIR = os.path.join(STATIC_DIR, 'test_reference')
-TEST_OBSERVATIONS = os.path.join(TEST_REFERENCE_DIR, 'sample_obs.txt')
-TEST_STAR = os.path.join(TEST_REFERENCE_DIR, 'test_star.dat')
-TEST_MODEL = os.path.join(TEST_REFERENCE_DIR, 'test_twolayer.dat')
-TEST_VISIBILITY_MAP_0 = os.path.join(TEST_REFERENCE_DIR, 'test_visibility_map0.npy')
+# TO BE REMOVED
 
 # tests still to fix
 #  - test_visibility_map
@@ -150,7 +139,7 @@ def get_rotix_n(ux, vx, ur, vr, size):
     uri = np.zeros(len(ur), dtype=ur.dtype)
     vri = np.zeros(len(vr), dtype=vr.dtype)
 
-    for i in xrange(ntot):
+    for i in range(ntot):
         i2u = size-1
         i1u = 0
         # binary search: index of closest u element
@@ -182,7 +171,7 @@ def int_bilin(f, x, y):
 
     fint = np.zeros(nd, dtype=f.dtype)
 
-    for i in xrange(nd):
+    for i in range(nd):
         ii = int(x[i])
         jj = int(y[i])
         dfj = f[ii + 1, jj] - f[ii, jj]           # x
@@ -232,7 +221,6 @@ def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
     """
     nx = ft_centered.shape[0]
     # convert x0, y0 from arcsec to pixel
-    sec2rad = 4.848136811e-06  # from arcsec to radians
 
     sec2pixel = sec2rad/wle
     x0 *= sec2pixel
@@ -524,7 +512,7 @@ def test_rotix_interpolate():
     complexInt = acc_lib.acc_rotix_interpolate(uv, udat, vdat, fourier)
 
     tol = 1e-6
-    #for i in xrange(len(udat)-1, -1, -1):
+    #for i in range(len(udat)-1, -1, -1):
     #    print("{0}, {1}, {2}  (py)".format(i, repr(uroti[i]), repr(vroti[i])))
 
 
