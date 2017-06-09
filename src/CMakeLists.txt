@@ -45,6 +45,10 @@ if (CUDA_FOUND)
   # nvcc. Probably a function will do it that emits "-Xcompiler arg1 -Xcompiler arg2 ..."
   list(APPEND CUDA_NVCC_FLAGS ${compile_options})
 
+  # for timing test, we want to avoid the start-up time from JIT, so we create fat binaries
+  # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
+  list(APPEND CUDA_NVCC_FLAGS --gpu-architecture=compute_30 --gpu-code=compute_30,sm_53)
+
   SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
   # Specify include directories
