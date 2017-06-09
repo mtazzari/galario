@@ -445,6 +445,55 @@ def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
+def test_sample(nsamples, real_type, complex_type, tol, acc_lib, pars):
+    # go for fairly low precision when we add up many large numbers, we loose precision
+    # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
+
+    wle_m = pars.get('wle_m', 0.003)
+    x0_arcsec = pars.get('x0_arcsec', 0.4)
+    y0_arcsec = pars.get('y0_arcsec', 10.)
+
+    # generate the samples
+    maxuv_generator = 3.e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+
+    # compute the matrix size and maxuv
+    size, minuv, maxuv = matrix_size(udat, vdat)
+    print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
+    uv = pixel_coordinates(maxuv, size).astype(real_type)
+
+    # create model complex image (it happens to have 0 imaginary part)
+    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    ref_complex = reference_image.astype(complex_type)
+
+    # CPU version
+    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
+    fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
+
+    # compute interpolation and chi2
+    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
+    ReInt = int_bilin(fourier_shifted.real, uroti, vroti).astype(real_type)
+    ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
+
+    # GPU
+    factor = 2.*np.pi*sec2rad/wle_m*maxuv
+    sampled = acc_lib.sample(ref_complex, x0_arcsec * factor, y0_arcsec * factor,
+                             uv, udat, vdat)
+
+    np.testing.assert_allclose(ReInt, sampled.real, rtol=tol, atol=0.1)
+    np.testing.assert_allclose(ImInt, sampled.imag, rtol=tol, atol=0.1)
+
+
+@pytest.mark.parametrize("nsamples, real_type, complex_type, tol, acc_lib, pars",
+                         [(1000, 'float32', 'complex64', 8.e-3, g_single, par1),
+                          (1000, 'float64', 'complex128', 1.e-14, g_double, par1),
+                          (1000, 'float32', 'complex64', 5.e-2, g_single, par2),
+                          (1000, 'float64', 'complex128', 1.e-14, g_double, par2),
+                          (1000, 'float32', 'complex64', 8.e-3, g_single, par3),
+                          (1000, 'float64', 'complex128', 1.e-14, g_double, par3)],
+                         ids=["SP_par1", "DP_par1",
+                              "SP_par2", "DP_par2",
+                              "SP_par3", "DP_par3"])
 def test_chi2(nsamples, real_type, complex_type, tol, acc_lib, pars):
     # go for fairly low precision when we add up many large numbers, we loose precision
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
