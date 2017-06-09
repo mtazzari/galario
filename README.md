@@ -22,21 +22,22 @@ libraries are found. In `build/`, do
 
     cmake -DPython_ADDITIONAL_VERSIONS=3.5 ..
 
-Bug to be fixed: before doing make, you have to manually create the directory:
+To find FFTW3 in a nonstandard directory, say `$FFTW_HOME`, tell `cmake`
+about it
 
-    mkdir galario/docs/_static
+    cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME}
+
+For multiple directories, use a `;` between directory
+
+    cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME};/opt/something/else
 
 python environment
 ------------------
 
 galario should work with both python 2 and 3
 
-    conda create --name galario2 python=2 numpy cython
-    conda create --name galario3 python=3 numpy cython
-
-If you want to run the unit test, you need some more packages
-
     conda create --name galario2 python=2 numpy cython astropy pytest
+    conda create --name galario3 python=3 numpy cython astropy pytest
 
 cmake may get confused with the conda python and the system
 python. This is a general problem
