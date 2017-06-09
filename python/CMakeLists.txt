@@ -54,6 +54,10 @@ install(DIRECTORY ${PYGALARIO_DIR}
 ###
 # tests
 ###
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/speed_benchmark.py"
+  "${CMAKE_CURRENT_BINARY_DIR}/"
+  COPYONLY
+  )
 
 # TODO avoid installation of test scripts
 # http://stackoverflow.com/questions/13381742/cmake-exclude-executable-during-install
