@@ -558,6 +558,107 @@ void C_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* i
 #endif
 }
 
+void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fint)
+{
+
+    // Initilization for rotix and interpolate
+    assert(nx >= 2);
+    dreal* pixel_centers = (dreal*) vpixel_centers;
+    const dreal umin = pixel_centers[0];
+    const dreal du = pixel_centers[1] - umin;
+
+#ifdef __CUDACC__
+    // ################################
+     // ### ALLOCATION, INITIALIZATION ###
+     // ################################
+
+     // Initialization for FFT, shift (and apply phase)
+     dcomplex *data_d;
+     size_t nbytes = sizeof(dcomplex)*nx*nx;
+
+     CCheck(cudaMalloc((void**)&data_d, nbytes));
+     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+
+     /* async memory copy:
+      TODO copy memory asynchronously or create streams to define dependencies
+      use nonzero cudaStream_t
+      kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
+
+      all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
+      same for cublas
+      draw dependcies on paper: first thing is to do fft while other data is transferred
+     */
+
+     dreal *u_d, *v_d;
+     size_t nbytes_ndat = sizeof(dreal)*nd;
+     dreal *indu_d, *indv_d;
+     CCheck(cudaMalloc((void**)&indu_d, nbytes_ndat));
+     CCheck(cudaMalloc((void**)&indv_d, nbytes_ndat));
+
+     CCheck(cudaMalloc((void**)&u_d, nbytes_ndat));
+     CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
+     CCheck(cudaMalloc((void**)&v_d, nbytes_ndat));
+     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
+
+     // take indu_d and indv_d as u and v (no need to copy them) and reserve memory for the interpolated values
+     dcomplex *fint_d;
+     int nbytes_fint = sizeof(dcomplex) * nd;
+     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+
+     // Initialization for comparison and chi square computation
+     /* allocate and copy observational data */
+     dreal *fobs_re_d, *fobs_im_d, *weights_d;
+
+     CCheck(cudaMalloc((void**)&fobs_re_d, nbytes_ndat));
+     CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_ndat, cudaMemcpyHostToDevice));
+
+     CCheck(cudaMalloc((void**)&fobs_im_d, nbytes_ndat));
+     CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_ndat, cudaMemcpyHostToDevice));
+
+     CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
+     CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
+
+
+     // ################################
+     // ########### KERNELS ############
+     // ################################
+     // Kernel for shift --> FFT --> shift
+     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+     fft_d(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+     CCheck(cudaDeviceSynchronize());
+
+     // Kernel for phase
+     apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
+
+     // Kernel for rotix and interpolate
+     rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
+     interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
+     CCheck(cudaDeviceSynchronize());
+#else
+
+    // shift
+    shift_h(nx, (dcomplex*) data);
+
+    // cuda fft
+    fft_h(nx, (dcomplex*) data);
+
+    // shift
+    shift_h(nx, (dcomplex*) data);
+
+    // apply phase
+    apply_phase_h(nx, (dcomplex*) data, x0, y0);
+
+    // rotix_h
+    dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
+    dreal* indv = (dreal*) malloc(sizeof(dreal)*nd);
+    rotix_h(nx, umin, du, nd, (dreal*) u, (dreal*) v, indu, indv);
+
+    // interpolate
+    interpolate_h(nx, (dcomplex*) data, nd, indu, indv, (dcomplex*) fint);
+#endif
+}
 /**
  * Compute weighted difference between observations and model predictions (fint)
  */
@@ -694,82 +795,77 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
 
     // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
 
-    // Initilization for rotix and interpolate
-    assert(nx >= 2);
-    dreal* pixel_centers = (dreal*) vpixel_centers;
-    const dreal umin = pixel_centers[0];
-    const dreal du = pixel_centers[1] - umin;
-
 #ifdef __CUDACC__
 
-    // ################################
-     // ### ALLOCATION, INITIALIZATION ###
-     // ################################
 
-     // Initialization for FFT, shift (and apply phase)
-     dcomplex *data_d;
-     size_t nbytes = sizeof(dcomplex)*nx*nx;
+    // // ################################
+    //  // ### ALLOCATION, INITIALIZATION ###
+    //  // ################################
 
-     CCheck(cudaMalloc((void**)&data_d, nbytes));
-     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    //  // Initialization for FFT, shift (and apply phase)
+    //  dcomplex *data_d;
+    //  size_t nbytes = sizeof(dcomplex)*nx*nx;
 
-     /* async memory copy:
-      TODO copy memory asynchronously or create streams to define dependencies
-      use nonzero cudaStream_t
-      kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
+    //  CCheck(cudaMalloc((void**)&data_d, nbytes));
+    //  CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-      all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
-      same for cublas
-      draw dependcies on paper: first thing is to do fft while other data is transferred
-     */
+    //  /* async memory copy:
+    //   TODO copy memory asynchronously or create streams to define dependencies
+    //   use nonzero cudaStream_t
+    //   kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
 
-     dreal *u_d, *v_d;
-     size_t nbytes_ndat = sizeof(dreal)*nd;
-     dreal *indu_d, *indv_d;
-     CCheck(cudaMalloc((void**)&indu_d, nbytes_ndat));
-     CCheck(cudaMalloc((void**)&indv_d, nbytes_ndat));
+    //   all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
+    //   same for cublas
+    //   draw dependcies on paper: first thing is to do fft while other data is transferred
+    //  */
 
-     CCheck(cudaMalloc((void**)&u_d, nbytes_ndat));
-     CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
-     CCheck(cudaMalloc((void**)&v_d, nbytes_ndat));
-     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
+    //  dreal *u_d, *v_d;
+    //  size_t nbytes_ndat = sizeof(dreal)*nd;
+    //  dreal *indu_d, *indv_d;
+    //  CCheck(cudaMalloc((void**)&indu_d, nbytes_ndat));
+    //  CCheck(cudaMalloc((void**)&indv_d, nbytes_ndat));
 
-     // take indu_d and indv_d as u and v (no need to copy them) and reserve memory for the interpolated values
-     dcomplex *fint_d;
-     int nbytes_fint = sizeof(dcomplex) * nd;
-     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+    //  CCheck(cudaMalloc((void**)&u_d, nbytes_ndat));
+    //  CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
+    //  CCheck(cudaMalloc((void**)&v_d, nbytes_ndat));
+    //  CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
 
-     // Initialization for comparison and chi square computation
-     /* allocate and copy observational data */
-     dreal *fobs_re_d, *fobs_im_d, *weights_d;
+    //  // take indu_d and indv_d as u and v (no need to copy them) and reserve memory for the interpolated values
+    //  dcomplex *fint_d;
+    //  int nbytes_fint = sizeof(dcomplex) * nd;
+    //  CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
-     CCheck(cudaMalloc((void**)&fobs_re_d, nbytes_ndat));
-     CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_ndat, cudaMemcpyHostToDevice));
+    //  // Initialization for comparison and chi square computation
+    //  /* allocate and copy observational data */
+    //  dreal *fobs_re_d, *fobs_im_d, *weights_d;
 
-     CCheck(cudaMalloc((void**)&fobs_im_d, nbytes_ndat));
-     CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_ndat, cudaMemcpyHostToDevice));
+    //  CCheck(cudaMalloc((void**)&fobs_re_d, nbytes_ndat));
+    //  CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_ndat, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
-     CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
+    //  CCheck(cudaMalloc((void**)&fobs_im_d, nbytes_ndat));
+    //  CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_ndat, cudaMemcpyHostToDevice));
+
+    //  CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
+    //  CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
 
 
-     // ################################
-     // ########### KERNELS ############
-     // ################################
-     // Kernel for shift --> FFT --> shift
-     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
-     fft_d(nx, (dcomplex*) data_d);
-     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
-     CCheck(cudaDeviceSynchronize());
+    //  // ################################
+    //  // ########### KERNELS ############
+    //  // ################################
+    //  // Kernel for shift --> FFT --> shift
+    //  shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+    //  fft_d(nx, (dcomplex*) data_d);
+    //  shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+    //  CCheck(cudaDeviceSynchronize());
 
-     // Kernel for phase
-     apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
+    //  // Kernel for phase
+    //  apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
 
-     // Kernel for rotix and interpolate
-     rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
-     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
-     CCheck(cudaDeviceSynchronize());
+    //  // Kernel for rotix and interpolate
+    //  rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+    //  // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
+    //  interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
+    //  CCheck(cudaDeviceSynchronize());
 
      // Kernel for comparison and chi squared
      cublasHandle_t handle;
@@ -799,26 +895,29 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
 
 #else
 
-    // shift
-    shift_h(nx, (dcomplex*) data);
+    // // shift
+    // shift_h(nx, (dcomplex*) data);
 
-    // cuda fft
-    fft_h(nx, (dcomplex*) data);
+    // // cuda fft
+    // fft_h(nx, (dcomplex*) data);
 
-    // shift
-    shift_h(nx, (dcomplex*) data);
+    // // shift
+    // shift_h(nx, (dcomplex*) data);
 
-    // apply phase
-    apply_phase_h(nx, (dcomplex*) data, x0, y0);
+    // // apply phase
+    // apply_phase_h(nx, (dcomplex*) data, x0, y0);
 
-    // rotix_h
-    dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
-    dreal* indv = (dreal*) malloc(sizeof(dreal)*nd);
-    rotix_h(nx, umin, du, nd, (dreal*) u, (dreal*) v, indu, indv);
+    // // rotix_h
+    // dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
+    // dreal* indv = (dreal*) malloc(sizeof(dreal)*nd);
+    // rotix_h(nx, umin, du, nd, (dreal*) u, (dreal*) v, indu, indv);
 
-    // interpolate
-    dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-    interpolate_h(nx, (dcomplex*) data, nd, indu, indv, fint);
+    // // interpolate
+    //  dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
+    //  interpolate_h(nx, (dcomplex*) data, nd, indu, indv, fint);
+
+     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
+     C_sample(nx, data, x0, y0, vpixel_centers, nd, u, v, fint);
 
     // diff weigthed and chi2
     diff_weighted_h(nd, (dreal*) fobs_re, (dreal*) fobs_im, fint, (dreal*) weights);
@@ -830,6 +929,8 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
         y += real(CMPLXMUL(fint[i], conj(fint[i])));
     }
     *chi2 = y;
+
+    free(fint);
 
 #endif
 
