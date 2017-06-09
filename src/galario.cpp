@@ -73,7 +73,7 @@
 #define NRANK 2
 #define BATCH 1
 
-int nthreads(int x)
+int threads_per_block(int x)
 {
     static int mynthreads = 32;
     if (x > 0)
@@ -365,7 +365,7 @@ void C_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
      CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / nthreads() + 1, nthreads()>>>(nx, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
+     interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
 
      CCheck(cudaDeviceSynchronize());
 
@@ -540,7 +540,7 @@ void C_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* i
     CCheck(cudaMalloc((void**)&indu_d, nbytes_nd));
     CCheck(cudaMalloc((void**)&indv_d, nbytes_nd));
 
-    rotix_d<<<nd / nthreads() + 1, nthreads()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+    rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -607,7 +607,7 @@ void reduce_chi2_d
     CBlasCheck(cublasCreate(&handle));
 
     /* compute weighted difference */
-    diff_weighted_d<<<nd / nthreads() + 1, nthreads()>>>(nd, fobs_re, fobs_im, fint, weights);
+    diff_weighted_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nd, fobs_re, fobs_im, fint, weights);
 
     // only device pointers! maybe not ... check with jiri
     // compute the Euclidean norm
@@ -757,24 +757,24 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
      // ########### KERNELS ############
      // ################################
      // Kernel for shift --> FFT --> shift
-     shift_d<<<dim3(nx/2/nthreads()+1, nx/2/nthreads()+1), dim3(nthreads(), nthreads())>>>(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
      fft_d(nx, (dcomplex*) data_d);
-     shift_d<<<dim3(nx/2/nthreads()+1, nx/2/nthreads()+1), dim3(nthreads(), nthreads())>>>(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
      CCheck(cudaDeviceSynchronize());
 
      // Kernel for phase
-     apply_phase_d<<<dim3(nx/nthreads()+1, nx/nthreads()+1), dim3(nthreads(), nthreads())>>>(nx, (dcomplex*) data_d, x0, y0);
+     apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
 
      // Kernel for rotix and interpolate
-     rotix_d<<<nd / nthreads() + 1, nthreads()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+     rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / nthreads() + 1, nthreads()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
+     interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
      CCheck(cudaDeviceSynchronize());
 
      // Kernel for comparison and chi squared
      cublasHandle_t handle;
      CBlasCheck(cublasCreate(&handle));
-     diff_weighted_d<<<nd / nthreads() + 1, nthreads()>>>(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
+     diff_weighted_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
 
      // only device pointers! maybe not ... check with jiri
      // compute the Euclidean norm

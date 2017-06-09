@@ -35,7 +35,7 @@
 extern "C"
 {
 #endif /* __cplusplus */
-    int nthreads(int x=0);
+    int threads_per_block(int num=0);
     void C_fft2d(int nx, void* data);
     void C_fftshift(int nx, void* data);
     void C_fftshift_fft2d_fftshift(int nx, void* data);
