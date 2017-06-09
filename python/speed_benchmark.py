@@ -124,7 +124,7 @@ if __name__ == '__main__':
     double_prec = True
     #
     str_headers = "\t".join(
-        ["i", "size", "nsamples", "real", "complex", "Ttot", "Tavg", "Tstd",
+        ["i", "size", "nsamples", "lib", "real", "complex", "Ttot", "Tavg", "Tstd",
          "Tmin"])
     print(str_headers)
     with open(sys.argv[1], 'a') as f:
@@ -132,14 +132,19 @@ if __name__ == '__main__':
 
     nsamples = 1000
 
-    modes = [["single_cuda", "float32", "complex64"],
-             ["double_cuda", "float64", "complex128"]]
+    modes = [
+        # ["single_cuda", "float32", "complex64"],
+        # ["double_cuda", "float64", "complex128"],
+        ["single", "float32", "complex64"],
+        ["double", "float64", "complex128"]
+    ]
     i_tests = 0
 
     for mode in modes:
         acc_lib, real_type, complex_type = mode
 
-        for size in [256, 512, 1024, 2048, 4096, 8192, 16384]:
+        # for size in [256, 512, 1024, 2048, 4096, 8192, 16384]:
+        for size in [16384]: # [1024, 2048, 4096, 8192]:
             # for nsamples in [1000, 1000000]:
             i_tests += 1
             t = timeit.Timer('function_to_test(*x, acc_lib={})'.format(acc_lib),
@@ -154,7 +159,7 @@ if __name__ == '__main__':
             # call timeit `cycles` times. timeit returns sum of execution
             t_results = t.repeat(cycles, number)
             str_results = "\t".join(["{}".format(x) for x in
-                                     [i_tests, size, nsamples, real_type, complex_type, np.sum(t_results),
+                                     [i_tests, size, nsamples, acc_lib, real_type, complex_type, np.sum(t_results),
                                       np.average(t_results), np.std(t_results),
                                       np.min(t_results)]])
 
