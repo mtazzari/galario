@@ -49,6 +49,10 @@ if (CUDA_FOUND)
   # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
   list(APPEND CUDA_NVCC_FLAGS --gpu-architecture=compute_30 --gpu-code=compute_30,sm_53)
 
+  # Issue with cuda 7.5 on Ubuntu 16.04
+  # https://github.com/BVLC/caffe/issues/4046
+  list(APPEND CUDA_NVCC_FLAGS -D_FORCE_INLINES)
+
   SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
 
   # Specify include directories
