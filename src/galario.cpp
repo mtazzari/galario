@@ -55,11 +55,23 @@
     #define CMPLXSUB(a, b) ((a) - (b))
     #define CMPLXADD(a, b) ((a) + (b))
     #define CMPLXMUL(a, b) ((a) * (b))
-#if defined(_OPENMP)
-    #include <omp.h>  // for FFTW
+#ifdef _OPENMP
+    #include <omp.h>
 #endif
     #include <fftw3.h>
-#endif
+
+#define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
+
+inline void __fftwSafeCall(int status, const char *file, const int line) {
+#ifndef NDEBUG
+    if(status == 0) {
+        fprintf(stderr, "[ERROR] FFTW call %s: %d\n", file, line);
+        exit(44);
+    }
+#endif // NDEBUG
+}
+
+#endif // __CUDACC__
 
 #ifdef DOUBLE_PRECISION
     #define SQRT sqrt
@@ -88,8 +100,7 @@ void C_acc_cleanup() {}
 #else
 void C_acc_init() {
 #ifdef _OPENMP
-    int status = fftw_init_threads();
-    // TODO add a macro to catch if status = 0 (some errors occurred)
+    FFTWCheck(fftw_init_threads());
 
     fftw_plan_with_nthreads(omp_get_max_threads());
 #endif
