@@ -31,3 +31,7 @@ add_custom_target(docs ALL
         "${CMAKE_CURRENT_SOURCE_DIR}"
         "${SPHINX_HTML_DIR}"
     COMMENT "Building HTML documentation with Sphinx")
+
+# sphinx can fail if it doesn't find the theme. This should not prevent building
+# the actual source code, so docs have to be build explicitly
+set_target_properties(docs PROPERTIES EXCLUDE_FROM_ALL TRUE)

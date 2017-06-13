@@ -153,4 +153,5 @@ documentation
     make docs
 
 creates output in `docs/html` under the build directory. Add content to
-`docs/index.rst` or the files linked to therein.
+`docs/index.rst` or the files linked to therein. The `docs` are not build by
+default, only upon request.
