@@ -70,6 +70,17 @@ Force it to show all output
 By default, tests run on the GPU if code is available in `galario`. Deactivate
 by calling `... py.test.sh --gpu=0 ...`
 
+A cuda error such as
+
+    [ERROR] Cuda call /home/beaujean/workspace/protoplanetary/galario/build2/src/cuda_lib.cu: 815
+    invalid argument
+
+can mean that code cannot be executed on the GPU at all rather than that
+specific call being invalid. Check if `nvidia-smi` runs
+
+    $ nvidia-smi
+    Failed to initialize NVML: Driver/library version mismatch
+
 requirements
 ------------
 
