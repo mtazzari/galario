@@ -54,10 +54,11 @@ install(DIRECTORY ${PYGALARIO_DIR}
 ###
 # tests
 ###
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/speed_benchmark.py"
-  "${CMAKE_CURRENT_BINARY_DIR}/"
-  COPYONLY
-  )
+configure_file(speed_benchmark.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
+
+# this files is picked up only if in a parent directory of the actual test
+# but the test is invoked from `${CMAKE_CURRENT_BINARY_DIR}/../python_package/tests/`
+configure_file(conftest.py "${CMAKE_CURRENT_BINARY_DIR}/.." COPYONLY)
 
 # TODO avoid installation of test scripts
 # http://stackoverflow.com/questions/13381742/cmake-exclude-executable-during-install

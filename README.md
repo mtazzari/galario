@@ -27,9 +27,9 @@ about it
 
     cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME}
 
-For multiple directories, use a `;` between directory
+For multiple directories, use a `;` between directories
 
-    cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME};/opt/something/else
+    cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME};/opt/something/else ..
 
 python environment
 ------------------
@@ -51,21 +51,24 @@ conda environment is
 testing
 -------
 
-After building, just run `ctest -V --output-on-failure` in `build/`. To see just
-the `py.test` results live,
+After building, just run `ctest -V --output-on-failure` in `build/`.
 
-    make && python/py.test.sh python/test_galario.py
+Every time `python/test_galario.py` is modified, it has to be copied over to the
+build directory: only when run there, `import pygalario` works. The copy is
+performed in the configure step, `cmake` detects changes so always run `make` first.
 
-My current one liner to get going is
+`py.test` fails if it cannot collect any tests. This can be caused by C errors.
+To debug the testing, first find out the exact command of the test
 
-    FFTW_HOME="/usr/local/lib" CXX="/usr/local/bin/g++" CC="/usr/local/bin/gcc" LD="/usr/local/bin/g++" \
-    cmake -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} .. && make all test
+    make && ctest -V
 
-Every time `python/test_all.py` is modified, it has to be copied over
-to the build directory: only when run there, `import pygalario`
-works. The copy is performed in the build step but I couldn't get the
-dependency injected, so to run the tests, you have to do `make && make
-test` or `make && ctest`.
+`py.test` captures the output from the test, in particular from C to stderr.
+Force it to show all output
+
+    make && python/py.test.sh -s python_package/tests/test_galario.py
+
+By default, tests run on the GPU if code is available in `galario`. Deactivate
+by calling `... py.test.sh --gpu=0 ...`
 
 requirements
 ------------

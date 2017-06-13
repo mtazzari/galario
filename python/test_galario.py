@@ -4,8 +4,7 @@ import pytest
 
 import galario
 
-# TODO make configurable pass cmd option
-if galario.HAVE_CUDA:  # and option py.test has --gpu
+if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
     from galario import double_cuda as g_double
     from galario import single_cuda as g_single
 else:
