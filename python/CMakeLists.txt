@@ -66,11 +66,7 @@ set(galario_test test_galario.py)
 
 # use configure_file so it's copied on every change of the source
 # http://stackoverflow.com/a/34800667/987623
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/${galario_test}"
-  "${CMAKE_CURRENT_BINARY_DIR}/"
-  COPYONLY
-  )
+configure_file("${galario_test}" "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 add_test(NAME CanImport COMMAND ${PYTHON_EXECUTABLE} -c "import ${PROJECT_NAME}")
 
 # https://github.com/UCL/GreatCMakeCookOff/wiki/Adding-py.test-to-ctest

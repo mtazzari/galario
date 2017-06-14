@@ -68,7 +68,8 @@ Force it to show all output
     make && python/py.test.sh -s python_package/tests/test_galario.py
 
 By default, tests run on the GPU if code is available in `galario`. Deactivate
-by calling `... py.test.sh --gpu=0 ...`
+by calling `... py.test.sh --gpu=0 ...`. To select the parametrized test
+`test_sample`, `... py.test.sh -k sample`.
 
 A cuda error such as
 

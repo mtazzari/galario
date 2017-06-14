@@ -596,8 +596,7 @@ inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal
  */
 void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fint)
 {
-
-    // Initilization for rotix and interpolate
+    // Initialization for rotix and interpolate
     assert(nx >= 2);
     dreal* pixel_centers = (dreal*) vpixel_centers;
     const dreal umin = pixel_centers[0];
@@ -641,20 +640,9 @@ void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int 
      int nbytes_fint = sizeof(dcomplex) * nd;
      CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
-     // // Initialization for comparison and chi square computation
-     // /* allocate and copy observational data */
-     // dreal *fobs_re_d, *fobs_im_d, *weights_d;
-
-     // CCheck(cudaMalloc((void**)&fobs_re_d, nbytes_ndat));
-     // CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_ndat, cudaMemcpyHostToDevice));
-
-     // CCheck(cudaMalloc((void**)&fobs_im_d, nbytes_ndat));
-     // CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_ndat, cudaMemcpyHostToDevice));
-
-     // CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
-     // CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
-
+     // do the work on the cpu
      sample_d(nx, data_d, x0, y0, nd, umin, du, u_d, v_d, indu_d, indv_d, fint_d);
+
      // ################################
      // ########### TRANSFER DATA ######
      // ################################
@@ -690,6 +678,9 @@ void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int 
 
     // interpolate
     interpolate_h(nx, (dcomplex*) data, nd, indu, indv, (dcomplex*) fint);
+
+    free(indu);
+    free(indv);
 #endif
 }
 /**
