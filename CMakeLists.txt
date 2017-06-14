@@ -45,7 +45,10 @@ if(PYTHONLIBS_FOUND AND CYTHON_FOUND)
   # to avoid fatal error: numpy/arrayobject.h: No such file or directory
   find_package(Numpy)
 
-  if (NUMPY_FOUND)
+  # should check NUMPY_FOUND but there is a bug in GreatCmakeCookoff
+  # https://github.com/UCL/GreatCMakeCookOff/issues/57
+  # upon calling `make` repeatedly, NUMPY_FOUND set to false
+  if (NUMPY_INCLUDE_DIRS)
     set(BUILD_WRAPPER TRUE)
     include_directories("${NUMPY_INCLUDE_DIRS}")
   else ()
