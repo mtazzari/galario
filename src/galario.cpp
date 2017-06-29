@@ -912,12 +912,12 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
      // ################################
      // ########### CLEANUP ############
      // ################################
-     // CCheck(cudaFree(data_d));
-     // CCheck(cudaFree(u_d));
-     // CCheck(cudaFree(v_d));
-     // CCheck(cudaFree(indu_d));
-     // CCheck(cudaFree(indv_d));
-     // CCheck(cudaFree(fint_d));
+     CCheck(cudaFree(data_d));
+     CCheck(cudaFree(u_d));
+     CCheck(cudaFree(v_d));
+     CCheck(cudaFree(indu_d));
+     CCheck(cudaFree(indv_d));
+     CCheck(cudaFree(fint_d));
      CCheck(cudaFree(fobs_re_d));
      CCheck(cudaFree(fobs_im_d));
      CCheck(cudaFree(weights_d));
