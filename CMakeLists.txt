@@ -11,7 +11,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(LookUp-GreatCMakeCookOff)
 
 ###
-# the optional and required packages
+# the optional packages
 ###
 find_package(CUDA)
 

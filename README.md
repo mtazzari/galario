@@ -25,11 +25,16 @@ libraries are found. In `build/`, do
 To find FFTW3 in a nonstandard directory, say `$FFTW_HOME`, tell `cmake`
 about it
 
-    cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME}
+    cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME} ..
 
 For multiple directories, use a `;` between directories
 
     cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME};/opt/something/else ..
+
+`cmake` tests for compilation on the gpu with cuda by default. To turn
+this off, use
+
+    cmake -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=0 ..
 
 python environment
 ------------------
