@@ -43,6 +43,41 @@ def _check_obs(fobs_re, fobs_im, weights, fint=None):
 
 
 def sample(dcomplex[:,::1] data, x0, y0, dreal[::1] pixel_centers, dreal[::1] u, dreal[::1] v):
+    """
+    Performs Fourier transform, translation by (x0, y0) and sampling in (u, v) locations of a given image.
+
+    Typical call signature::
+
+      sample(data, x0, y0, pixel_centers, u, v)
+
+
+    Parameters
+    ----------
+    data: array_like
+        Image in the real space. It is required to be squared.
+    x0: float
+        X-axis offset by which the image has to be translated (unit: same as pixel_centers).
+    y0: float
+        Y-axis offset by which the image has to be translated (unit: same as pixel_centers).  
+    pixel_centers: array_like
+        Coordinates of the pixel centers.
+    u: array_like
+        u coordinates of the points where the FT has to be sampled.
+    v: array_like
+        v coordinates of the points where the FT has to be sampled.
+
+    Returns
+    -------
+    fint: array_like, complex
+        Sampled values of the translated Fourier transform of data. 
+
+    Example
+    -------
+        fint = sample(data, x0, y0, pixel_centers, u, v)
+        Re_V = fint.real
+        Im_V = fint.imag
+
+    """
     _check_data(data)
     fint = np.empty(len(u), dtype=complex_dtype)
     C_sample(len(data), <void*>&data[0,0], x0, y0, <void*>&pixel_centers[0], len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
