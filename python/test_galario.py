@@ -32,6 +32,8 @@ sec2rad = 4.848136811e-06  # from arcsec to radians
 ngpus = g_double.ngpus()
 g_double.use_gpu(max(0, ngpus-1))
 
+g_double.threads_per_block()
+
 ########################################################
 #                                                      #
 #                  REFERENCE FUNCTIONS                 #

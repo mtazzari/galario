@@ -18,6 +18,7 @@ ELSE:
 
 cdef extern from "galario.hpp":
     # todo avoid void*
+    int galario_threads_per_block(int num);
     void galario_fft2d(int nx, void* data)
     void galario_fftshift(int nx, void* data)
     void galario_fftshift_fft2d_fftshift(int nx, void* data)
@@ -129,3 +130,7 @@ def ngpus():
 
 def use_gpu(int device_id):
     galario_use_gpu(device_id)
+
+
+def threads_per_block(int num=0):
+    return galario_threads_per_block(num)
