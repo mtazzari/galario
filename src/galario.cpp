@@ -85,7 +85,7 @@ inline void __fftwSafeCall(int status, const char *file, const int line) {
 #define NRANK 2
 #define BATCH 1
 
-int threads_per_block(int x)
+int galario_threads_per_block(int x)
 {
     static int mynthreads = 32;
     if (x > 0)
@@ -94,11 +94,11 @@ int threads_per_block(int x)
 }
 
 #ifdef __CUDACC__
-void C_acc_init() {}
-void C_acc_cleanup() {}
+void galario_acc_init() {}
+void galario_acc_cleanup() {}
 
 #else
-void C_acc_init() {
+void galario_acc_init() {
 #ifdef _OPENMP
     FFTWCheck(fftw_init_threads());
 
@@ -107,7 +107,7 @@ void C_acc_init() {
 }
 
 // TODO: define macro FFTW as fftw or fftwf
-void C_acc_cleanup() {
+void galario_acc_cleanup() {
 #ifdef DOUBLE_PRECISION
 #ifdef _OPENMP
     fftw_cleanup_threads();
@@ -180,7 +180,7 @@ void fft_h(int nx, dcomplex* data) {
 
 #endif
 
-void C_fft2d(int nx, void* data) {
+void galario_fft2d(int nx, void* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
      size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -251,7 +251,7 @@ void shift_h(int const nx, dcomplex* const __restrict__ a) {
     }
 }
 
-void C_fftshift(int nx, void* data) {
+void galario_fftshift(int nx, void* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
      size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -268,7 +268,7 @@ void C_fftshift(int nx, void* data) {
 #endif
 }
 
-void C_fftshift_fft2d_fftshift(int nx, void* data) {
+void galario_fftshift_fft2d_fftshift(int nx, void* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
      size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -283,7 +283,7 @@ void C_fftshift_fft2d_fftshift(int nx, void* data) {
      CCheck(cudaFree(data_d));
 #else
     shift_h(nx, (dcomplex*) data);
-    C_fft2d(nx, (dcomplex*) data);
+    galario_fft2d(nx, (dcomplex*) data);
     shift_h(nx, (dcomplex*) data);
 #endif
 }
@@ -296,8 +296,8 @@ void C_fftshift_fft2d_fftshift(int nx, void* data) {
  * @param indv same as indu but for the v direction [nd].
  * @param fint The image values obtained with bilinear interpolation at the data point values [nd].
  */
-//TODO convert C_acc_interpolate with stride loops.
-// 1) C_acc_interpolate -> interpolate_d
+//TODO convert galario_acc_interpolate with stride loops.
+// 1) galario_acc_interpolate -> interpolate_d
 // 2) define interpolate_core that performs the actions inside the for loop.
 //    we need to re-define CUCSUB, CUCADD, CUCMUL if __CUDACC__ not defined.
 //    suggestion: change CUCSUB -> CSUB ... that, CSUB=CUCSUB ifdef __CUDACC__, else CSUB: subtract between two complex numbers
@@ -352,7 +352,7 @@ void interpolate_h(int const nx, dcomplex* const __restrict__ data, int const nd
     }
 }
 
-void C_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
+void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
 {
 #ifdef __CUDACC__
     // copy the image data
@@ -376,7 +376,7 @@ void C_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
      CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
+     interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
 
      CCheck(cudaDeviceSynchronize());
 
@@ -443,7 +443,7 @@ void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal const 
 }
 
 
-void C_apply_phase_2d(int nx, void* data, dreal x0, dreal y0) {
+void galario_apply_phase_2d(int nx, void* data, dreal x0, dreal y0) {
 #ifdef __CUDACC__
     dcomplex *data_d;
 
@@ -529,7 +529,7 @@ void rotix_h(int nx, dreal umin, dreal du, int nd, dreal const* u, dreal const* 
 }
 
 
-void C_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* indu, void* indv)
+void galario_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* indu, void* indv)
 {
     assert(nx >= 2);
 
@@ -551,7 +551,7 @@ void C_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* i
     CCheck(cudaMalloc((void**)&indu_d, nbytes_nd));
     CCheck(cudaMalloc((void**)&indv_d, nbytes_nd));
 
-    rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+    rotix_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -576,25 +576,25 @@ inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal
      // ########### KERNELS ############
      // ################################
      // Kernel for shift --> FFT --> shift
-     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
      fft_d(nx, (dcomplex*) data_d);
-     shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
      CCheck(cudaDeviceSynchronize());
 
      // Kernel for phase
-     apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
+     apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
 
      // Kernel for rotix and interpolate
-     rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+     rotix_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
+     interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
 }
 #endif
 
 /**
  * return result in `fint`
  */
-void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fint)
+void galario_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fint)
 {
     // Initialization for rotix and interpolate
     assert(nx >= 2);
@@ -732,7 +732,7 @@ void reduce_chi2_d
     CBlasCheck(cublasCreate(&handle));
 
     /* compute weighted difference */
-    diff_weighted_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nd, fobs_re, fobs_im, fint, weights);
+    diff_weighted_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nd, fobs_re, fobs_im, fint, weights);
 
     // only device pointers! maybe not ... check with jiri
     // compute the Euclidean norm
@@ -744,7 +744,7 @@ void reduce_chi2_d
 }
 #endif
 
-void C_reduce_chi2
+void galario_reduce_chi2
         (int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
 {
 #ifdef __CUDACC__
@@ -799,7 +799,7 @@ void C_reduce_chi2
 #endif
 }
 
-int C_ngpus()
+int galario_ngpus()
 {
     int num_devices = 0;
 #ifdef __CUDACC__
@@ -808,14 +808,14 @@ int C_ngpus()
     return num_devices;
 }
 
-void C_use_gpu(int device_id)
+void galario_use_gpu(int device_id)
 {
 #ifdef __CUDACC__
     CCheck(cudaSetDevice(device_id));
 #endif
 }
 
-void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
 
     // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
     // Initilization for rotix and interpolate
@@ -882,24 +882,24 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
     //  // ########### KERNELS ############
     //  // ################################
     //  // Kernel for shift --> FFT --> shift
-    //  shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+    //  shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
     //  fft_d(nx, (dcomplex*) data_d);
-    //  shift_d<<<dim3(nx/2/threads_per_block()+1, nx/2/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d);
+    //  shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
     //  CCheck(cudaDeviceSynchronize());
 
     //  // Kernel for phase
-    //  apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
+    //  apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
 
     //  // Kernel for rotix and interpolate
-    //  rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+    //  rotix_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
     //  // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    //  interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
+    //  interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
     //  CCheck(cudaDeviceSynchronize());
 
      // // Kernel for comparison and chi squared
      // cublasHandle_t handle;
      // CBlasCheck(cublasCreate(&handle));
-     // diff_weighted_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
+     // diff_weighted_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
 
      // // only device pointers! maybe not ... check with jiri
      // // compute the Euclidean norm
@@ -947,7 +947,7 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
     //  interpolate_h(nx, (dcomplex*) data, nd, indu, indv, fint);
 
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-     C_sample(nx, data, x0, y0, vpixel_centers, nd, u, v, fint);
+     galario_sample(nx, data, x0, y0, vpixel_centers, nd, u, v, fint);
 
     // diff weigthed and chi2
     diff_weighted_h(nd, (dreal*) fobs_re, (dreal*) fobs_im, fint, (dreal*) weights);
