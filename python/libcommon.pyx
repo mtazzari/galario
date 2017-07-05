@@ -79,7 +79,7 @@ def sample(dcomplex[:,::1] data, x0, y0, dreal[::1] pixel_centers, dreal[::1] u,
 
     """
     _check_data(data)
-    fint = np.empty(len(u), dtype=complex_dtype)
+    fint = np.zeros(len(u), dtype=complex_dtype)
     C_sample(len(data), <void*>&data[0,0], x0, y0, <void*>&pixel_centers[0], len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
     return fint
 

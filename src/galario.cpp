@@ -296,9 +296,6 @@ void C_fftshift_fft2d_fftshift(int nx, void* data) {
  * @param indv same as indu but for the v direction [nd].
  * @param fint The image values obtained with bilinear interpolation at the data point values [nd].
  */
-//TODO convert C_acc_interpolate with stride loops.
-// 1) C_acc_interpolate -> interpolate_d
-// 2) define interpolate_core that performs the actions inside the for loop.
 //    we need to re-define CUCSUB, CUCADD, CUCMUL if __CUDACC__ not defined.
 //    suggestion: change CUCSUB -> CSUB ... that, CSUB=CUCSUB ifdef __CUDACC__, else CSUB: subtract between two complex numbers
 #ifdef __CUDACC__
@@ -309,7 +306,7 @@ inline void interpolate_core
         (int const idx_x, int const nx, dcomplex* const __restrict__ data, int const nd, dreal* const __restrict__ indu, dreal* const __restrict__ indv,  dcomplex* __restrict__ fint) {
     int const ii = int(indu[idx_x]);
     int const jj = int(indv[idx_x]);
-    int const base = ii * nx + jj;
+    int const base = ii + jj * nx;
 
     dcomplex const dfu1 = CMPLXSUB(data[base + nx], data[base]);
     dcomplex const dfu2 = CMPLXSUB(data[base + nx + 1], data[base + 1]);
@@ -403,10 +400,9 @@ inline void apply_phase_core
 
     dreal const u = idx_x/(dreal)nx - 0.5;
     dreal const v = idx_y/(dreal)nx - 0.5;
+    dreal const angle = u*x0 + v*y0;
 
-    dreal const angle = u*y0 + v*x0;
-
-    dcomplex const phase = dcomplex{dreal(cos(angle)), -dreal(sin(angle))};
+    dcomplex const phase = dcomplex{dreal(cos(angle)), dreal(sin(angle))};
 
     auto const idx = idx_x + idx_y*nx;
 
@@ -415,7 +411,10 @@ inline void apply_phase_core
 
 
 #ifdef __CUDACC__
-__global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, dreal const x0, dreal const y0) {
+__global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, dreal x0, dreal y0) {
+
+    x0 *= 2.*(dreal)M_PI;
+    y0 *= 2.*(dreal)M_PI;
 
     // indices
     int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -433,7 +432,11 @@ __global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, d
 }
 #endif
 
-void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal const x0, dreal const y0) {
+void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal x0, dreal y0) {
+
+    x0 *= 2.*(dreal)M_PI;
+    y0 *= 2.*(dreal)M_PI;
+
 #pragma omp parallel for
     for (auto x = 0; x < nx; ++x) {
         for (auto y = 0; y < nx; ++y) {
@@ -475,39 +478,49 @@ void C_apply_phase_2d(int nx, void* data, dreal x0, dreal y0) {
  * 3. the extent of the pixel_centers is the same in u and v direction but need not be square around origin
  *
  * @param nx number of pixels
- * @param pixel_centers positions at which DFT is available
- * @param nd number of data points
  * @param u part of data points in u direction
  * @param v part of data points in v direction
  * @param indu Index in u direction [output]
  * @param indv Index in v direction [output]
- *
- * NOTE: this can be highly simplified by noting that:
- *       indu[i] = index + (u[i] - umin - index*du)/du =
- *               = index + (u[i] - umin)/du - index = (u[i] - umin)/du
- *       And the same applies for indv.
- *       I think we can delete this kernel and put it directly in interpolate_core.
+*
  */
 #ifdef __CUDACC__
 __host__ __device__ inline void rotix_core
 #else
 inline void rotix_core
 #endif
-        (int const i, int const nx, dreal const umin, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
+        (int const i, int const nx, dreal const u0, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
+
+    // new
     // u
-    int index = floor((u[i] - umin) / du);
-    dreal center_ind = umin + index * du;
+//    int index = floor((u0 - u[i]) / du);
+//    dreal center_ind = u0 - index * du;
+//    indu[i] = index + (center_ind - u[i]) / du;
+//
+//    // v
+//    index = floor((u0 - v[i]) / du);
+//    center_ind = u0 - index * du;
+//    indv[i] = index + (center_ind - v[i]) / du;
+
+    // old
+    // u
+    int index = floor((u[i] - u0) / du);
+    dreal center_ind = u0 + index * du;
     indu[i] = index + (u[i] - center_ind) / du;
 
     // v
-    index = floor((v[i] - umin) / du);
-    center_ind = umin + index * du;
+    index = floor((v[i] - u0) / du);
+    center_ind = u0 + index * du;
     indv[i] = index + (v[i] - center_ind) / du;
+
 }
 
 
+
+
+
 #ifdef __CUDACC__
-__global__ void rotix_d(int nx, dreal umin, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
+__global__ void rotix_d(int nx, dreal const u0, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
     {
         // index
         int const i0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -516,15 +529,15 @@ __global__ void rotix_d(int nx, dreal umin, dreal du, int nd, dreal const* u, dr
         int const si = blockDim.x * gridDim.x;
 
         for (auto i = i0; i < nd; i += si) {
-            rotix_core(i, nx, umin, du, u, v, indu, indv);
+            rotix_core(i, nx, u0, du, u, v, indu, indv);
         }
     }
 #endif
 
-void rotix_h(int nx, dreal umin, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv) {
+void rotix_h(int nx, dreal const u0, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv) {
 #pragma omp parallel for
     for (auto i = 0; i < nd; ++i) {
-        rotix_core(i, nx, umin, du, u, v, indu, indv);
+        rotix_core(i, nx, u0, du, u, v, indu, indv);
     }
 }
 
@@ -535,8 +548,8 @@ void C_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* i
 
     // uniform distance between pixel centers
     dreal* pixel_centers = (dreal*) vpixel_centers;
-    const dreal umin = pixel_centers[0];
-    const dreal du = pixel_centers[1] - umin;
+    const dreal du = abs(pixel_centers[1] - pixel_centers[0]);
+    const dreal u0 = pixel_centers[0];
 
 #ifdef __CUDACC__
     dreal *u_d, *v_d;
@@ -551,7 +564,7 @@ void C_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* i
     CCheck(cudaMalloc((void**)&indu_d, nbytes_nd));
     CCheck(cudaMalloc((void**)&indv_d, nbytes_nd));
 
-    rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+    rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, u0, du, nd, u_d, v_d, indu_d, indv_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -565,12 +578,12 @@ void C_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* i
     CCheck(cudaFree(indu_d));
     CCheck(cudaFree(indv_d));
 #else
-    rotix_h(nx, umin, du, nd, (dreal*) u, (dreal*) v, (dreal*) indu, (dreal*) indv);
+    rotix_h(nx, u0, du, nd, (dreal*) u, (dreal*) v, (dreal*) indu, (dreal*) indv);
 #endif
 }
 
 #ifdef __CUDACC__
-inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal umin, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
+inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal u0, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
 {
      // ################################
      // ########### KERNELS ############
@@ -585,7 +598,7 @@ inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal
      apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
 
      // Kernel for rotix and interpolate
-     rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+     rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, u0, du, nd, u_d, v_d, indu_d, indv_d);
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
      interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
 }
@@ -599,8 +612,8 @@ void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int 
     // Initialization for rotix and interpolate
     assert(nx >= 2);
     dreal* pixel_centers = (dreal*) vpixel_centers;
-    const dreal umin = pixel_centers[0];
-    const dreal du = pixel_centers[1] - umin;
+    const dreal du = abs(pixel_centers[1] - pixel_centers[0]);
+    const dreal u0 = pixel_centers[0];
 
 #ifdef __CUDACC__
     // ################################
@@ -640,8 +653,8 @@ void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int 
      int nbytes_fint = sizeof(dcomplex) * nd;
      CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
-     // do the work on the cpu
-     sample_d(nx, data_d, x0, y0, nd, umin, du, u_d, v_d, indu_d, indv_d, fint_d);
+     // do the work on the gpu
+     sample_d(nx, data_d, x0, y0, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
 
      // ################################
      // ########### TRANSFER DATA ######
@@ -674,7 +687,7 @@ void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int 
     // rotix_h
     dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
     dreal* indv = (dreal*) malloc(sizeof(dreal)*nd);
-    rotix_h(nx, umin, du, nd, (dreal*) u, (dreal*) v, indu, indv);
+    rotix_h(nx, u0, du, nd, (dreal*) u, (dreal*) v, indu, indv);
 
     // interpolate
     interpolate_h(nx, (dcomplex*) data, nd, indu, indv, (dcomplex*) fint);
@@ -824,8 +837,8 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
 #ifdef __CUDACC__
 
     dreal* pixel_centers = (dreal*) vpixel_centers;
-    const dreal umin = pixel_centers[0];
-    const dreal du = pixel_centers[1] - umin;
+    const dreal du = abs(pixel_centers[1] - pixel_centers[0]);
+    const dreal u0 = pixel_centers[0];
 
     // ################################
      // ### ALLOCATION, INITIALIZATION ###
@@ -891,7 +904,7 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
     //  apply_phase_d<<<dim3(nx/threads_per_block()+1, nx/threads_per_block()+1), dim3(threads_per_block(), threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
 
     //  // Kernel for rotix and interpolate
-    //  rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, umin, du, nd, u_d, v_d, indu_d, indv_d);
+    //  rotix_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, u0, du, nd, u_d, v_d, indu_d, indv_d);
     //  // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
     //  interpolate_d<<<nd / threads_per_block() + 1, threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
     //  CCheck(cudaDeviceSynchronize());
@@ -907,7 +920,7 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
      // // but we want the square of the norm
      // *chi2 *= *chi2;
 
-     sample_d(nx, data_d, x0, y0, nd, umin, du, u_d, v_d, indu_d, indv_d, fint_d);
+     sample_d(nx, data_d, x0, y0, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
      // ################################
      // ########### CLEANUP ############
@@ -940,7 +953,7 @@ void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd
     // // rotix_h
     // dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
     // dreal* indv = (dreal*) malloc(sizeof(dreal)*nd);
-    // rotix_h(nx, umin, du, nd, (dreal*) u, (dreal*) v, indu, indv);
+    // rotix_h(nx, du, nd, (dreal*) u, (dreal*) v, indu, indv);
 
     // // interpolate
     //  dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
