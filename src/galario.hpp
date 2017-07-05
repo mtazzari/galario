@@ -35,21 +35,21 @@
 extern "C"
 {
 #endif /* __cplusplus */
-    int threads_per_block(int num=0);
-    void C_fft2d(int nx, void* data);
-    void C_fftshift(int nx, void* data);
-    void C_fftshift_fft2d_fftshift(int nx, void* data);
-    void C_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint);
-    void C_apply_phase_2d(int nx, void* data, dreal x0, dreal y0);
-    void C_acc_rotix(int nx, void* pixel_centers, int nd, void* u, void* v, void* indu, void* indv);
-    void C_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fint);
-    void C_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2);
-    void C_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2);
-    void C_acc_init();
-    void C_acc_cleanup();
+    int galario_threads_per_block(int num=0);
+    void galario_fft2d(int nx, void* data);
+    void galario_fftshift(int nx, void* data);
+    void galario_fftshift_fft2d_fftshift(int nx, void* data);
+    void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint);
+    void galario_apply_phase_2d(int nx, void* data, dreal x0, dreal y0);
+    void galario_acc_rotix(int nx, void* pixel_centers, int nd, void* u, void* v, void* indu, void* indv);
+    void galario_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fint);
+    void galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2);
+    void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2);
+    void galario_acc_init();
+    void galario_acc_cleanup();
 
-    int C_ngpus();
-    void C_use_gpu(int device_id);
+    int galario_ngpus();
+    void galario_use_gpu(int device_id);
 #ifdef __cplusplus
 }  /* extern "C" */
 #endif /* __cplusplus */
