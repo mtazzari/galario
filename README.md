@@ -16,6 +16,10 @@ Before playing with the options, it's best to remove the cache
 
     rm build/CMakeCache.txt
 
+### C compiler
+
+    cmake -DCMAKE_C_COMPILER=$GCC_BASE/bin/gcc ..
+
 ### python
 
 Specify a python version. This is useful if python 2.7 and 3.x are in
@@ -83,6 +87,10 @@ about it
 For multiple directories, use a `;` between directories
 
     cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME};/opt/something/else ..
+
+In case the directory with the header files is not inferred correctly,
+
+    cmake -DCMAKE_CXX_FLAGS="-I${FFTW_HOME}/include" ..
 
 ### cuda
 
