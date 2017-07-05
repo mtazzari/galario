@@ -321,7 +321,6 @@ inline void interpolate_core
     dcomplex const df = CMPLXSUB(fu2, fu1);
 
     fint[idx_x] = CMPLXADD(fu1, CMPLXMUL(df, dindv));
-    //printf("", indu_d[idx_x], indv_d[idx_x]);
 
 }
 
@@ -396,11 +395,11 @@ __host__ __device__ inline void apply_phase_core
 #else
 inline void apply_phase_core
 #endif
-        (int const idx_x, int const idx_y, int const nx, dcomplex* const __restrict__ data, dreal const x0, dreal const y0) {
+        (int const idx_x, int const idx_y, int const nx, dcomplex* const __restrict__ data, dreal const dRA, dreal const dDec) {
 
     dreal const u = idx_x/(dreal)nx - 0.5;
     dreal const v = idx_y/(dreal)nx - 0.5;
-    dreal const angle = u*x0 + v*y0;
+    dreal const angle = u*dRA + v*dDec;
 
     dcomplex const phase = dcomplex{dreal(cos(angle)), dreal(sin(angle))};
 
@@ -411,10 +410,10 @@ inline void apply_phase_core
 
 
 #ifdef __CUDACC__
-__global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, dreal x0, dreal y0) {
+__global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, dreal dRA, dreal dDec) {
 
-    x0 *= 2.*(dreal)M_PI;
-    y0 *= 2.*(dreal)M_PI;
+    dRA *= 2.*(dreal)M_PI;
+    dDec *= 2.*(dreal)M_PI;
 
     // indices
     int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -426,27 +425,27 @@ __global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, d
 
     for (auto x = idx_x0; x < nx; x += sx) {
         for (auto y = idx_y0; y < nx; y += sy) {
-            apply_phase_core(x, y, nx, data, x0, y0);
+            apply_phase_core(x, y, nx, data, dRA, dDec);
         }
     }
 }
 #endif
 
-void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal x0, dreal y0) {
+void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal dRA, dreal dDec) {
 
-    x0 *= 2.*(dreal)M_PI;
-    y0 *= 2.*(dreal)M_PI;
+    dRA *= 2.*(dreal)M_PI;
+    dDec *= 2.*(dreal)M_PI;
 
 #pragma omp parallel for
     for (auto x = 0; x < nx; ++x) {
         for (auto y = 0; y < nx; ++y) {
-            apply_phase_core(x, y, nx, data, x0, y0);
+            apply_phase_core(x, y, nx, data, dRA, dDec);
         }
     }
 }
 
 
-void galario_apply_phase_2d(int nx, void* data, dreal x0, dreal y0) {
+void galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec) {
 #ifdef __CUDACC__
     dcomplex *data_d;
 
@@ -455,13 +454,13 @@ void galario_apply_phase_2d(int nx, void* data, dreal x0, dreal y0) {
      CCheck(cudaMalloc((void**)&data_d, nbytes));
      CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-     apply_phase_d<<<dim3(nx/32+1, nx/32+1), dim3(32, 32)>>>(nx, (dcomplex*) data_d, x0, y0);
+     apply_phase_d<<<dim3(nx/32+1, nx/32+1), dim3(32, 32)>>>(nx, (dcomplex*) data_d, dRA, dDec);
 
      CCheck(cudaDeviceSynchronize());
      CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
      CCheck(cudaFree(data_d));
 #else
-    apply_phase_h(nx, (dcomplex*) data, x0, y0);
+    apply_phase_h(nx, (dcomplex*) data, dRA, dDec);
 #endif
 }
 
@@ -491,18 +490,6 @@ inline void rotix_core
 #endif
         (int const i, int const nx, dreal const u0, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
 
-    // new
-    // u
-//    int index = floor((u0 - u[i]) / du);
-//    dreal center_ind = u0 - index * du;
-//    indu[i] = index + (center_ind - u[i]) / du;
-//
-//    // v
-//    index = floor((u0 - v[i]) / du);
-//    center_ind = u0 - index * du;
-//    indv[i] = index + (center_ind - v[i]) / du;
-
-    // old
     // u
     int index = floor((u[i] - u0) / du);
     dreal center_ind = u0 + index * du;
@@ -514,9 +501,6 @@ inline void rotix_core
     indv[i] = index + (v[i] - center_ind) / du;
 
 }
-
-
-
 
 
 #ifdef __CUDACC__
@@ -583,7 +567,7 @@ void galario_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, v
 }
 
 #ifdef __CUDACC__
-inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal u0, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
+inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal u0, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
 {
      // ################################
      // ########### KERNELS ############
@@ -595,7 +579,7 @@ inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal
      CCheck(cudaDeviceSynchronize());
 
      // Kernel for phase
-     apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
+     apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, dRA, dDec);
 
      // Kernel for rotix and interpolate
      rotix_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, u0, du, nd, u_d, v_d, indu_d, indv_d);
@@ -608,13 +592,15 @@ inline void sample_d(int nx, dcomplex* data_d, dreal x0, dreal y0, int nd, dreal
 /**
  * return result in `fint`
  */
-void galario_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fint)
+void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint)
 {
     // Initialization for rotix and interpolate
     assert(nx >= 2);
-    dreal* pixel_centers = (dreal*) vpixel_centers;
-    const dreal du = abs(pixel_centers[1] - pixel_centers[0]);
-    const dreal u0 = pixel_centers[0];
+
+    const dreal u0 = -du*nx/2.;
+    const dreal arcsec_to_uv = (dreal)M_PI / 3600. / 180. * du * nx;
+    dRA *= arcsec_to_uv;
+    dDec *= arcsec_to_uv;
 
 #ifdef __CUDACC__
     // ################################
@@ -655,7 +641,7 @@ void galario_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers
      CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
      // do the work on the gpu
-     sample_d(nx, data_d, x0, y0, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
+     sample_d(nx, data_d, dRA, dDec, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
 
      // ################################
      // ########### TRANSFER DATA ######
@@ -683,7 +669,7 @@ void galario_sample(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers
     shift_h(nx, (dcomplex*) data);
 
     // apply phase
-    apply_phase_h(nx, (dcomplex*) data, x0, y0);
+    apply_phase_h(nx, (dcomplex*) data, dRA, dDec);
 
     // rotix_h
     dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
@@ -829,7 +815,7 @@ void galario_use_gpu(int device_id)
 #endif
 }
 
-void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+void galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
 
     // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
     // Initilization for rotix and interpolate
@@ -837,11 +823,14 @@ void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, 
 
 #ifdef __CUDACC__
 
-    dreal* pixel_centers = (dreal*) vpixel_centers;
-    const dreal du = abs(pixel_centers[1] - pixel_centers[0]);
-    const dreal u0 = pixel_centers[0];
+    // conversions
+    // for the CPU case, these are inside galario_sample
+    const dreal u0 = -du*nx/2.;
+    const dreal arcsec_to_uv = (dreal)M_PI / 3600. / 180. * du * nx;
+    dRA *= arcsec_to_uv;
+    dDec *= arcsec_to_uv;
 
-    // ################################
+     // ################################
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
 
@@ -902,7 +891,7 @@ void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, 
     //  CCheck(cudaDeviceSynchronize());
 
     //  // Kernel for phase
-    //  apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, x0, y0);
+    //  apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, dRA, dDec);
 
     //  // Kernel for rotix and interpolate
     //  rotix_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, u0, du, nd, u_d, v_d, indu_d, indv_d);
@@ -922,7 +911,7 @@ void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, 
      // // but we want the square of the norm
      // *chi2 *= *chi2;
 
-     sample_d(nx, data_d, x0, y0, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
+     sample_d(nx, data_d, dRA, dDec, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
      // ################################
      // ########### CLEANUP ############
@@ -950,7 +939,7 @@ void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, 
     // shift_h(nx, (dcomplex*) data);
 
     // // apply phase
-    // apply_phase_h(nx, (dcomplex*) data, x0, y0);
+    // apply_phase_h(nx, (dcomplex*) data, dRA, dDec);
 
     // // rotix_h
     // dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
@@ -962,7 +951,7 @@ void galario_chi2(int nx, void* data, dreal x0, dreal y0, void* vpixel_centers, 
     //  interpolate_h(nx, (dcomplex*) data, nd, indu, indv, fint);
 
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-     galario_sample(nx, data, x0, y0, vpixel_centers, nd, u, v, fint);
+     galario_sample(nx, data, dRA, dDec, du, nd, u, v, fint);
 
     // diff weigthed and chi2
     diff_weighted_h(nd, (dreal*) fobs_re, (dreal*) fobs_im, fint, (dreal*) weights);

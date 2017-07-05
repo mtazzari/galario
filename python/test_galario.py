@@ -16,16 +16,7 @@ par1 = {'wle_m': 0.003, 'x0_arcsec': 0.4, 'y0_arcsec': 4.}
 par2 = {'wle_m': 0.00088, 'x0_arcsec': -3.5, 'y0_arcsec': 7.2}
 par3 = {'wle_m': 0.00088, 'x0_arcsec': 0., 'y0_arcsec': 0.}
 
-sec2rad = 4.848136811e-06  # from arcsec to radians
-
-# TO BE REMOVED
-
-# tests still to fix
-#  - test_visibility_map
-#  - test_rotix_interpolate
-
-# END TO BE REMOVED
-
+sec2rad = np.pi/180./3600.  # from arcsec to radians
 
 # use last gpu if available. Check `watch -n 0.1 nvidia-smi` to see which gpu is
 # used during test execution.
@@ -33,6 +24,7 @@ ngpus = g_double.ngpus()
 g_double.use_gpu(max(0, ngpus-1))
 
 g_double.threads_per_block()
+
 
 ########################################################
 #                                                      #
@@ -43,8 +35,8 @@ def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype
     """
     Creates a reference image: a gaussian brightness with elliptical    
     """
-    _ = kwargs.get('kernel', 0.) # legacy: muted
-    _ = kwargs.get('save', 0.) # legacy: muted
+    _ = kwargs.get('kernel', 0.)  # legacy: muted
+    _ = kwargs.get('save', 0.)  # legacy: muted
 
     inc_cos = np.cos(0./180.*np.pi)
     
@@ -97,7 +89,7 @@ def create_reference_image_slow(size=1024, kernel='gaussian', save=False, dtype=
     if save:
         import matplotlib.pyplot as plt
         plt.imshow(reference_image)
-        plt.savefig(os.path.join(TEST_REFERENCE_DIR, 'reference_image.pdf'))
+        plt.savefig(os.path.join("./", 'reference_image.pdf'))
 
     return reference_image.astype(dtype)
 
@@ -108,27 +100,6 @@ def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
     # columns are non contiguous arrays => copy
     x = np.random.uniform(low=-maxuv, high=maxuv, size=(nsamples, 2))
     return x[:, 0].astype(dtype), x[:, 1].astype(dtype)
-
-
-def create_reference_sampling():
-
-    size = 1024
-    maxuv = 1000.
-    nsamples = 100
-    PA = 30./180.*np.pi  # deg
-
-    reference_image = create_reference_image(size=size, kernel='gaussian')
-
-    udat, vdat = create_sampling_points(nsamples, maxuv/4.8)
-
-    uv = pixel_coordinates(maxuv, size)
-
-    ReVis, ImVis = Imager.do_sampling(reference_image, udat, vdat, uv, size, PA)
-
-    assert not np.any(np.isnan(ReVis))
-    assert not np.any(np.isnan(ImVis))
-
-    return np.hstack((ReVis, ImVis))
 
 
 def rotix(udat, vdat, uv):
@@ -259,8 +230,8 @@ def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
 
     # construct the phase change
     spatial_freq = maxuv*np.fft.fftshift(np.fft.fftfreq(nx))*2.*np.pi
-    uu, vv = np.meshgrid(spatial_freq*x0, spatial_freq*y0)
-    uv_grid = uu+vv
+    uu, vv = np.meshgrid(spatial_freq, spatial_freq)
+    uv_grid = uu*x0 + vv*y0
     cos_theta = np.cos(uv_grid)
     sin_theta = np.sin(uv_grid)
 
@@ -272,6 +243,7 @@ def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
     v_shifted = re_v_shifted+1j*imag_v_shifted
 
     return v_shifted
+
 
 def generate_random_vis(nsamples, dtype):
     x = 3. * np.random.uniform(low=0., high=1., size=nsamples).astype(dtype) + 2.8 +\
@@ -471,8 +443,8 @@ def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
 
 # huge inaccuracy in single precision for larger images
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-                         [(100, 'float32', 'complex64',  1e-4,  1e-2, g_single, par1),
-                          (1000, 'float64', 'complex128', 1e-14, 1e-8, g_double, par1)],
+                         [(100, 'float32', 'complex64',  1e-4,  1e-3, g_single, par1),
+                          (1000, 'float64', 'complex128', 1e-14, 1e-10, g_double, par1)],
                          ids=["SP_par1", "DP_par1"])
 def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # try to find out where precision is lost
@@ -487,7 +459,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # compute the matrix size and maxuv
     size, minuv, maxuv = matrix_size(udat, vdat)
-    uv = pixel_coordinates(maxuv, size).astype(real_type)
+    uv = pixel_coordinates(maxuv, size)
 
     # create model complex image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
@@ -509,21 +481,20 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     factor = sec2rad/wle_m*maxuv
     fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
-    acc_lib.apply_phase_2d(shift_acc, x0_arcsec * factor, y0_arcsec * factor)
+    acc_lib.apply_phase_2d(shift_acc, x0_arcsec*factor, y0_arcsec*factor)
 
-    # lose some absolute precision here
-    atol *= 2
+    # lose some absolute precision here  --> not anymore
+    # atol *= 2
     np.testing.assert_allclose(fourier_shifted.real, shift_acc.real, rtol, atol)
     np.testing.assert_allclose(fourier_shifted.imag, shift_acc.imag, rtol, atol)
-
     # but continue with previous tolerance
-    atol /= 2
+    # atol /= 2
 
     ###
     # rotation indices
     ###
     uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
-    ui1, vi1 = acc_lib.acc_rotix(uv, udat, vdat)
+    ui1, vi1 = acc_lib.acc_rotix(uv.astype(real_type), udat.astype(real_type), vdat.astype(real_type))
 
     np.testing.assert_allclose(ui1, uroti, rtol, atol)
     np.testing.assert_allclose(vi1, vroti, rtol, atol)
@@ -542,13 +513,12 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # now all steps in one function
     ###
-    sampled = acc_lib.sample(ref_complex, x0_arcsec * factor, y0_arcsec * factor,
-                             uv, udat, vdat)
+    sampled = acc_lib.sample(ref_complex, x0_arcsec, y0_arcsec,
+                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
 
-    # TODO a lot of precision lost. Why?
-    rtol = 1
-    atol = 0.5
-
+    # a lot of precision lost. Why? --> not anymore
+    # rtol = 1
+    # atol = 0.5
     np.testing.assert_allclose(complexInt.real, sampled.real, rtol, atol)
     np.testing.assert_allclose(complexInt.imag, sampled.imag, rtol, atol)
 
@@ -557,19 +527,15 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-                         [(100, 'float32', 'complex64',  1e-3,  1e-2, g_single, par1),
-                          (1000, 'float64', 'complex128', 1e-12, 1e-6, g_double, par1),
-                          (100, 'float32', 'complex64',  1e-3,  1e-2, g_single, par2),
-                          (1000, 'float64', 'complex128', 1e-12, 1e-6, g_double, par2),
-                          (100, 'float32', 'complex64',  1e-3,  1e-2, g_single, par3),
-                          (1000, 'float64', 'complex128', 1e-12, 1e-6, g_double, par3)],
+                         [(100, 'float32', 'complex64',  1e-3,  1e-6, g_single, par1),
+                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par1),
+                          (100, 'float32', 'complex64',  1e-3,  1e-4, g_single, par2), ## large x0, y0 induce larger errors
+                          (1000, 'float64', 'complex128', 1e-12, 1e-10, g_double, par2),
+                          (100, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
+                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par3)],
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
-# @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-#                          [(1000, 'float32', 'complex64',  1e-7,  1e-4, g_single, par1),
-#                           (1000, 'float64', 'complex128', 1e-14, 1e-8, g_double, par1)],
-#                          ids=["SP_par1", "DP_par1"])
 def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # go for fairly low precision when we add up many large numbers, we loose precision
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
@@ -601,25 +567,24 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
 
     # GPU
-    factor = sec2rad/wle_m*maxuv
-    sampled = acc_lib.sample(ref_complex, x0_arcsec * factor, y0_arcsec * factor,
-                             uv, udat, vdat)
+    sampled = acc_lib.sample(ref_complex, x0_arcsec, y0_arcsec,
+                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
 
     np.testing.assert_allclose(ReInt, sampled.real, rtol, atol)
     np.testing.assert_allclose(ImInt, sampled.imag, rtol, atol)
 
 
-@pytest.mark.parametrize("nsamples, real_type, complex_type, tol, acc_lib, pars",
-                         [(1000, 'float32', 'complex64', 8.e-3, g_single, par1),
-                          (1000, 'float64', 'complex128', 1.e-14, g_double, par1),
-                          (1000, 'float32', 'complex64', 5.e-2, g_single, par2),
-                          (1000, 'float64', 'complex128', 1.e-14, g_double, par2),
-                          (1000, 'float32', 'complex64', 8.e-3, g_single, par3),
-                          (1000, 'float64', 'complex128', 1.e-14, g_double, par3)],
+@pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
+                         [(1000, 'float32', 'complex64', 8.e-3, 8.e-3, g_single, par1),
+                          (1000, 'float64', 'complex128', 1.e-14, 1.e-14, g_double, par1),
+                          (1000, 'float32', 'complex64', 5.e-2, 8.e-3, g_single, par2),
+                          (1000, 'float64', 'complex128', 1.e-10, 1.e-10, g_double, par2),
+                          (1000, 'float32', 'complex64', 8.e-3, 8.e-3,g_single, par3),
+                          (1000, 'float64', 'complex128', 1.e-14, 1.e-14, g_double, par3)],
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
-def test_chi2(nsamples, real_type, complex_type, tol, acc_lib, pars):
+def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # go for fairly low precision when we add up many large numbers, we loose precision
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
 
@@ -651,115 +616,8 @@ def test_chi2(nsamples, real_type, complex_type, tol, acc_lib, pars):
     ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
     chi2_ref = np.sum(((ReInt - x.real) ** 2. + (ImInt - x.imag)**2.) * w)
 
-    # to be tested
-    # shift_array = Imager.Fourier_shift_array(u, v, Re, Im, x0, y0, wle)
-
     # GPU
-    factor = sec2rad/wle_m*maxuv
+    chi2_cuda = acc_lib.chi2(ref_complex, x0_arcsec, y0_arcsec,
+                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
-    chi2_cuda = acc_lib.chi2(ref_complex, x0_arcsec * factor, y0_arcsec * factor,
-                             uv, udat, vdat, x.real.copy(), x.imag.copy(), w)
-
-    np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=tol, atol=0.1)
-
-
-# note that the rotated indices are computed different by get_rotix_nf and cuda_rotix (see comment on test_rotix())
-# this reflects in absolute discrepancy ~1.e-5.
-# to be assessed: if this error on the interpolated points is acceptable or not. Now we assume it is
-@pytest.mark.skipif(True, reason="requires cuda and the cuda_rotix_interpolate function")
-def test_rotix_interpolate():
-    size = 1024
-    nsamples = 10
-    maxuv = 1000.
-
-    uv = pixel_coordinates(maxuv, size)
-    udat, vdat = create_sampling_points(nsamples, maxuv/4.8)
-
-    reference_image = create_reference_image(size=size, kernel='gaussian')
-    fourier = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
-
-    # no rotation of udat, vdat
-
-    # fortran
-    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
-    #uroti, vroti = acc_lib.acc_rotix(uv, udat, vdat)
-    ReInt = int_bilin(fourier.real, uroti, vroti)
-    ImInt = int_bilin(fourier.imag, uroti, vroti)
-
-    # gpu
-    complexInt = acc_lib.acc_rotix_interpolate(uv, udat, vdat, fourier)
-
-    tol = 1e-6
-    #for i in range(len(udat)-1, -1, -1):
-    #    print("{0}, {1}, {2}  (py)".format(i, repr(uroti[i]), repr(vroti[i])))
-
-
-    # print(ImInt/complexInt.imag)
-    np.testing.assert_allclose(ReInt, complexInt.real, atol=tol)
-    np.testing.assert_allclose(ImInt, complexInt.imag, atol=tol)
-
-
-@pytest.mark.skipif(True, reason="currently broken, issue #39")
-def test_visibility_map():
-    from py2layer import TwoLayer_g_7K
-
-    # read observational data
-    obsData = ObsData('', par_obs=dict(data_filenames=[TEST_OBSERVATIONS], wle_mm=[0.88], weight_corr=[1.], disk_ffcontr=[0.]))
-    uvtable = obsData.uvtables[0]
-    star = Star('test_star', TEST_STAR)
-
-    u, v, w = uvtable.u, uvtable.v, uvtable.w
-    # test values, can be whatever value
-    # x0, y0 = 2.5, 3.7
-
-    model = TwoLayer_g_7K(star, TEST_MODEL)
-    model.compute_grids()
-
-    imager = Imager(uvtable.u, uvtable.v, uvtable.wle, star.dist.cm, 0.)
-
-    # mock disk
-    gridrad = np.logspace(np.log10(0.1), np.log10(600.), 500)
-    brightness = np.exp(-(gridrad / 100.) ** 2. / 2.)*1.e-11
-
-    inc = 30.*np.pi/180.
-    PA = 25.*np.pi/180.
-    delta_alpha = -0.38
-    delta_delta = 0.52
-    intensmap = imager.intensity_map(brightness, gridrad, inc)
-    vrm, vim = imager.visibility_map(intensmap, delta_alpha, delta_delta, PA, u, v)
-
-    uvtable.set_model(vrm, vim)
-    uvtable.export_model("mock_observations.txt")
-    np.save("mock_vis_sampled.npy", [u, v, vrm, vim, w])
-    np.savetxt("mock_vis_sampled.txt", [vrm, vim])
-
-
-    # BUT: THIS FUNCTION DOES NOT TEST GALARIO!!!?!?!?!?!?
-
-    # uvtable.set_model(vrm, vim)
-    # uvtable.export_model('./model.txt')
-    # np.save(TEST_VISIBILITY_MAP, [vrm, vim])  # inc=30, PA=130
-    # np.save(TEST_VISIBILITY_MAP_0, [vrm, vim])  # inc=0, PA=0
-
-
-    reference = np.load(TEST_VISIBILITY_MAP_0)
-
-    print(vrm/reference[0])
-    print(np.mean(vrm/reference[0]), np.max(vrm/reference[0]))
-    np.testing.assert_allclose(vrm, reference[0], rtol=1.e-6)
-    np.testing.assert_allclose(vim, reference[1], rtol=1.e-6)
-
-    # execute the CPU version of everything
-    # cpu_shift_fft_shift = Imager.numpy_FFT(reference_image)
-    # # compute the original Fourier_shift
-    # fourier_shifted = imager.Fourier_shift(cpu_shift_fft_shift, x0, y0)
-    # # OR compute the original Fourier_shift_static (static method)
-    # #shifted_original_static = Imager.Fourier_shift_static(ref_complex, x0, y0, wle, maxuv)
-    # # compute interpolation indices
-    # uroti, vroti = vfit_ffun.get_rotix_nf(uv, uv, udat, vdat, len(udat), size)
-    # ReInt = vfit_ffun.int_bilin_f(fourier_shifted.real, uroti, vroti, size, nsamples)
-    # ImInt = vfit_ffun.int_bilin_f(fourier_shifted.imag, uroti, vroti, size, nsamples)
-    # chi2_ref = uvtable.compute_chisquare(ReInt, ImInt)
-
-    # go for fairly low precision when we add up many large numbers, we loose precision
-    # np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=1e-8)
+    np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
