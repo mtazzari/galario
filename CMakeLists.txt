@@ -13,7 +13,11 @@ include(LookUp-GreatCMakeCookOff)
 ###
 # the optional packages
 ###
-find_package(CUDA)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT GALARIO_FORCE_CUDA)
+  message(STATUS "Ignoring cuda on the mac by default. Force searching for cuda with `cmake -DGALARIO_FORCE_CUDA=1`")
+else()
+  find_package(CUDA)
+endif()
 
 # User can change and specify version of python in case there are
 # several in cache with `cmake-gui .` or `ccmake .`
