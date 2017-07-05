@@ -39,7 +39,32 @@ g_double.threads_per_block()
 #                  REFERENCE FUNCTIONS                 #
 #                                                      #
 ########################################################
-def create_reference_image(size=1024, kernel='gaussian', save=False, dtype='float64'):
+def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype='float64', reverse_xaxis=False, correct_axes=True, **kwargs):
+    """
+    Creates a reference image: a gaussian brightness with elliptical    
+    """
+    _ = kwargs.get('kernel', 0.) # legacy: muted
+    _ = kwargs.get('save', 0.) # legacy: muted
+
+    inc_cos = np.cos(0./180.*np.pi)
+    
+    delta_x = 1.
+    x = (np.linspace(0., size-1, size) - size/2.) * delta_x
+
+    
+    if reverse_xaxis:
+        xx, yy = np.meshgrid(-x, x/inc_cos)
+    elif correct_axes:
+        xx, yy = np.meshgrid(-x, -x/inc_cos)
+    else:
+        xx, yy = np.meshgrid(x, x/inc_cos)
+    
+    image = np.exp(-(xx-x0)**2./sigma_x - (yy-y0)**2./sigma_y)
+
+    return image.astype(dtype)
+
+
+def create_reference_image_slow(size=1024, kernel='gaussian', save=False, dtype='float64'):
     try:
         import astropy
     except ImportError:
@@ -135,7 +160,7 @@ def pixel_coordinates(maxuv, nx):
     """
     # TODO: should divide by /nx instead of /(nx-1)
 
-    return (np.linspace(0., nx-1, nx) - nx/2.) * maxuv/(nx-1)
+    return (np.linspace(0., nx-1, nx) - nx/2.) * maxuv/(nx)
 
 
 def get_rotix_n(ux, vx, ur, vr, size):
@@ -178,8 +203,8 @@ def int_bilin(f, x, y):
     fint = np.zeros(nd, dtype=f.dtype)
 
     for i in range(nd):
-        ii = int(x[i])
-        jj = int(y[i])
+        jj = int(x[i])
+        ii = int(y[i])
         dfj = f[ii + 1, jj] - f[ii, jj]           # x
         dfj1 = f[ii + 1, jj + 1] - f[ii, jj + 1]  # y
         # numpy has weird promotion rules. Use `trunc` instead of `int` to preserve types of `x` and `f`
@@ -205,7 +230,6 @@ def matrix_size(udat, vdat, **kwargs):
     Nuv = kwargs.get('force_nx', int(2**np.ceil(np.log2(minpix))))
 
     return Nuv, minuv, maxuv
-
 
 
 def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
@@ -235,10 +259,10 @@ def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
 
     # construct the phase change
     spatial_freq = maxuv*np.fft.fftshift(np.fft.fftfreq(nx))*2.*np.pi
-    uu, vv = np.meshgrid(spatial_freq*y0, spatial_freq*x0)
+    uu, vv = np.meshgrid(spatial_freq*x0, spatial_freq*y0)
     uv_grid = uu+vv
     cos_theta = np.cos(uv_grid)
-    sin_theta = -np.sin(uv_grid)
+    sin_theta = np.sin(uv_grid)
 
     # apply the phase change
     re_ft_c, im_ft_c = ft_centered.real, ft_centered.imag
@@ -281,7 +305,7 @@ def test_rotix(size, real_type, tol, acc_lib):
     udat = udat.astype(real_type)
     vdat = vdat.astype(real_type)
 
-    ui, vi = get_rotix_n(uv, uv, udat, vdat, size)
+    ui, vi = get_rotix_n(uv, uv, udat, vdat, len(uv))
     ui = ui.astype(real_type)
     vi = vi.astype(real_type)
 
@@ -309,7 +333,7 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
 
     # no rotation
     uv = pixel_coordinates(maxuv, size)
-    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
+    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, len(uv))
 
     uroti = uroti.astype(real_type)
     vroti = vroti.astype(real_type)
@@ -391,11 +415,11 @@ def test_shift(size, complex_type, tol, acc_lib):
 
 @pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
                          [('float32', 'complex64',  1.e-7,  1e-5, g_single, par1),
-                          ('float64', 'complex128', 1.e-14, 1e-8, g_double, par1),
+                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par1),
                           ('float32', 'complex64',  1.e-3,  1e-5, g_single, par2),
-                          ('float64', 'complex128', 1.e-14, 1e-8, g_double, par2),
+                          ('float64', 'complex128', 1.e-16, 1e-14, g_double, par2),
                           ('float32', 'complex64',  1.e-7,  1e-5, g_single, par3),
-                          ('float64', 'complex128', 1.e-14, 1e-8, g_double, par3)],
+                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par3)],
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
@@ -421,7 +445,7 @@ def test_apply_phase(real_type, complex_type, rtol, atol, acc_lib, pars):
     shifted_original_static = Fourier_shift_static(ref_complex, x0_arcsec, y0_arcsec, wle_m, maxuv)
 
     # GPU version
-    factor = 2.*np.pi*sec2rad/wle_m*maxuv
+    factor = sec2rad/wle_m*maxuv
     acc_lib.apply_phase_2d(ref_complex, x0_arcsec * factor, y0_arcsec * factor)
 
     np.testing.assert_allclose(shifted_original_static, ref_complex, rtol, atol)
@@ -429,7 +453,7 @@ def test_apply_phase(real_type, complex_type, rtol, atol, acc_lib, pars):
 
 @pytest.mark.parametrize("nsamples, real_type, tol, acc_lib",
                          [(1000, 'float32', 1.e-6, g_single),
-                          (1000, 'float64', 1.e-14, g_double)],
+                          (1000, 'float64', 1.e-15, g_double)],
                          ids=["SP", "DP"])
 def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
 
@@ -483,7 +507,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # phase
     ###
-    factor = 2.*np.pi*sec2rad/wle_m*maxuv
+    factor = sec2rad/wle_m*maxuv
     fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
     acc_lib.apply_phase_2d(shift_acc, x0_arcsec * factor, y0_arcsec * factor)
 
@@ -577,7 +601,7 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
 
     # GPU
-    factor = 2.*np.pi*sec2rad/wle_m*maxuv
+    factor = sec2rad/wle_m*maxuv
     sampled = acc_lib.sample(ref_complex, x0_arcsec * factor, y0_arcsec * factor,
                              uv, udat, vdat)
 
@@ -631,7 +655,7 @@ def test_chi2(nsamples, real_type, complex_type, tol, acc_lib, pars):
     # shift_array = Imager.Fourier_shift_array(u, v, Re, Im, x0, y0, wle)
 
     # GPU
-    factor = 2.*np.pi*sec2rad/wle_m*maxuv
+    factor = sec2rad/wle_m*maxuv
 
     chi2_cuda = acc_lib.chi2(ref_complex, x0_arcsec * factor, y0_arcsec * factor,
                              uv, udat, vdat, x.real.copy(), x.imag.copy(), w)
