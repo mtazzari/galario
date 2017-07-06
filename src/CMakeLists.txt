@@ -1,8 +1,8 @@
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
 # these options are understood by both gcc and nvcc
-set(compile_options -std=c++11 -O3)
+set(compile_options -std=c++11 -g -O3)
 # these need to be wrapped in -Xcompiler for nvcc
-set(extra_compile_options  -Wall -fno-strict-aliasing -pthread -fwrapv)
+set(extra_compile_options  -Wall -pedantic -fno-strict-aliasing -pthread -fwrapv)
 # we set CXX_FLAGS because they are then automatically propagated also to nvcc with -Xcompiler option
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${compile_options}")
 add_compile_options(${compile_options} ${extra_compile_options})
