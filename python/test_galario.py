@@ -33,24 +33,24 @@ g_double.threads_per_block()
 ########################################################
 def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype='float64', reverse_xaxis=False, correct_axes=True, **kwargs):
     """
-    Creates a reference image: a gaussian brightness with elliptical    
+    Creates a reference image: a gaussian brightness with elliptical
     """
     _ = kwargs.get('kernel', 0.)  # legacy: muted
     _ = kwargs.get('save', 0.)  # legacy: muted
 
     inc_cos = np.cos(0./180.*np.pi)
-    
+
     delta_x = 1.
     x = (np.linspace(0., size-1, size) - size/2.) * delta_x
 
-    
+
     if reverse_xaxis:
         xx, yy = np.meshgrid(-x, x/inc_cos)
     elif correct_axes:
         xx, yy = np.meshgrid(-x, -x/inc_cos)
     else:
         xx, yy = np.meshgrid(x, x/inc_cos)
-    
+
     image = np.exp(-(xx-x0)**2./sigma_x - (yy-y0)**2./sigma_y)
 
     return image.astype(dtype)
@@ -621,3 +621,30 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
+
+# a test case for profiling. Avoid python calls as much as possible.
+def test_profile():
+    nsamples = 512
+    real_type = 'float64'
+    complex_type = 'complex128'
+
+    wle_m = par1.get('wle_m', 0.003)
+    x0_arcsec = par1.get('x0_arcsec', 0.4)
+    y0_arcsec = par1.get('y0_arcsec', 10.)
+
+    # generate the samples
+    maxuv_generator = 3.e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+    x, _, w = generate_random_vis(nsamples, real_type)
+
+    # compute the matrix size and maxuv
+    size, minuv, maxuv = matrix_size(udat, vdat, force_nx=4096)
+    print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
+    uv = pixel_coordinates(maxuv, size).astype(real_type)
+
+    # create model complex image (it happens to have 0 imaginary part)
+    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    ref_complex = reference_image.astype(complex_type)
+
+    chi2_cuda = g_double.chi2(ref_complex, x0_arcsec, y0_arcsec,
+                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
