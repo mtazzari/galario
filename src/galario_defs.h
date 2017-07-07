@@ -27,6 +27,3 @@
     #endif // end __CUDACC__
 
 #endif // end DOUBLE_PRECISION
-
-//# TODO consistent notation dreal -> real_t, dcomplex -> complex_t
-//# to avoid confusion with host vs. device
