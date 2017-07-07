@@ -416,6 +416,10 @@ inline void apply_phase_core
 #ifdef __CUDACC__
 __global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, dreal dRA, dreal dDec) {
 
+    if ((dRA==0) || (dDec==0)) {
+        return;
+    }
+
     dRA *= 2.*(dreal)M_PI;
     dDec *= 2.*(dreal)M_PI;
 
@@ -436,6 +440,10 @@ __global__ void apply_phase_d(int const nx, dcomplex* const __restrict__ data, d
 #endif
 
 void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal dRA, dreal dDec) {
+
+    if ((dRA==0) || (dDec==0)) {
+        return;
+    }
 
     dRA *= 2.*(dreal)M_PI;
     dDec *= 2.*(dreal)M_PI;
