@@ -28,6 +28,8 @@ cdef extern from "galario.hpp":
     void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
     void galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
     void galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+    void galario_acc_init();
+    void galario_acc_cleanup();
     int galario_ngpus()
     void galario_use_gpu(int device_id)
 
@@ -173,6 +175,14 @@ def chi2(dcomplex[:,::1] data, dRA, dDec, dreal du, dreal[::1] u, dreal[::1] v, 
     galario_chi2(data.shape[0], <void*>&data[0,0], dRA, dDec, du, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
 
     return chi2
+
+
+def init():
+    galario_acc_init()
+
+
+def cleanup():
+    galario_acc_cleanup()
 
 
 def ngpus():

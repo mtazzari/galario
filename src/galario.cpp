@@ -75,8 +75,10 @@ inline void __fftwSafeCall(int status, const char *file, const int line) {
 
 #ifdef DOUBLE_PRECISION
     #define SQRT sqrt
+    #define FFTW(name) fftw_ ## name
 #else
     #define SQRT sqrtf
+    #define FFTW(name) fftwf_ ## name
 #endif
 
 #include <cassert>
@@ -101,27 +103,18 @@ void galario_acc_cleanup() {}
 void galario_acc_init() {
 #ifdef _OPENMP
     FFTWCheck(fftw_init_threads());
-
     fftw_plan_with_nthreads(omp_get_max_threads());
 #endif
 }
 
 // TODO: define macro FFTW as fftw or fftwf
 void galario_acc_cleanup() {
-#ifdef DOUBLE_PRECISION
 #ifdef _OPENMP
-    fftw_cleanup_threads();
+  FFTW(cleanup_threads)();
 #endif
-    fftw_cleanup();
-#else
-#ifdef _OPENMP
-    fftwf_cleanup_threads();
-#endif
-    fftwf_cleanup();
-#endif
+  FFTW(cleanup)();
 }
-
-#endif
+#endif // __CUDACC__
 
 
 #ifdef __CUDACC__
@@ -150,33 +143,17 @@ void fft_d(int nx, dcomplex* data_d) {
 }
 #else
 
-#ifdef DOUBLE_PRECISION
 void fft_h(int nx, dcomplex* data) {
     // FFTW replacement
-    fftw_complex* fftw_data = reinterpret_cast<fftw_complex*>(data);
+    FFTW(complex)* fftw_data = reinterpret_cast<FFTW(complex)*>(data);
     // TODO: should ascertain that data has already been aligned
 
     // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
-    fftw_plan p = fftw_plan_dft_2d(nx, nx, fftw_data, fftw_data, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_execute(p);
+    FFTW(plan) p = FFTW(plan_dft_2d)(nx, nx, fftw_data, fftw_data, FFTW_FORWARD, FFTW_ESTIMATE);
+    FFTW(execute)(p);
 
-    fftw_destroy_plan(p);
-
+    FFTW(destroy_plan)(p);
 }
-#else
-void fft_h(int nx, dcomplex* data) {
-    // FFTW replacement
-    fftwf_complex* fftw_data = reinterpret_cast<fftwf_complex*>(data);
-    // TODO: should ascertain that data has already been aligned
-
-    // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
-    fftwf_plan p = fftwf_plan_dft_2d(nx, nx, fftw_data, fftw_data, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftwf_execute(p);
-
-    fftwf_destroy_plan(p);
-
-}
-#endif
 
 #endif
 

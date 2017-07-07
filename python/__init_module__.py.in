@@ -1,1 +1,6 @@
 from .libcommon import *
+
+init()
+
+import atexit
+atexit.register(cleanup)
