@@ -24,6 +24,7 @@ cdef extern from "galario.hpp":
     void galario_fftshift_fft2d_fftshift(int nx, void* data)
     void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
     void galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec)
+    void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void galario_acc_rotix(int nx, void* pixel_centers, int nd, void* u, void* v, void* indu, void* indv)
     void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
     void galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
@@ -136,6 +137,11 @@ def apply_phase_2d(dcomplex[:,:] data, dRA, dDec):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
 
     galario_apply_phase_2d(data.shape[0], <void*>&data[0,0], dRA, dDec)
+
+
+def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
+
+    galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*> &fint[0])
 
 
 def acc_rotix(dreal[::1] pixel_centers, dreal[::1] u, dreal[::1] v):

@@ -245,6 +245,43 @@ def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
     return v_shifted
 
 
+def Fourier_shift_array(u, v, fint, x0, y0):
+    """
+    Performs a translation in the real space by applying a phase shift in the Fourier space.
+    This function applies the shift to data points sampling the Fourier transform of an image.
+
+    Parameters
+    ----------
+    u, v: 1D float array
+        Coordinates of points in the Fourier space. units: observing wavelength
+    fint: 1D float array, complex
+        Fourier Transform sampled in the (u, v) points.
+        Re, Im, u, v must have the same length.
+    x0, y0: floats, arcsec
+        Shifts in the real space.
+
+    Returns
+    -------
+    fint_shifted: 1D float array, complex
+        Phase-shifted of the Fourier Transform sampled in the (u, v) points.
+
+    """
+    # convert x0, y0 from arcsec to cm
+    x0 *= sec2rad
+    y0 *= sec2rad
+
+    x0 *= 2.*np.pi
+    y0 *= 2.*np.pi
+
+    # construct the phase change
+    theta = u*x0 + v*y0
+
+    # apply the phase change
+    fint_shifted = fint * (np.cos(theta) + 1j*np.sin(theta))
+
+    return fint_shifted
+
+
 def generate_random_vis(nsamples, dtype):
     x = 3. * np.random.uniform(low=0., high=1., size=nsamples).astype(dtype) + 2.8 +\
         1j * np.random.uniform(low=0., high=1., size=nsamples).astype(dtype) + 8.2
@@ -421,6 +458,42 @@ def test_apply_phase(real_type, complex_type, rtol, atol, acc_lib, pars):
     acc_lib.apply_phase_2d(ref_complex, x0_arcsec * factor, y0_arcsec * factor)
 
     np.testing.assert_allclose(shifted_original_static, ref_complex, rtol, atol)
+
+
+@pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
+                         [('float32', 'complex64',  1.e-7,  1e-5, g_single, par1),
+                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par1),
+                          ('float32', 'complex64',  1.e-3,  1e-5, g_single, par2),
+                          ('float64', 'complex128', 1.e-16, 1e-14, g_double, par2),
+                          ('float32', 'complex64',  1.e-7,  1e-5, g_single, par3),
+                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par3)],
+                         ids=["SP_par1", "DP_par1",
+                              "SP_par2", "DP_par2",
+                              "SP_par3", "DP_par3"])
+def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars):
+
+    x0_arcsec = pars.get('x0_arcsec', 0.4)
+    y0_arcsec = pars.get('y0_arcsec', 10.)
+
+    # generate the samples
+    nsamples = 1000
+    maxuv_generator = 3.e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+
+    # generate mock visibility values
+    fint = np.zeros(nsamples, dtype=complex_type)
+    fint.real = np.random.random(nsamples) * 10.
+    fint.imag = np.random.random(nsamples) * 30.
+
+    fint_numpy = Fourier_shift_array(udat, vdat, fint.copy(), x0_arcsec, y0_arcsec)
+
+    acc_lib.apply_phase_sampled(x0_arcsec*sec2rad , y0_arcsec*sec2rad, udat, vdat, fint)
+
+    np.testing.assert_allclose(fint_numpy.real, fint.real, rtol, atol)
+    np.testing.assert_allclose(fint_numpy.imag, fint.imag, rtol, atol)
+
+
+
 
 
 @pytest.mark.parametrize("nsamples, real_type, tol, acc_lib",
@@ -621,6 +694,7 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
+
 
 # a test case for profiling. Avoid python calls as much as possible.
 def test_profile():

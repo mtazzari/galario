@@ -396,6 +396,83 @@ void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fin
 #endif
 }
 
+// APPLY_PHASE TO SAMPLED POINTS //
+#ifdef __CUDACC__
+__host__ __device__ inline void apply_phase_sampled_core
+#else
+inline void apply_phase_sampled_core
+#endif
+        (int const idx_x, dreal* const u, dreal* const v, dcomplex* const __restrict__ fint, dreal const dRA, dreal const dDec) {
+
+    dreal const angle = u[idx_x]*dRA + v[idx_x]*dDec;
+
+    dcomplex const phase = dcomplex{dreal(cos(angle)), dreal(sin(angle))};
+
+    fint[idx_x] = CMPLXMUL(fint[idx_x], phase);
+}
+
+
+#ifdef __CUDACC__
+__global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, dreal* const u, dreal* const v, dcomplex* __restrict__ fint) {
+
+    if ((dRA==0) || (dDec==0)) {
+        return;
+    }
+
+    dRA *= 2.*(dreal)M_PI;
+    dDec *= 2.*(dreal)M_PI;
+
+    //index
+    int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
+
+    // stride
+    int const sx = blockDim.x * gridDim.x;
+
+    for (auto x = idx_x0; x < nd; x += sx) {
+        apply_phase_sampled_core(x, u, v, fint, dRA, dDec);
+    }
+}
+#endif
+
+void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, dreal* const u, dreal* const v, dcomplex* __restrict__ fint) {
+
+    if ((dRA==0) || (dDec==0)) {
+        return;
+    }
+
+    dRA *= 2.*(dreal)M_PI;
+    dDec *= 2.*(dreal)M_PI;
+
+#pragma omp parallel for shared(dRA, dDec) schedule(static)
+    for (auto x = 0; x < nd; ++x) {
+        apply_phase_sampled_core(x, u, v, fint, dRA, dDec);
+    }
+}
+
+void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, void* const u, void* const v, void* __restrict__ fint) {
+#ifdef __CUDACC__
+    // to be implemented the memallocation and memcpy
+
+    dcomplex *data_d;
+
+     size_t nbytes = sizeof(dcomplex)*nx*nx;
+
+     CCheck(cudaMalloc((void**)&data_d, nbytes));
+     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+
+     apply_phase_sampled_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1),
+                     dim3(galario_threads_per_block(), galario_threads_per_block())>>>(dRA, dDec, nd, u, v, fint);
+
+     CCheck(cudaDeviceSynchronize());
+     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
+     CCheck(cudaFree(data_d));
+#else
+    apply_phase_sampled_h(dRA, dDec, nd, (dreal*) u, (dreal*) v, (dcomplex*) fint);
+#endif
+}
+
+
+// APPLY_PHASE 2D //
 #ifdef __CUDACC__
 __host__ __device__ inline void apply_phase_core
 #else
