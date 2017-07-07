@@ -1,8 +1,8 @@
 .. http://www.sphinx-doc.org/en/stable/domains.html#the-c-domain
 
-=============
+===============
 C API reference
-=============
+===============
 
 Somebody has to write the documentation
 

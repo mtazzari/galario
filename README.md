@@ -173,3 +173,10 @@ documentation
 creates output in `docs/html` under the build directory. Add content to
 `docs/index.rst` or the files linked to therein. The `docs` are not build by
 default, only upon request.
+
+Within a conda environment, `conda install sphinx` to have a `sphinx` version
+that matches the python version. As the `galario` library needs to be imported
+when building the docs, the import would fail otherwise. Remove the
+`CMakeCache.txt` and rerun `cmake`, and observe which location of `sphinx` is reported, for example
+
+    -- Found Sphinx: /home/myuser/.local/miniconda3/envs/galario3/bin/sphinx-build
