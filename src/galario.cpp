@@ -174,6 +174,16 @@ void galario_fft2d(int nx, void* data) {
 
 }
 
+/**
+ * Shift quadrants of the square image. Swap the upper-left quadrant with the
+ * lower-right quadrant and the upper-right with the lower-left quadrant.
+ *
+ * To avoid if statements, we do two swaps.
+ *
+ * For cache efficiency, may have to do loop tiling; i.e., the source and target
+ * should fit into the cache. If the image is too large, only part of a row may
+ * fit. This is a responsibility of the caller.
+ **/
 // `a` is a matrix (size: nx^2)
 #ifdef __CUDACC__
 __host__ __device__ inline void shift_core
@@ -181,7 +191,7 @@ __host__ __device__ inline void shift_core
 inline void shift_core
 #endif
         (int const idx_x, int const idx_y, int const nx, dcomplex* const __restrict__ a) {
-
+#if 0
     auto const src_ul = idx_x + idx_y*nx;
     auto const src_ll = idx_x + idx_y*nx + nx*nx/2;
     auto const tgt_ul = src_ul + nx/2 + nx*nx/2;
@@ -194,6 +204,34 @@ inline void shift_core
     auto const temp_ll = a[src_ll] ;
     a[src_ll] = a[tgt_ll];
     a[tgt_ll] = temp_ll;
+#endif
+    // row-wise access
+
+    // from upper left to lower right
+    auto const src_ul = idx_x*nx + idx_y;
+    auto const tgt_ul = src_ul + nx*(nx+1)/2;
+
+    // from upper right to lower left
+    auto const src_ur = src_ul + nx/2;
+    auto const tgt_ur = tgt_ul - nx/2;
+
+    // swap the values
+    auto const tmp_ul = a[src_ul];
+    a[src_ul] = a[tgt_ul];
+    a[tgt_ul] = tmp_ul;
+
+    auto const tmp_ur = a[src_ur];
+    a[src_ur] = a[tgt_ur];
+    a[tgt_ur] = tmp_ur;
+}
+
+void shift_h(int const nx, dcomplex* const __restrict__ a) {
+#pragma omp parallel for
+    for (auto x = 0; x < nx/2; ++x) {
+        for (auto y = 0; y < nx/2; ++y) {
+            shift_core(x, y, nx, a);
+        }
+    }
 }
 
 // TODO nx -> size
@@ -218,15 +256,6 @@ __global__ void shift_d(int const nx, dcomplex* const __restrict__ a) {
   }
 }
 #endif
-
-void shift_h(int const nx, dcomplex* const __restrict__ a) {
-#pragma omp parallel for
-    for (auto x = 0; x < nx/2; ++x) {
-        for (auto y = 0; y < nx/2; ++y) {
-            shift_core(x, y, nx, a);
-        }
-    }
-}
 
 void galario_fftshift(int nx, void* data) {
 #ifdef __CUDACC__
@@ -377,11 +406,9 @@ inline void apply_phase_core
     dreal const u = idx_x/(dreal)nx - 0.5;
     dreal const v = idx_y/(dreal)nx - 0.5;
     dreal const angle = u*dRA + v*dDec;
-
-    dcomplex const phase = dcomplex{dreal(cos(angle)), dreal(sin(angle))};
-
     auto const idx = idx_x + idx_y*nx;
 
+    dcomplex const phase = dcomplex{dreal(cos(angle)), dreal(sin(angle))};
     data[idx] = CMPLXMUL(data[idx], phase);
 }
 
@@ -413,14 +440,13 @@ void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal dRA, d
     dRA *= 2.*(dreal)M_PI;
     dDec *= 2.*(dreal)M_PI;
 
-#pragma omp parallel for
+#pragma omp parallel for shared(dRA, dDec) schedule(static)
     for (auto x = 0; x < nx; ++x) {
         for (auto y = 0; y < nx; ++y) {
             apply_phase_core(x, y, nx, data, dRA, dDec);
         }
     }
 }
-
 
 void galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec) {
 #ifdef __CUDACC__
@@ -767,8 +793,9 @@ void galario_reduce_chi2
     // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
     // compute the Euclidean norm
     dreal y = 0.;
-    for (auto i = 0; i<nd; ++i) {
-        dcomplex x = fint_cmplx[i];
+#pragma omp parallel for reduction(+:y)
+    for (auto i = 0; i < nd; ++i) {
+        dcomplex const x = fint_cmplx[i];
         y += real(CMPLXMUL(x, conj(x)));
     }
     *chi2 = y;
