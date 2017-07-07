@@ -16,23 +16,24 @@ ELSE:
     ctypedef float complex dcomplex
     complex_dtype = np.complex64
 
-cdef extern from "galario.hpp":
-    # todo avoid void*
-    int galario_threads_per_block(int num);
-    void galario_fft2d(int nx, void* data)
-    void galario_fftshift(int nx, void* data)
-    void galario_fftshift_fft2d_fftshift(int nx, void* data)
-    void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
-    void galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec)
-    void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
-    void galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv)
-    void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
-    void galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
-    void galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+cdef extern from "galario_py.h":
+    void _galario_fft2d(int nx, void* data)
+    void _galario_fftshift(int nx, void* data)
+    void _galario_fftshift_fft2d_fftshift(int nx, void* data)
+    void _galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
+    void _galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec)
+    void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
+    void _galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv)
+    void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
+    void _galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
+    void _galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+
+cdef extern from "galario.h":
+    int  galario_threads_per_block(int num);
     void galario_acc_init();
     void galario_acc_cleanup();
-    int galario_ngpus()
     void galario_use_gpu(int device_id)
+    int  galario_ngpus()
 
 def _check_data(dcomplex[:,::1] data):
     assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
@@ -99,7 +100,7 @@ def sample(dcomplex[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
     """
     _check_data(data)
     fint = np.zeros(len(u), dtype=complex_dtype)
-    galario_sample(len(data), <void*>&data[0,0], dRA, dDec, du, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_sample(len(data), <void*>&data[0,0], dRA, dDec, du, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
 
@@ -108,13 +109,13 @@ def sample(dcomplex[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
 def fft2d(dcomplex[:,::1] data):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
 
-    galario_fft2d(data.shape[0], <void*>&data[0,0])
+    _galario_fft2d(data.shape[0], <void*>&data[0,0])
 
 
 def fftshift(dcomplex[:,::1] data):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
 
-    galario_fftshift(data.shape[0], <void*>&data[0,0])
+    _galario_fftshift(data.shape[0], <void*>&data[0,0])
 
 
 def fftshift_fft2d_fftshift(dcomplex[:,::1] data, shift=True):
@@ -122,26 +123,26 @@ def fftshift_fft2d_fftshift(dcomplex[:,::1] data, shift=True):
     assert isinstance(shift, bool), "Wrong type: shift must be boolean."
 
     if shift is True:
-        galario_fftshift_fft2d_fftshift(data.shape[0], <void*>&data[0,0])
+        _galario_fftshift_fft2d_fftshift(data.shape[0], <void*>&data[0,0])
     else:
-        galario_fft2d(data.shape[0], <void*>&data[0,0])
+        _galario_fft2d(data.shape[0], <void*>&data[0,0])
 
 
 def interpolate(dcomplex[:,::1] data, dreal[::1] u, dreal[::1] v):
     fint = np.empty(len(u), dtype=complex_dtype)
-    galario_interpolate(len(data), <void*>&data[0,0], len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_interpolate(len(data), <void*>&data[0,0], len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
     return fint
 
 
 def apply_phase_2d(dcomplex[:,:] data, dRA, dDec):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
 
-    galario_apply_phase_2d(data.shape[0], <void*>&data[0,0], dRA, dDec)
+    _galario_apply_phase_2d(data.shape[0], <void*>&data[0,0], dRA, dDec)
 
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
 
-    galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*> &fint[0])
+    _galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*> &fint[0])
 
 
 def acc_rotix(nx, du, dreal[::1] u, dreal[::1] v):
@@ -149,7 +150,7 @@ def acc_rotix(nx, du, dreal[::1] u, dreal[::1] v):
 
     indu = np.zeros(len(u), dtype=real_dtype)
     indv = np.zeros(len(u), dtype=real_dtype)
-    galario_acc_rotix(nx, du, len(u), <void*> &u[0],  <void*> &v[0],
+    _galario_acc_rotix(nx, du, len(u), <void*> &u[0],  <void*> &v[0],
                 <void*>np.PyArray_DATA(indu), <void*>np.PyArray_DATA(indv))
 
     return indu, indv
@@ -163,7 +164,7 @@ def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, drea
     assert len(fint) == nd
 
     cdef dreal chi2
-    galario_reduce_chi2(nd, <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&fint[0], <void*>&weights[0], &chi2)
+    _galario_reduce_chi2(nd, <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&fint[0], <void*>&weights[0], &chi2)
 
     return chi2
 
@@ -178,7 +179,7 @@ def chi2(dcomplex[:,::1] data, dRA, dDec, dreal du, dreal[::1] u, dreal[::1] v, 
 
     cdef dreal chi2
 
-    galario_chi2(data.shape[0], <void*>&data[0,0], dRA, dDec, du, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2(data.shape[0], <void*>&data[0,0], dRA, dDec, du, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
 
     return chi2
 

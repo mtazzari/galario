@@ -1,4 +1,5 @@
-#include "galario.hpp"
+#include "galario.h"
+#include "galario_py.h"
 
 #ifdef __CUDACC__
     #include <cuda_runtime_api.h>
@@ -157,21 +158,24 @@ void fft_h(int nx, dcomplex* data) {
 
 #endif
 
-void galario_fft2d(int nx, void* data) {
+void galario_fft2d(int nx, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
-     size_t nbytes = sizeof(dcomplex)*nx*nx;
-     CCheck(cudaMalloc((void**)&data_d, nbytes));
-     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    size_t nbytes = sizeof(dcomplex)*nx*nx;
+    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-     fft_d(nx, (dcomplex*) data_d);
+    fft_d(nx, (dcomplex*) data_d);
 
-     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(data_d));
+    CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
+    CCheck(cudaFree(data_d));
 #else
-    fft_h(nx, (dcomplex*) data);
+    fft_h(nx, data);
 #endif
+}
 
+void _galario_fft2d(int nx, void* data) {
+    galario_fft2d(nx, static_cast<dcomplex*>(data));
 }
 
 /**
@@ -257,24 +261,28 @@ __global__ void shift_d(int const nx, dcomplex* const __restrict__ a) {
 }
 #endif
 
-void galario_fftshift(int nx, void* data) {
+void galario_fftshift(int nx, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
-     size_t nbytes = sizeof(dcomplex)*nx*nx;
-     CCheck(cudaMalloc((void**)&data_d, nbytes));
-     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    size_t nbytes = sizeof(dcomplex)*nx*nx;
+    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
      shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
 
-     CCheck(cudaDeviceSynchronize());
-     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(data_d));
+    CCheck(cudaDeviceSynchronize());
+    CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
+    CCheck(cudaFree(data_d));
 #else
-    shift_h(nx, (dcomplex*) data);
+    shift_h(nx, data);
 #endif
 }
 
-void galario_fftshift_fft2d_fftshift(int nx, void* data) {
+void _galario_fftshift(int nx, void* data) {
+    galario_fftshift(nx, static_cast<dcomplex*>(data));
+}
+
+void galario_fftshift_fft2d_fftshift(int nx, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
      size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -292,6 +300,10 @@ void galario_fftshift_fft2d_fftshift(int nx, void* data) {
     galario_fft2d(nx, (dcomplex*) data);
     shift_h(nx, (dcomplex*) data);
 #endif
+}
+
+void _galario_fftshift_fft2d_fftshift(int nx, void* data) {
+    galario_fftshift_fft2d_fftshift(nx, static_cast<dcomplex*>(data));
 }
 
 /**
@@ -354,46 +366,48 @@ void interpolate_h(int const nx, dcomplex* const __restrict__ data, int const nd
     }
 }
 
-void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
-{
+void galario_interpolate(int nx, dcomplex* data, int nd, dreal* u, dreal* v, dcomplex* fint) {
 #ifdef __CUDACC__
     // copy the image data
-     dcomplex *data_d;
-     size_t nbytes = sizeof(dcomplex)*nx*nx;
-     CCheck(cudaMalloc((void**)&data_d, nbytes));
-     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    dcomplex *data_d;
+    size_t nbytes = sizeof(dcomplex)*nx*nx;
+    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-     // copy u,v and reserve memory for the interpolated values
-     dreal *u_d, *v_d;
-     dcomplex *fint_d;
-     size_t nbytes_nd = sizeof(dreal)*nd;
+    // copy u,v and reserve memory for the interpolated values
+    dreal *u_d, *v_d;
+    dcomplex *fint_d;
+    size_t nbytes_nd = sizeof(dreal)*nd;
 
-     CCheck(cudaMalloc((void**)&u_d, nbytes_nd));
-     CCheck(cudaMemcpy(u_d, u, nbytes_nd, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc((void**)&u_d, nbytes_nd));
+    CCheck(cudaMemcpy(u_d, u, nbytes_nd, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&v_d, nbytes_nd));
-     CCheck(cudaMemcpy(v_d, v, nbytes_nd, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc((void**)&v_d, nbytes_nd));
+    CCheck(cudaMemcpy(v_d, v, nbytes_nd, cudaMemcpyHostToDevice));
 
-     int nbytes_fint = sizeof(dcomplex) * nd;
-     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+    int nbytes_fint = sizeof(dcomplex) * nd;
+    CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
-     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
+    // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
+    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
 
-     CCheck(cudaDeviceSynchronize());
+    CCheck(cudaDeviceSynchronize());
 
-     // retrieve interpolated values
-     CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
+    // retrieve interpolated values
+    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
 
-     // free memories
-     CCheck(cudaFree(data_d));
-     CCheck(cudaFree(u_d));
-     CCheck(cudaFree(v_d));
-     CCheck(cudaFree(fint_d));
+    // free memories
+    CCheck(cudaFree(data_d));
+    CCheck(cudaFree(u_d));
+    CCheck(cudaFree(v_d));
+    CCheck(cudaFree(fint_d));
 #else
-    interpolate_h(nx, (dcomplex*) data, nd, (dreal*)u, (dreal*)v, (dcomplex*) fint);
-
+    interpolate_h(nx, data, nd, u, v, fint);
 #endif
+}
+
+void _galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint) {
+    galario_interpolate(nx, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
 // APPLY_PHASE TO SAMPLED POINTS //
@@ -449,7 +463,7 @@ void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, dreal* const u, 
     }
 }
 
-void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, void* const u, void* const v, void* __restrict__ fint) {
+void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, dreal* const u, dreal* const v, dcomplex* __restrict__ fint) {
 #ifdef __CUDACC__
 
      size_t nbytes_d_complex = sizeof(dcomplex)*nd;
@@ -475,10 +489,15 @@ void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, void* cons
      CCheck(cudaFree(v_d));
      CCheck(cudaFree(u_d));
 #else
-    apply_phase_sampled_h(dRA, dDec, nd, (dreal*) u, (dreal*) v, (dcomplex*) fint);
+    apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
 #endif
 }
 
+void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
+                                  void* const v, void* __restrict__ fint) {
+    galario_apply_phase_sampled(dRA, dDec, nd, static_cast<dreal*>(u),
+                                static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+}
 
 // APPLY_PHASE 2D //
 #ifdef __CUDACC__
@@ -541,24 +560,28 @@ void apply_phase_h(int const nx, dcomplex* const __restrict__ data, dreal dRA, d
     }
 }
 
-void galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec) {
+void galario_apply_phase_2d(int nx, dcomplex* data, dreal dRA, dreal dDec) {
 #ifdef __CUDACC__
     dcomplex *data_d;
 
-     size_t nbytes = sizeof(dcomplex)*nx*nx;
+    size_t nbytes = sizeof(dcomplex)*nx*nx;
 
-     CCheck(cudaMalloc((void**)&data_d, nbytes));
-     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
      apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1),
                      dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, dRA, dDec);
 
-     CCheck(cudaDeviceSynchronize());
-     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(data_d));
+    CCheck(cudaDeviceSynchronize());
+    CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
+    CCheck(cudaFree(data_d));
 #else
     apply_phase_h(nx, (dcomplex*) data, dRA, dDec);
 #endif
+}
+
+void _galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec) {
+    galario_apply_phase_2d(nx, static_cast<dcomplex*>(data), dRA, dDec);
 }
 
 /**
@@ -623,8 +646,7 @@ void rotix_h(int nx, dreal const u0, dreal du, int nd, dreal const* u, dreal con
 }
 
 
-void galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv)
-{
+void galario_acc_rotix(int nx, dreal du, int nd, dreal* u, dreal* v, dreal* indu, dreal* indv) {
     assert(nx >= 2);
 
     const dreal u0 = -du*nx/2.;
@@ -660,6 +682,10 @@ void galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, v
 #endif
 }
 
+void _galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv) {
+    galario_acc_rotix(nx, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(indu), static_cast<dreal*>(indv));
+}
+
 #ifdef __CUDACC__
 inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal u0, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
 {
@@ -686,8 +712,7 @@ inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dr
 /**
  * return result in `fint`
  */
-void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint)
-{
+void galario_sample(int nx, dcomplex* data, dreal dRA, dreal dDec, dreal du, int nd, dreal* u, dreal* v, dcomplex* fint) {
     // Initialization for rotix and interpolate
     assert(nx >= 2);
 
@@ -754,16 +779,16 @@ void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd,
      CCheck(cudaFree(fint_d));
 #else
     // shift
-    shift_h(nx, (dcomplex*) data);
+    shift_h(nx, data);
 
     // cuda fft
-    fft_h(nx, (dcomplex*) data);
+    fft_h(nx, data);
 
     // shift
-    shift_h(nx, (dcomplex*) data);
+    shift_h(nx, data);
 
     // apply phase
-    apply_phase_h(nx, (dcomplex*) data, dRA, dDec);
+    apply_phase_h(nx, data, dRA, dDec);
 
     // rotix_h
     dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
@@ -771,12 +796,17 @@ void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd,
     rotix_h(nx, u0, du, nd, (dreal*) u, (dreal*) v, indu, indv);
 
     // interpolate
-    interpolate_h(nx, (dcomplex*) data, nd, indu, indv, (dcomplex*) fint);
+    interpolate_h(nx, data, nd, indu, indv, fint);
 
     free(indu);
     free(indv);
 #endif
 }
+
+void _galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint) {
+    galario_sample(nx, static_cast<dcomplex*>(data), dRA, dDec, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+}
+
 /**
  * Compute weighted difference between observations (`fobs_re` and `fobs_im`) and model predictions `fint`, write to `fint`
  */
@@ -838,9 +868,7 @@ void reduce_chi2_d
 }
 #endif
 
-void galario_reduce_chi2
-        (int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
-{
+void galario_reduce_chi2(int nd, dreal* fobs_re, dreal* fobs_im, dcomplex* fint, dreal* weights, dreal* chi2) {
 #ifdef __CUDACC__
 
     /* allocate and copy */
@@ -876,22 +904,23 @@ void galario_reduce_chi2
      CCheck(cudaFree(fint_d));
 
 #else
-
-    dcomplex* fint_cmplx = (dcomplex*) fint;
-
-    diff_weighted_h(nd, (dreal*) fobs_re, (dreal*) fobs_im, fint_cmplx, (dreal*) weights);
+    diff_weighted_h(nd, fobs_re, fobs_im, fint, weights);
 
     // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
     // compute the Euclidean norm
     dreal y = 0.;
 #pragma omp parallel for reduction(+:y)
     for (auto i = 0; i < nd; ++i) {
-        dcomplex const x = fint_cmplx[i];
+        dcomplex const x = fint[i];
         y += real(CMPLXMUL(x, conj(x)));
     }
     *chi2 = y;
 
 #endif
+}
+
+void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2) {
+    galario_reduce_chi2(nd, static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dcomplex*>(fint), static_cast<dreal*>(weights), chi2);
 }
 
 int galario_ngpus()
@@ -910,7 +939,7 @@ void galario_use_gpu(int device_id)
 #endif
 }
 
-void galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+void galario_chi2(int nx, dcomplex* data, dreal dRA, dreal dDec, dreal du, int nd, dreal* u, dreal* v, dreal* fobs_re, dreal* fobs_im, dreal* weights, dreal* chi2) {
 
     // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
     // Initilization for rotix and interpolate
@@ -1023,44 +1052,26 @@ void galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, v
      // CBlasCheck(cublasDestroy(handle));
 
 #else
-
-    // // shift
-    // shift_h(nx, (dcomplex*) data);
-
-    // // cuda fft
-    // fft_h(nx, (dcomplex*) data);
-
-    // // shift
-    // shift_h(nx, (dcomplex*) data);
-
-    // // apply phase
-    // apply_phase_h(nx, (dcomplex*) data, dRA, dDec);
-
-    // // rotix_h
-    // dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
-    // dreal* indv = (dreal*) malloc(sizeof(dreal)*nd);
-    // rotix_h(nx, du, nd, (dreal*) u, (dreal*) v, indu, indv);
-
-    // // interpolate
-    //  dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-    //  interpolate_h(nx, (dcomplex*) data, nd, indu, indv, fint);
-
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
      galario_sample(nx, data, dRA, dDec, du, nd, u, v, fint);
 
-    // diff weigthed and chi2
-    diff_weighted_h(nd, (dreal*) fobs_re, (dreal*) fobs_im, fint, (dreal*) weights);
+     // diff weigthed and chi2
+     diff_weighted_h(nd, fobs_re, fobs_im, fint, weights);
 
-    // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
-    // compute the Euclidean norm
-    dreal y = 0.;
-    for (auto i = 0; i<nd; ++i) {
-        y += real(CMPLXMUL(fint[i], conj(fint[i])));
-    }
-    *chi2 = y;
+     // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
+     // compute the Euclidean norm
+     dreal y = 0.;
+     for (auto i = 0; i<nd; ++i) {
+         y += real(CMPLXMUL(fint[i], conj(fint[i])));
+     }
+     *chi2 = y;
 
-    free(fint);
+     free(fint);
 
 #endif
 
+}
+
+void _galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+    galario_chi2(nx, static_cast<dcomplex*>(data), dRA, dDec, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dreal*>(weights), chi2);
 }
