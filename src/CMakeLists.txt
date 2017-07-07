@@ -95,4 +95,4 @@ install (TARGETS ${install_libs}
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
   )
-install(FILES galario.hpp DESTINATION include)
+install(FILES galario.h galario_py.h galario_defs.h DESTINATION include)
