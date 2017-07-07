@@ -148,7 +148,7 @@ To debug the testing, first find out the exact command of the test
 `py.test` captures the output from the test, in particular from C to stderr.
 Force it to show all output
 
-    make && python/py.test.sh -s python_package/tests/test_galario.py
+    make && python/py.test.sh -sv python_package/tests/test_galario.py
 
 By default, tests run on the GPU if code is available in `galario`. Deactivate
 by calling `... py.test.sh --gpu=0 ...`. To select the parametrized test

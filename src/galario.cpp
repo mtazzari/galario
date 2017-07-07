@@ -264,7 +264,7 @@ void galario_fftshift(int nx, void* data) {
      CCheck(cudaMalloc((void**)&data_d, nbytes));
      CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-     shift_d<<<dim3(nx/2/32+1, nx/2/32+1), dim3(32, 32)>>>(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
 
      CCheck(cudaDeviceSynchronize());
      CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
@@ -281,9 +281,9 @@ void galario_fftshift_fft2d_fftshift(int nx, void* data) {
      CCheck(cudaMalloc((void**)&data_d, nbytes));
      CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-     shift_d<<<dim3(nx/2/32+1, nx/2/32+1), dim3(32, 32)>>>(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
      fft_d(nx, (dcomplex*) data_d);
-     shift_d<<<dim3(nx/2/32+1, nx/2/32+1), dim3(32, 32)>>>(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
 
      CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
      CCheck(cudaFree(data_d));
@@ -457,7 +457,8 @@ void galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec) {
      CCheck(cudaMalloc((void**)&data_d, nbytes));
      CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-     apply_phase_d<<<dim3(nx/32+1, nx/32+1), dim3(32, 32)>>>(nx, (dcomplex*) data_d, dRA, dDec);
+     apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1),
+                     dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, dRA, dDec);
 
      CCheck(cudaDeviceSynchronize());
      CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
