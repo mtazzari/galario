@@ -25,7 +25,11 @@ extern "C"
     void galario_acc_cleanup();
 
     /* GPU related functions */
-    int galario_threads_per_block(int num=0);
+    int galario_threads_per_block(int num
+#ifdef __cplusplus
+                                          = 0
+#endif
+                                             );
     int galario_ngpus();
     void galario_use_gpu(int device_id);
 #ifdef __cplusplus
