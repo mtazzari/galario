@@ -102,7 +102,7 @@ def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
     return x[:, 0].astype(dtype), x[:, 1].astype(dtype)
 
 
-def rotix(udat, vdat, uv):
+def uv_idx(udat, vdat, uv):
     """
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
@@ -134,7 +134,7 @@ def pixel_coordinates(maxuv, nx):
     return (np.linspace(0., nx-1, nx) - nx/2.) * maxuv/(nx)
 
 
-def get_rotix_n(ux, vx, ur, vr, size):
+def get_uv_idx_n(ux, vx, ur, vr, size):
 
     ntot = len(ur)
     assert len(ur) == len(vr)
@@ -303,7 +303,7 @@ def generate_random_vis(nsamples, dtype):
                          [(1024, 'float32', 1.e-4, g_single),
                           (1024, 'float64', 1.e-13, g_double)],
                          ids=["SP", "DP"])
-def test_rotix(size, real_type, tol, acc_lib):
+def test_uv_idx(size, real_type, tol, acc_lib):
     nsamples = 10
     maxuv = 1000.
 
@@ -314,11 +314,11 @@ def test_rotix(size, real_type, tol, acc_lib):
     udat = udat.astype(real_type)
     vdat = vdat.astype(real_type)
 
-    ui, vi = get_rotix_n(uv, uv, udat, vdat, len(uv))
+    ui, vi = get_uv_idx_n(uv, uv, udat, vdat, len(uv))
     ui = ui.astype(real_type)
     vi = vi.astype(real_type)
 
-    ui1, vi1 = acc_lib.acc_rotix(size, maxuv/size, udat, vdat)
+    ui1, vi1 = acc_lib.get_uv_idx(size, maxuv/size, udat, vdat)
 
     np.testing.assert_allclose(ui1, ui, rtol=tol)
     np.testing.assert_allclose(vi1, vi, rtol=tol)
@@ -342,7 +342,7 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
 
     # no rotation
     uv = pixel_coordinates(maxuv, size)
-    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, len(uv))
+    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, len(uv))
 
     uroti = uroti.astype(real_type)
     vroti = vroti.astype(real_type)
@@ -536,7 +536,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # create model complex image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.copy()
+    ref_real = reference_image.real.copy()
 
     ###
     # shift - FFT - shift
@@ -566,8 +566,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # rotation indices
     ###
-    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
-    ui1, vi1 = acc_lib.acc_rotix(size, maxuv/size, udat.astype(real_type), vdat.astype(real_type))
+    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
+    ui1, vi1 = acc_lib.get_uv_idx(size, maxuv/size, udat.astype(real_type), vdat.astype(real_type))
 
     np.testing.assert_allclose(ui1, uroti, rtol, atol)
     np.testing.assert_allclose(vi1, vroti, rtol, atol)
@@ -586,7 +586,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # now all steps in one function
     ###
-    sampled = acc_lib.sample(ref_complex, x0_arcsec, y0_arcsec,
+    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
 
     # a lot of precision lost. Why? --> not anymore
@@ -626,21 +626,21 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
-    # create model complex image (it happens to have 0 imaginary part)
+    # create model image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.astype(complex_type)
+    ref_real = reference_image.real.copy()
 
     # CPU version
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
     fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
 
     # compute interpolation and chi2
-    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
+    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
     ReInt = int_bilin(fourier_shifted.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
 
     # GPU
-    sampled = acc_lib.sample(ref_complex, x0_arcsec, y0_arcsec,
+    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
 
     np.testing.assert_allclose(ReInt, sampled.real, rtol, atol)
@@ -675,22 +675,22 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
-    # create model complex image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.astype(complex_type)
+    # create model image (it happens to have 0 imaginary part)
+    ref_complex = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    ref_real = ref_complex.real.copy()
 
     # CPU version
-    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
+    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(ref_complex)))
     fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
 
     # compute interpolation and chi2
-    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
+    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
     ReInt = int_bilin(fourier_shifted.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
     chi2_ref = np.sum(((ReInt - x.real) ** 2. + (ImInt - x.imag)**2.) * w)
 
     # GPU
-    chi2_cuda = acc_lib.chi2(ref_complex, x0_arcsec, y0_arcsec,
+    chi2_cuda = acc_lib.chi2(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
@@ -716,9 +716,9 @@ def test_profile():
     print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
-    # create model complex image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.astype(complex_type)
+    # create model image (it happens to have 0 imaginary part)
+    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=real_type)
+    ref_complex = reference_image.copy()
 
     chi2_cuda = g_double.chi2(ref_complex, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)

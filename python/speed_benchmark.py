@@ -3,7 +3,7 @@
 from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
-from test_galario import sec2rad, create_reference_image, create_sampling_points, Fourier_shift_static, int_bilin, get_rotix_n, pixel_coordinates
+from test_galario import sec2rad, create_reference_image, create_sampling_points, Fourier_shift_static, int_bilin, get_uv_idx_n, pixel_coordinates
 import numpy as np
 import timeit
 import multiprocessing
@@ -97,7 +97,7 @@ def setup_chi2(size, nsamples, real_type, complex_type):
     # fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
 
     # compute interpolation and chi2
-    uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
+    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
     uroti = uroti.astype(real_type)
     vroti = vroti.astype(real_type)
     # ReInt = int_bilin(fourier_shifted.real, uroti, vroti).astype(real_type)
@@ -149,7 +149,7 @@ if __name__ == '__main__':
             i_tests += 1
             t = timeit.Timer('function_to_test(*x, acc_lib={})'.format(acc_lib),
                              setup=textwrap.dedent("""
-                             from __main__ import function_to_test, setup_chi2; 
+                             from __main__ import function_to_test, setup_chi2;
                              from galario import {4};
                              x = setup_chi2({0}, {1}, "{2}", "{3}")
                              """
@@ -167,5 +167,3 @@ if __name__ == '__main__':
                 f.write(str_results + "\n")
             print(t_results)
             print(str_results)
-
-

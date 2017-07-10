@@ -12,13 +12,22 @@ With the default configuration
     mkdir build && cd build
     cmake .. && make
 
-Before playing with the options, it's best to remove the cache
+Before playing with the `cmake` options, it's best to remove the cache
 
     rm build/CMakeCache.txt
 
-### C compiler
+### C++ compiler
 
-    cmake -DCMAKE_C_COMPILER=$GCC_BASE/bin/gcc ..
+    cmake -DCMAKE_CXX_COMPILER=$GCC_BASE/bin/gcc ..
+
+### optimization
+
+See
+    cmake --help-variable CMAKE_BUILD_TYPE
+
+The default is `Release`. To turn off optimization
+
+    cmake -DCMAKE_BUILD_TYPE=Debug
 
 ### python
 
@@ -99,7 +108,7 @@ where version conflicts between the nvidia compiler and the C++ compiler often l
 
 To manually turn off cuda support, use
 
-    cmake -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=0 ..
+    cmake -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=1 ..
 
 To force searching for cuda, for example on the mac, do
 
