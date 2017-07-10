@@ -600,7 +600,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-                         [(100, 'float32', 'complex64',  1e-3,  1e-6, g_single, par1),
+                         [(100, 'float32', 'complex64',  1e-3,  1e-5, g_single, par1),
                           (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par1),
                           (100, 'float32', 'complex64',  1e-3,  1e-4, g_single, par2), ## large x0, y0 induce larger errors
                           (1000, 'float64', 'complex128', 1e-12, 1e-10, g_double, par2),
