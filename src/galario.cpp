@@ -451,21 +451,29 @@ void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, dreal* const u, 
 
 void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, void* const u, void* const v, void* __restrict__ fint) {
 #ifdef __CUDACC__
-    // to be implemented the memallocation and memcpy
 
-    dcomplex *data_d;
+     size_t nbytes_d_complex = sizeof(dcomplex)*nd;
+     size_t nbytes_d_dreal = sizeof(dreal)*nd;
 
-     size_t nbytes = sizeof(dcomplex)*nx*nx;
+     dreal *u_d, *v_d;
+     dcomplex *fint_d;
 
-     CCheck(cudaMalloc((void**)&data_d, nbytes));
-     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+     CCheck(cudaMalloc((void**)&u_d, nbytes_d_dreal));
+     CCheck(cudaMemcpy(u_d, u, nbytes_d_dreal, cudaMemcpyHostToDevice));
 
-     apply_phase_sampled_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1),
-                     dim3(galario_threads_per_block(), galario_threads_per_block())>>>(dRA, dDec, nd, u, v, fint);
+     CCheck(cudaMalloc((void**)&v_d, nbytes_d_dreal));
+     CCheck(cudaMemcpy(v_d, v, nbytes_d_dreal, cudaMemcpyHostToDevice));
+
+     CCheck(cudaMalloc((void**)&fint_d, nbytes_d_complex));
+     CCheck(cudaMemcpy(fint_d, fint, nbytes_d_complex, cudaMemcpyHostToDevice));
+
+     apply_phase_sampled_d<<<nd/galario_threads_per_block()+1, nd/galario_threads_per_block()+1>>>(dRA, dDec, nd, u_d, v_d, fint_d);
 
      CCheck(cudaDeviceSynchronize());
-     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(data_d));
+     CCheck(cudaMemcpy(fint, fint_d, nbytes_d_complex, cudaMemcpyDeviceToHost));
+     CCheck(cudaFree(fint_d));
+     CCheck(cudaFree(v_d));
+     CCheck(cudaFree(u_d));
 #else
     apply_phase_sampled_h(dRA, dDec, nd, (dreal*) u, (dreal*) v, (dcomplex*) fint);
 #endif
@@ -615,14 +623,11 @@ void rotix_h(int nx, dreal const u0, dreal du, int nd, dreal const* u, dreal con
 }
 
 
-void galario_acc_rotix(int nx, void* vpixel_centers, int nd, void* u, void* v, void* indu, void* indv)
+void galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv)
 {
     assert(nx >= 2);
 
-    // uniform distance between pixel centers
-    dreal* pixel_centers = (dreal*) vpixel_centers;
-    const dreal du = abs(pixel_centers[1] - pixel_centers[0]);
-    const dreal u0 = pixel_centers[0];
+    const dreal u0 = -du*nx/2.;
 
 #ifdef __CUDACC__
     dreal *u_d, *v_d;

@@ -42,7 +42,7 @@ extern "C"
     void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint);
     void galario_apply_phase_2d(int nx, void* data, dreal x0, dreal y0);
     void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint);
-    void galario_acc_rotix(int nx, void* pixel_centers, int nd, void* u, void* v, void* indu, void* indv);
+    void galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv);
     void galario_sample(int nx, void* data, dreal x0, dreal y0, dreal du, int nd, void* u, void* v, void* fint);
     void galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2);
     void galario_chi2(int nx, void* data, dreal x0, dreal y0, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2);

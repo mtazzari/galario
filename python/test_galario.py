@@ -318,7 +318,7 @@ def test_rotix(size, real_type, tol, acc_lib):
     ui = ui.astype(real_type)
     vi = vi.astype(real_type)
 
-    ui1, vi1 = acc_lib.acc_rotix(uv, udat, vdat)
+    ui1, vi1 = acc_lib.acc_rotix(size, maxuv/size, udat, vdat)
 
     np.testing.assert_allclose(ui1, ui, rtol=tol)
     np.testing.assert_allclose(vi1, vi, rtol=tol)
@@ -462,7 +462,7 @@ def test_apply_phase(real_type, complex_type, rtol, atol, acc_lib, pars):
 
 @pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
                          [('float32', 'complex64',  1.e-7,  1e-5, g_single, par1),
-                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par1),
+                          ('float64', 'complex128', 1.e-16, 1e-14, g_double, par1),
                           ('float32', 'complex64',  1.e-3,  1e-5, g_single, par2),
                           ('float64', 'complex128', 1.e-16, 1e-14, g_double, par2),
                           ('float32', 'complex64',  1.e-7,  1e-5, g_single, par3),
@@ -567,7 +567,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # rotation indices
     ###
     uroti, vroti = get_rotix_n(uv, uv, udat, vdat, size)
-    ui1, vi1 = acc_lib.acc_rotix(uv.astype(real_type), udat.astype(real_type), vdat.astype(real_type))
+    ui1, vi1 = acc_lib.acc_rotix(size, maxuv/size, udat.astype(real_type), vdat.astype(real_type))
 
     np.testing.assert_allclose(ui1, uroti, rtol, atol)
     np.testing.assert_allclose(vi1, vroti, rtol, atol)

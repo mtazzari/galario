@@ -25,7 +25,7 @@ cdef extern from "galario.hpp":
     void galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
     void galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec)
     void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
-    void galario_acc_rotix(int nx, void* pixel_centers, int nd, void* u, void* v, void* indu, void* indv)
+    void galario_acc_rotix(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv)
     void galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
     void galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
     void galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
@@ -144,12 +144,12 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
     galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*> &fint[0])
 
 
-def acc_rotix(dreal[::1] pixel_centers, dreal[::1] u, dreal[::1] v):
+def acc_rotix(nx, du, dreal[::1] u, dreal[::1] v):
     assert len(u) == len(v), "Wrong array length: u, v."
 
     indu = np.zeros(len(u), dtype=real_dtype)
     indv = np.zeros(len(u), dtype=real_dtype)
-    galario_acc_rotix(len(pixel_centers), <void*> &pixel_centers[0], len(u), <void*> &u[0],  <void*> &v[0],
+    galario_acc_rotix(nx, du, len(u), <void*> &u[0],  <void*> &v[0],
                 <void*>np.PyArray_DATA(indu), <void*>np.PyArray_DATA(indv))
 
     return indu, indv
