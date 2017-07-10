@@ -536,7 +536,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # create model complex image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.copy()
+    ref_real = reference_image.real.copy()
 
     ###
     # shift - FFT - shift
@@ -586,7 +586,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # now all steps in one function
     ###
-    sampled = acc_lib.sample(ref_complex, x0_arcsec, y0_arcsec,
+    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
 
     # a lot of precision lost. Why? --> not anymore
@@ -626,9 +626,9 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
-    # create model complex image (it happens to have 0 imaginary part)
+    # create model image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.astype(complex_type)
+    ref_real = reference_image.real.copy()
 
     # CPU version
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
@@ -640,7 +640,7 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
 
     # GPU
-    sampled = acc_lib.sample(ref_complex, x0_arcsec, y0_arcsec,
+    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
 
     np.testing.assert_allclose(ReInt, sampled.real, rtol, atol)
@@ -675,12 +675,12 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
-    # create model complex image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.astype(complex_type)
+    # create model image (it happens to have 0 imaginary part)
+    ref_complex = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    ref_real = ref_complex.real.copy()
 
     # CPU version
-    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
+    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(ref_complex)))
     fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
 
     # compute interpolation and chi2
@@ -690,7 +690,7 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     chi2_ref = np.sum(((ReInt - x.real) ** 2. + (ImInt - x.imag)**2.) * w)
 
     # GPU
-    chi2_cuda = acc_lib.chi2(ref_complex, x0_arcsec, y0_arcsec,
+    chi2_cuda = acc_lib.chi2(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
@@ -716,9 +716,9 @@ def test_profile():
     print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
-    # create model complex image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
-    ref_complex = reference_image.astype(complex_type)
+    # create model image (it happens to have 0 imaginary part)
+    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=real_type)
+    ref_complex = reference_image.copy()
 
     chi2_cuda = g_double.chi2(ref_complex, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
