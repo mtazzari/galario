@@ -35,19 +35,23 @@ cdef extern from "galario.h":
     void galario_use_gpu(int device_id)
     int  galario_ngpus()
 
-def _check_data(dcomplex[:,::1] data):
+def _check_data(data):
     assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
 
 
-def _check_obs(fobs_re, fobs_im, weights, fint=None):
+def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
     nd = len(fobs_re)
     assert len(fobs_im) == nd, "Wrong array length: fobs_im."
     assert len(weights) == nd, "Wrong array length: weights."
     if fint is not None:
         assert len(fint) == nd, "Wrong array length: fint."
+    if u is not None:
+        assert len(u) == nd, "Wrong array length: u"
+    if v is not None:
+        assert len(v) == nd, "Wrong array length: v"
 
 
-def sample(dcomplex[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
+def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
     """
     Performs Fourier transform, translation by (dRA, dDec) and sampling in (u, v) locations of a given image.
 
@@ -156,26 +160,18 @@ def acc_rotix(nx, du, dreal[::1] u, dreal[::1] v):
     return indu, indv
 
 
-# TODO call _check_obs
 def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, dreal[::1] weights):
-    nd = len(fobs_re)
-    assert len(fobs_im) == nd
-    assert len(weights) == nd
-    assert len(fint) == nd
+    _check_obs(fobs_re, fobs_im, weights, fint)
 
     cdef dreal chi2
-    _galario_reduce_chi2(nd, <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&fint[0], <void*>&weights[0], &chi2)
+    _galario_reduce_chi2(len(fint), <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&fint[0], <void*>&weights[0], &chi2)
 
     return chi2
 
 
-# TODO call _check_obs
-def chi2(dcomplex[:,::1] data, dRA, dDec, dreal du, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
-    assert data.shape[0] == data.shape[1], "Wrong data shape."
-    assert len(u) == len(v), "Wrong array length: u, v."
-    nd = len(fobs_re)
-    assert len(fobs_im) == nd, "Wrong array length: fobs_im."
-    assert len(weights) == nd, "Wrong array length: weights."
+def chi2(dreal[:,::1] data, dRA, dDec, dreal du, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
+    _check_data(data)
+    _check_obs(fobs_re, fobs_im, weights)
 
     cdef dreal chi2
 
