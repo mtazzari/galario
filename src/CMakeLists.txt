@@ -1,6 +1,8 @@
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
 # these options are understood by both gcc and nvcc
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(cxx_std "-std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_std}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 # these need to be wrapped in -Xcompiler for nvcc
 set(extra_compile_options  -Wall -pedantic -fno-strict-aliasing -pthread -fwrapv)
 # we set CXX_FLAGS because they are then automatically propagated also to nvcc with -Xcompiler option
@@ -43,7 +45,7 @@ if (CUDA_FOUND)
   # TODO I couldn't get nvcc to work with flags propagated and I still
   # need to pass every arg in ${extra_compile_options} to
   # nvcc. Probably a function will do it that emits "-Xcompiler arg1 -Xcompiler arg2 ..."
-  list(APPEND CUDA_NVCC_FLAGS -std=c++11 ${compile_options})
+  list(APPEND CUDA_NVCC_FLAGS ${cxx_std} ${compile_options})
 
   # for timing test, we want to avoid the start-up time from JIT, so we create fat binaries
   # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
