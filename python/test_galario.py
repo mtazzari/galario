@@ -623,7 +623,7 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # compute the matrix size and maxuv
     size, minuv, maxuv = matrix_size(udat, vdat)
-    print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
+    # print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
     # create model image (it happens to have 0 imaginary part)
@@ -672,7 +672,7 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # compute the matrix size and maxuv
     size, minuv, maxuv = matrix_size(udat, vdat)
-    print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
+    #print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
     # create model image (it happens to have 0 imaginary part)
@@ -713,7 +713,7 @@ def test_profile():
 
     # compute the matrix size and maxuv
     size, minuv, maxuv = matrix_size(udat, vdat, force_nx=4096)
-    print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
+    #print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
     # create model image (it happens to have 0 imaginary part)
