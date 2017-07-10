@@ -1,6 +1,6 @@
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
 # these options are understood by both gcc and nvcc
-set(compile_options -std=c++11 -g -O3)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # these need to be wrapped in -Xcompiler for nvcc
 set(extra_compile_options  -Wall -pedantic -fno-strict-aliasing -pthread -fwrapv)
 # we set CXX_FLAGS because they are then automatically propagated also to nvcc with -Xcompiler option
@@ -43,7 +43,7 @@ if (CUDA_FOUND)
   # TODO I couldn't get nvcc to work with flags propagated and I still
   # need to pass every arg in ${extra_compile_options} to
   # nvcc. Probably a function will do it that emits "-Xcompiler arg1 -Xcompiler arg2 ..."
-  list(APPEND CUDA_NVCC_FLAGS ${compile_options})
+  list(APPEND CUDA_NVCC_FLAGS -std=c++11 ${compile_options})
 
   # for timing test, we want to avoid the start-up time from JIT, so we create fat binaries
   # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
@@ -101,5 +101,10 @@ install(FILES galario.h galario_py.h galario_defs.h DESTINATION include)
 ###
 
 add_executable(galario_test_c galario_test.c)
-target_link_libraries(galario_test_c ${install_libs})
-add_test(C_compile_test galario_test_c)
+add_test(c_compile_test galario_test_c)
+add_executable(galario_test_cpp galario_test.cpp)
+add_test(cpp_compile_test galario_test_cpp)
+
+foreach(t IN ITEMS galario_test_c galario_test_cpp)
+target_link_libraries(${t} galario)
+endforeach()
