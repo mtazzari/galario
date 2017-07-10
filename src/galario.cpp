@@ -713,10 +713,18 @@ inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dr
 }
 
 __global__ void real_to_complex_d(int nx, dreal* realdata, dcomplex* data) {
-    int i = threadIdx.x + blockIdx.x * blockDim.x;
+    int idx_x0 = blockIdx.x * blockDim.x + threadIdx.x;
+    int idx_y0 = blockIdx.y * blockDim.y + threadIdx.y;
 
-    for (; i < nx; i += gridDim.x * blockDim.x)
-        data[i] = CMPLX(realdata[i], 0.0);
+    int sx = gridDim.x * blockDim.x;
+    int sy = gridDim.y * blockDim.y;
+
+    for (int idx_x=idx_x0; idx_x < nx; idx_x+=sx) {
+        for (int idx_y=idx_y0; idx_y < nx; idx_y+=sy ) {
+            auto const idx = idx_y + idx_x*nx;  // row-wise
+            data[idx] = CMPLX(realdata[idx], 0.0);
+        }
+    }
 }
 
 /**
