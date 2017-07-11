@@ -693,6 +693,11 @@ void _galario_get_uv_idx(int nx, dreal du, int nd, void* u, void* v, void* indu,
 #ifdef __CUDACC__
 inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal u0, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
 {
+
+    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec_to_rad;
+    dDec *= arcsec_to_rad;
+
      // ################################
      // ########### KERNELS ############
      // ################################
@@ -702,14 +707,14 @@ inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dr
      shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
      CCheck(cudaDeviceSynchronize());
 
-     // Kernel for phase
-     apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d, dRA, dDec);
-
      // Kernel for uv_idx and interpolate
      uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, u0, du, nd, u_d, v_d, indu_d, indv_d);
 
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
      interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
+
+     // apply phase to the sampled points     
+     apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
 }
 
 __global__ void real_to_complex_d(int nx, dreal* realdata, dcomplex* data) {
@@ -757,6 +762,8 @@ dcomplex* copy_real_to_device(int nx, dreal* realdata) {
 void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, dreal* u, dreal* v, dcomplex* fint) {
     // Initialization for uv_idx and interpolate
     assert(nx >= 2);
+
+    const dreal u0 = -du*nx/2.;
 
 #ifdef __CUDACC__
     // ################################
@@ -811,7 +818,6 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     CCheck(cudaFree(fint_d));
 #else
 
-    const dreal u0 = -du*nx/2.;
     const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
     dRA *= arcsec_to_rad;
     dDec *= arcsec_to_rad;
@@ -996,6 +1002,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
 
+    const dreal u0 = -du*nx/2.;
     dcomplex *data_d = copy_real_to_device(nx, realdata);
 
      /* async memory copy:
