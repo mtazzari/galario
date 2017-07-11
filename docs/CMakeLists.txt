@@ -23,6 +23,10 @@ configure_file(
     @ONLY)
 # sphinx requires a _static directory, even if it's empty
 file(MAKE_DIRECTORY "${BINARY_BUILD_DIR}/_static")
+
+# github pages imposes jekyll theme by default. Prevent that.
+file(WRITE "${SPHINX_HTML_DIR}/.nojekyll" "")
+
 add_custom_target(docs ALL
     ${SPHINX_EXECUTABLE}
         -q -b html
@@ -33,5 +37,5 @@ add_custom_target(docs ALL
     COMMENT "Building HTML documentation with Sphinx")
 
 # sphinx can fail if it doesn't find the theme. This should not prevent building
-# the actual source code, so docs have to be build explicitly
+# the actual source code, so docs have to be built explicitly
 set_target_properties(docs PROPERTIES EXCLUDE_FROM_ALL TRUE)
