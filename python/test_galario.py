@@ -123,7 +123,7 @@ def uv_idx(udat, vdat, uv):
     return u + (udat - uv) / du , v + (vdat - uv) / du
 
 
-def pixel_coordinates(maxuv, nx):
+def pixel_coordinates(maxuv, nx, dtype='float64'):
     """
     Compute the array that maps the pixels of the image to real uv-coordinates.
     The array contains the coordinate of the pixel centers (not the edges!).
@@ -131,7 +131,7 @@ def pixel_coordinates(maxuv, nx):
     """
     # TODO: should divide by /nx instead of /(nx-1)
 
-    return (np.linspace(0., nx-1, nx) - nx/2.) * maxuv/(nx)
+    return (np.linspace(0., nx-1, nx, dtype=dtype) - nx/2.) * maxuv/(nx)
 
 
 def get_uv_idx_n(ux, vx, ur, vr, size):
@@ -432,7 +432,7 @@ def test_shift(size, complex_type, tol, acc_lib):
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
-def test_apply_phase(real_type, complex_type, rtol, atol, acc_lib, pars):
+def test_apply_phase_2d(real_type, complex_type, rtol, atol, acc_lib, pars):
 
     wle_m = pars.get('wle_m', 0.003)
     x0_arcsec = pars.get('x0_arcsec', 0.4)
@@ -552,14 +552,19 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # phase
     ###
-    factor = sec2rad/wle_m*maxuv
-    fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
-    acc_lib.apply_phase_2d(shift_acc, x0_arcsec*factor, y0_arcsec*factor)
+    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
+    ReInt = int_bilin(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
+    ImInt = int_bilin(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
+    fint = ReInt + 1j*ImInt
+    fint_acc = fint.copy()
+    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
+    acc_lib.apply_phase_sampled(x0_arcsec*sec2rad, y0_arcsec*sec2rad, udat/wle_m, vdat/wle_m, fint_acc)
+
 
     # lose some absolute precision here  --> not anymore
     # atol *= 2
-    np.testing.assert_allclose(fourier_shifted.real, shift_acc.real, rtol, atol)
-    np.testing.assert_allclose(fourier_shifted.imag, shift_acc.imag, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.real, fint_acc.real, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.imag, fint_acc.imag, rtol, atol)
     # but continue with previous tolerance
     # atol /= 2
 
@@ -576,8 +581,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # interpolation
     ###
-    ReInt = int_bilin(fourier_shifted.real, uroti, vroti).astype(real_type)
-    ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
+    ReInt = int_bilin(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
+    ImInt = int_bilin(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
     complexInt = acc_lib.interpolate(shift_acc, uroti.astype(real_type), vroti.astype(real_type))
 
     np.testing.assert_allclose(ReInt, complexInt.real, rtol, atol)
@@ -592,23 +597,21 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # a lot of precision lost. Why? --> not anymore
     # rtol = 1
     # atol = 0.5
-    np.testing.assert_allclose(complexInt.real, sampled.real, rtol, atol)
-    np.testing.assert_allclose(complexInt.imag, sampled.imag, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
 
-    np.testing.assert_allclose(ReInt, sampled.real, rtol, atol)
-    np.testing.assert_allclose(ImInt, sampled.imag, rtol, atol)
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-                         [(100, 'float32', 'complex64',  1e-3,  1e-5, g_single, par1),
-                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par1),
-                          (100, 'float32', 'complex64',  1e-3,  1e-4, g_single, par2), ## large x0, y0 induce larger errors
-                          (1000, 'float64', 'complex128', 1e-12, 1e-10, g_double, par2),
-                          (100, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
-                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par3)],
-                         ids=["SP_par1", "DP_par1",
-                              "SP_par2", "DP_par2",
-                              "SP_par3", "DP_par3"])
+                         [(10, 'float32', 'complex64',  1e-3,  1e-5, g_single, par1),
+                          (10, 'float64', 'complex128', 1e-12, 1e-11, g_double, par1),],
+                          # (10, 'float32', 'complex64',  1e-3,  1e-4, g_single, par2), ## large x0, y0 induce larger errors
+                          # (10, 'float64', 'complex128', 1e-12, 1e-10, g_double, par2),],
+                          # (100, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
+                          # (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par3)],
+                         ids=["SP_par1", "DP_par1",])
+                              # "SP_par2", "DP_par2",])
+                              # "SP_par3", "DP_par3"])
 def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # go for fairly low precision when we add up many large numbers, we loose precision
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
@@ -623,8 +626,7 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # compute the matrix size and maxuv
     size, minuv, maxuv = matrix_size(udat, vdat)
-    # print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
-    uv = pixel_coordinates(maxuv, size).astype(real_type)
+    uv = pixel_coordinates(maxuv, size, dtype=real_type)
 
     # create model image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
@@ -632,19 +634,18 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # CPU version
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
-    fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
-
-    # compute interpolation and chi2
     uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
-    ReInt = int_bilin(fourier_shifted.real, uroti, vroti).astype(real_type)
-    ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
+    ReInt = int_bilin(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
+    ImInt = int_bilin(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
+    fint = ReInt + 1j*ImInt
+    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
 
     # GPU
     sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
 
-    np.testing.assert_allclose(ReInt, sampled.real, rtol, atol)
-    np.testing.assert_allclose(ImInt, sampled.imag, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
 
 
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
@@ -681,13 +682,15 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # CPU version
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(ref_complex)))
-    fourier_shifted = Fourier_shift_static(cpu_shift_fft_shift, x0_arcsec, y0_arcsec, wle_m, maxuv)
 
     # compute interpolation and chi2
     uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
-    ReInt = int_bilin(fourier_shifted.real, uroti, vroti).astype(real_type)
-    ImInt = int_bilin(fourier_shifted.imag, uroti, vroti).astype(real_type)
-    chi2_ref = np.sum(((ReInt - x.real) ** 2. + (ImInt - x.imag)**2.) * w)
+    ReInt = int_bilin(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
+    ImInt = int_bilin(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
+    fint = ReInt + 1j*ImInt
+    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
+
+    chi2_ref = np.sum(((fint_shifted.real - x.real)**2. + (fint_shifted.imag - x.imag)**2.) * w)
 
     # GPU
     chi2_cuda = acc_lib.chi2(ref_real, x0_arcsec, y0_arcsec,

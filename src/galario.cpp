@@ -758,11 +758,6 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     // Initialization for uv_idx and interpolate
     assert(nx >= 2);
 
-    const dreal u0 = -du*nx/2.;
-    const dreal arcsec_to_uv = (dreal)M_PI / 3600. / 180. * du * nx;
-    dRA *= arcsec_to_uv;
-    dDec *= arcsec_to_uv;
-
 #ifdef __CUDACC__
     // ################################
     // ### ALLOCATION, INITIALIZATION ###
@@ -815,6 +810,12 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     CCheck(cudaFree(indv_d));
     CCheck(cudaFree(fint_d));
 #else
+
+    const dreal u0 = -du*nx/2.;
+    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec_to_rad;
+    dDec *= arcsec_to_rad;
+
     // transform image from real to complex
     std::vector<dcomplex> buffer(nx*nx);
 #pragma omp parallel for shared(buffer, realdata)
@@ -832,9 +833,6 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     // shift
     shift_h(nx, data);
 
-    // apply phase
-    apply_phase_h(nx, data, dRA, dDec);
-
     // uv_idx_h
     dreal* indu = (dreal*) malloc(sizeof(dreal)*nd);
     dreal* indv = (dreal*) malloc(sizeof(dreal)*nd);
@@ -842,6 +840,9 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
 
     // interpolate
     interpolate_h(nx, data, nd, indu, indv, fint);
+
+    // apply phase to the sampled points
+    apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
 
     free(indu);
     free(indv);
@@ -991,14 +992,6 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
     assert(nx >= 2);
 
 #ifdef __CUDACC__
-
-    // conversions
-    // for the CPU case, these are inside galario_sample
-    const dreal u0 = -du*nx/2.;
-    const dreal arcsec_to_uv = (dreal)M_PI / 3600. / 180. * du * nx;
-    dRA *= arcsec_to_uv;
-    dDec *= arcsec_to_uv;
-
      // ################################
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
