@@ -603,15 +603,15 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-                         [(10, 'float32', 'complex64',  1e-3,  1e-5, g_single, par1),
-                          (10, 'float64', 'complex128', 1e-12, 1e-11, g_double, par1),],
-                          # (10, 'float32', 'complex64',  1e-3,  1e-4, g_single, par2), ## large x0, y0 induce larger errors
-                          # (10, 'float64', 'complex128', 1e-12, 1e-10, g_double, par2),],
-                          # (100, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
-                          # (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par3)],
-                         ids=["SP_par1", "DP_par1",])
-                              # "SP_par2", "DP_par2",])
-                              # "SP_par3", "DP_par3"])
+                         [(1000, 'float32', 'complex64',  1e-3,  1e-4, g_single, par1),
+                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par1),
+                          (1000, 'float32', 'complex64',  1e-3,  1e-3, g_single, par2), ## large x0, y0 induce larger errors
+                          (1000, 'float64', 'complex128', 1e-12, 1e-10, g_double, par2),
+                          (1000, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
+                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par3)],
+                         ids=["SP_par1", "DP_par1",
+                              "SP_par2", "DP_par2",
+                              "SP_par3", "DP_par3"])
 def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # go for fairly low precision when we add up many large numbers, we loose precision
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
