@@ -1,6 +1,9 @@
-galario
+galario 
 =======
-Gpu Accelerated Library for Analysing Radio Interferometry Observations
+
+**Gpu Accelerated Library for Analysing Radio Interferometry Observations**
+
+[![Build Status](https://travis-ci.com/mtazzari/galario.svg?token=5eGVFXjE3x4Wwe8FkTJW&branch=master)](https://travis-ci.com/mtazzari/galario)
 
 build instructions
 ------------------
