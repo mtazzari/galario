@@ -44,8 +44,9 @@ script:
   # first unit tests
   # - ctest -V --output-on-failure
 
+  # TODO enable when galario is public on github
   # build and deploy docs only for one python version
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install doctr && make docs && cd .. && doctr deploy . --built-docs build/docs/html/; fi
+  # - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install doctr && make docs && cd .. && doctr deploy . --built-docs build/docs/html/; fi
 
 notifications:
   - email: false
