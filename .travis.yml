@@ -38,7 +38,14 @@ install:
   - make install
 
 script:
-  - ctest -V --output-on-failure
+  # if any line in this section fails, build fails
+  - set -e
+
+  # first unit tests
+  # - ctest -V --output-on-failure
+
+  # build and deploy docs only for one python version
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install doctr && make docs && cd .. && doctr deploy . --built-docs build/docs/html/; fi
 
 notifications:
   - email: false
