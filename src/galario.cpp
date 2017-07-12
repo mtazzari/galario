@@ -713,21 +713,26 @@ inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dr
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
      interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
 
-     // apply phase to the sampled points     
+     // apply phase to the sampled points
      apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
 }
 
 __global__ void real_to_complex_d(int nx, dreal* realdata, dcomplex* data) {
-    int idx_x0 = blockIdx.x * blockDim.x + threadIdx.x;
-    int idx_y0 = blockIdx.y * blockDim.y + threadIdx.y;
+    auto idx_x0 = blockIdx.x * blockDim.x + threadIdx.x;
+    auto idx_y0 = blockIdx.y * blockDim.y + threadIdx.y;
 
-    int sx = gridDim.x * blockDim.x;
-    int sy = gridDim.y * blockDim.y;
+    const auto sx = gridDim.x * blockDim.x;
+    const auto sy = gridDim.y * blockDim.y;
 
-    for (int idx_x=idx_x0; idx_x < nx; idx_x+=sx) {
-        for (int idx_y=idx_y0; idx_y < nx; idx_y+=sy ) {
+    dreal* raw = reinterpret_cast<dreal*>(data);
+    for (int idx_x=idx_x0; idx_x < nx; idx_x += sx) {
+        for (int idx_y=idx_y0; idx_y < nx; idx_y += sy ) {
+            // auto const idx = idx_y + idx_x*nx;  // row-wise
+            // data[idx] = CMPLX(realdata[idx], 0.0);
+            // avoid calling CMPLX and operate on real_buffer directly
             auto const idx = idx_y + idx_x*nx;  // row-wise
-            data[idx] = CMPLX(realdata[idx], 0.0);
+            raw[idx << 1] = realdata[idx];
+            raw[(idx << 1) +1] = 0.0;
         }
     }
 }
@@ -823,12 +828,26 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     dDec *= arcsec_to_rad;
 
     // transform image from real to complex
-    std::vector<dcomplex> buffer(nx*nx);
-#pragma omp parallel for shared(buffer, realdata)
-    for (size_t i = 0; i < buffer.size(); ++i) {
-        buffer[i] = std::complex<dreal>(realdata[i], 0.0);
+    std::vector<dreal> real_buffer(2*nx*nx);
+
+    // profiling showed that calling std::complex was quite costly,
+    // presumably due to function-call overhead
+// #pragma omp parallel for shared(real_buffer, realdata)
+//     for (size_t i = 0; i < real_buffer.size(); ++i) {
+//         real_buffer[i] = std::complex<dreal>(realdata[i], 0.0);
+//     }
+
+    // to avoid calling std::complex, use the fact that real and imaginary part
+    // are stored contiguously. In profiling, this turned out to be significant.
+#pragma omp parallel for shared(real_buffer, realdata)
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < nx; ++j) {
+            auto const idx = i*nx + j;
+            real_buffer[idx << 1] = realdata[idx];
+            real_buffer[(idx << 1) + 1] = dreal(0);
+        }
     }
-    dcomplex* data = &buffer[0];
+    dcomplex* data = reinterpret_cast<dcomplex*>(&real_buffer[0]);
 
     // shift
     shift_h(nx, data);
@@ -1064,16 +1083,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
      galario_sample(nx, realdata, dRA, dDec, du, nd, u, v, fint);
 
-     // diff weigthed and chi2
-     diff_weighted_h(nd, fobs_re, fobs_im, fint, weights);
-
-     // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
-     // compute the Euclidean norm
-     dreal y = 0.;
-     for (auto i = 0; i<nd; ++i) {
-         y += real(CMPLXMUL(fint[i], conj(fint[i])));
-     }
-     *chi2 = y;
+     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
      free(fint);
 
