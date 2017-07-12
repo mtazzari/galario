@@ -62,7 +62,6 @@
     #include <omp.h>
 #endif
     #include <fftw3.h>
-    #include <memory>
 
 #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
 
@@ -828,14 +827,7 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     dDec *= arcsec_to_rad;
 
     // transform image from real to complex
-    std::unique_ptr<dreal> real_buffer(new dreal[2*nx*nx]);
-
-    // profiling showed that calling std::complex was quite costly,
-    // presumably due to function-call overhead
-// #pragma omp parallel for shared(real_buffer, realdata)
-//     for (size_t i = 0; i < real_buffer.size(); ++i) {
-//         real_buffer[i] = std::complex<dreal>(realdata[i], 0.0);
-//     }
+    auto real_buffer = (dreal*) malloc(sizeof(dreal)*2*nx*nx);
 
     // to avoid calling std::complex, use the fact that real and imaginary part
     // are stored contiguously. In profiling, this turned out to be significant.
@@ -843,11 +835,11 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < nx; ++j) {
             auto const idx = i*nx + j;
-            real_buffer.get()[idx << 1] = realdata[idx];
-            real_buffer.get()[(idx << 1) + 1] = dreal(0);
+            real_buffer[idx << 1] = realdata[idx];
+            real_buffer[(idx << 1) + 1] = dreal(0);
         }
     }
-    dcomplex* data = reinterpret_cast<dcomplex*>(real_buffer.get());
+    dcomplex* data = reinterpret_cast<dcomplex*>(real_buffer);
 
     // shift
     shift_h(nx, data);
@@ -859,17 +851,20 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     shift_h(nx, data);
 
     // uv_idx_h
-    std::unique_ptr<dreal> indu(new dreal[nd]);
-    std::unique_ptr<dreal> indv(new dreal[nd]);
+    auto indu = (dreal*) malloc(sizeof(dreal)*nd);
+    auto indv = (dreal*) malloc(sizeof(dreal)*nd);
 
-    uv_idx_h(u0, du, nd, u, v, indu.get(), indv.get());
+    uv_idx_h(u0, du, nd, u, v, indu, indv);
 
     // interpolate
-    interpolate_h(nx, data, nd, indu.get(), indv.get(), fint);
+    interpolate_h(nx, data, nd, indu, indv,fint);
 
     // apply phase to the sampled points
-    apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
+    apply_phase_sampled_h(dRA, dDec, nd, u, v,fint);
 
+    free(indv);
+    free(indu);
+    free(real_buffer);
 #endif
 }
 
