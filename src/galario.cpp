@@ -1062,6 +1062,12 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      // ################################
      // ########### CLEANUP ############
      // ################################
+     float elapsed=0;
+     cudaEvent_t start, stop;
+     CCheck(cudaEventCreate(&start));
+     CCheck(cudaEventCreate(&stop));
+     CCheck(cudaEventRecord(start, 0));
+
      CCheck(cudaFree(data_d));
      CCheck(cudaFree(u_d));
      CCheck(cudaFree(v_d));
@@ -1071,6 +1077,13 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      CCheck(cudaFree(fobs_re_d));
      CCheck(cudaFree(fobs_im_d));
      CCheck(cudaFree(weights_d));
+
+     CCheck(cudaEventRecord(stop, 0));
+     CCheck(cudaEventSynchronize(stop));
+     CCheck(cudaEventElapsedTime(&elapsed, start, stop) );
+     CCheck(cudaEventDestroy(start));
+     CCheck(cudaEventDestroy(stop));
+     printf("The total time to free memory in chi2 is %.3f ms", elapsed);
 
 #else
 
