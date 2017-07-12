@@ -9,7 +9,7 @@ import os
 import textwrap
 import datetime
 
-from test_galario import generate_random_vis, create_reference_image, create_sampling_points
+from utils import generate_random_vis, create_reference_image, create_sampling_points
 import galario
 
 import optparse
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
 
     # fetch environment
-    omp_num_threads = os.environ['OMP_NUM_THREADS']
+    omp_num_threads = os.environ.get('OMP_NUM_THREADS', 1)
 
     cycles = 5
     number = 1
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                 t = timeit.Timer('{}.chi2(*x)'.format(acc_lib),
                                  setup=textwrap.dedent("""
                                  from __main__ import setup_chi2, {3};
-                                 x = setup_chi2({0}, {1}, "{2}")
+                                 x = setup_chi2(int({0}), int({1}), "{2}")
                                  """
                                  .format(
                                      size, nsamples, real_type, acc_lib)))
