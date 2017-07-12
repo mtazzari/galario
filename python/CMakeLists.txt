@@ -55,6 +55,8 @@ install(DIRECTORY ${PYGALARIO_DIR}
 # tests
 ###
 configure_file(speed_benchmark.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
+configure_file(speed_benchmark_dp.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
+configure_file(speed_benchmark_sp.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 configure_file(utils.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 
 # this files is picked up only if in a parent directory of the actual test
