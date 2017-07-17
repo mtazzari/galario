@@ -325,7 +325,42 @@ __host__ __device__ inline void interpolate_core
 #else
 inline void interpolate_core
 #endif
-        (int const idx_x, int const nx, dcomplex* const __restrict__ data, int const nd, dreal* const __restrict__ indu, dreal* const __restrict__ indv,  dcomplex* __restrict__ fint) {
+        (int const idx_x, int const nx, dcomplex* const __restrict__ data, int const nd, dreal* const __restrict__ indv, dreal* const __restrict__ indu,  dcomplex* __restrict__ fint) {
+
+    int const fl_u = floor(indu[idx_x]);
+    int const fl_v = floor(indv[idx_x]);
+    dcomplex const t = {indu[idx_x] - fl_u, 0.0};
+    dcomplex const u = {indv[idx_x] - fl_v, 0.0};
+
+    int const base = fl_v + fl_u * nx;
+
+    dcomplex const add1 = CMPLXADD(data[base], data[base+nx+1]);
+    dcomplex const add2 = CMPLXADD(data[base+nx], data[base+1]);
+    dcomplex const df1 = CMPLXSUB(add1, add2);
+    dcomplex const mul1 = CMPLXMUL(u, df1);
+    dcomplex const term1 = CMPLXMUL(t, mul1);
+    dcomplex const term2_sub = CMPLXSUB(data[base+nx], data[base]);
+    dcomplex const term2 = CMPLXMUL(t, term2_sub);
+    dcomplex const term3_sub = CMPLXSUB(data[base+1], data[base]);
+    dcomplex const term3 = CMPLXMUL(u, term3_sub);
+
+    dcomplex const final_add2 = CMPLXADD(term2, term3);
+    dcomplex const final_add1 = CMPLXADD(term1, final_add2);
+
+    fint[idx_x] = CMPLXADD(data[base], final_add1);
+//
+//    y0 = data[base]  f[np.floor(x[i]), np.floor(y[i])]
+//    y1 = data[base+nx] f[np.floor(x[i]) + 1, np.floor(y[i])]
+//    y2 = data[base+nx+1] f[np.floor(x[i]) + 1, np.floor(y[i]) + 1]
+//    y3 = data[base+1] f[np.floor(x[i]), np.floor(y[i]) + 1]
+//
+//    fint[i] = t * u * (y0 - y1 + y2 - y3)
+//    fint[i] += t * (y1 - y0)
+//    fint[i] += u * (y3 - y0)
+//    fint[i] += y0
+
+
+#if 0
     int const ii = int(indu[idx_x]);
     int const jj = int(indv[idx_x]);
     int const base = ii + jj * nx;
@@ -343,8 +378,9 @@ inline void interpolate_core
     dcomplex const df = CMPLXSUB(fu2, fu1);
 
     fint[idx_x] = CMPLXADD(fu1, CMPLXMUL(df, dindv));
-
+#endif
 }
+
 
 #ifdef __CUDACC__
 __global__ void interpolate_d(int const nx, dcomplex* const __restrict__ data, int const nd, dreal* const indu, dreal* const indv, dcomplex* __restrict__ fint)

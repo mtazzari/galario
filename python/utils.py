@@ -6,7 +6,7 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 
 __all__ = ["create_reference_image", "create_sampling_points", "uv_idx", 
-           "pixel_coordinates", "get_uv_idx_n",
+           "pixel_coordinates", "get_uv_idx_n", "uv_idx_r2c", "int_bilin_MT",
            "int_bilin", "matrix_size", "Fourier_shift_static", 
            "Fourier_shift_array", "generate_random_vis", 
            "sec2rad"]
@@ -47,7 +47,7 @@ def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
     return x[:, 0].astype(dtype), x[:, 1].astype(dtype)
 
 
-def uv_idx(udat, vdat, uv):
+def uv_idx(udat, vdat, u0, du):
     """
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
@@ -59,13 +59,41 @@ def uv_idx(udat, vdat, uv):
     u values at which FFT is computed. Assumed identical for v.
 
     """
-    umin = uv[0]
-    du = uv[1] - uv[0]
+    indexu = np.floor((udat - u0) / du)
+    indu = indexu + (udat - u0 - indexu*du) / du
 
-    u = np.floor((udat - umin) / du)
-    v = np.floor((vdat - umin) / du)
+    indexv = np.floor((vdat - u0) / du)
+    indv = indexv + (vdat - u0 - indexv*du) / du
 
-    return u + (udat - uv) / du , v + (vdat - uv) / du
+    return indu, indv
+
+
+def uv_idx_r2c(udat, vdat, du, size):
+    """
+    uv coordinates to pixel coordinates in range [0, npixels].
+    Assume image is square, same boundary in u and v direction.
+
+    Parameters
+    ----------
+
+    uv: nd array
+    u values at which FFT is computed. Assumed identical for v.
+
+    """
+    u0 = -du*size/2.
+    indexu = np.floor((udat - u0) / du)
+    indu = indexu + (udat - u0 - indexu * du) / du
+    indu -= size / 2.
+
+    indexv = np.floor((vdat - u0) / du)
+    indv = indexv + (vdat - u0 - indexv * du) / du
+
+    uneg = udat < 0.
+    indu[uneg] = -udat[uneg] / du
+    indv[uneg] = - indv[uneg]
+
+
+    return indu, indv
 
 
 def pixel_coordinates(maxuv, nx, dtype='float64'):
@@ -115,7 +143,6 @@ def int_bilin(f, x, y):
     nd = len(x)
 
     fint = np.zeros(nd, dtype=f.dtype)
-
     for i in range(nd):
         jj = int(x[i])
         ii = int(y[i])
@@ -125,6 +152,26 @@ def int_bilin(f, x, y):
         fix = f[ii, jj] + dfj * (x[i] - np.trunc(x[i]))
         fix1 = f[ii + 1, jj] + dfj1 * (x[i] - np.trunc(x[i]))
         fint[i] = fix + (fix1 - fix) * (y[i] - np.trunc(y[i]))
+
+    return fint
+
+
+def int_bilin_MT(f, y, x):
+    # assume x, y are in pixel
+    fint = np.zeros(len(x))
+
+    for i in xrange(len(x)):
+        t = x[i] - np.floor(x[i])
+        u = y[i] - np.floor(y[i])
+        y0 = f[np.int(np.floor(x[i])), np.int(np.floor(y[i]))]
+        y1 = f[np.int(np.floor(x[i])) + 1, np.int(np.floor(y[i]))]
+        y2 = f[np.int(np.floor(x[i])) + 1, np.int(np.floor(y[i])) + 1]
+        y3 = f[np.int(np.floor(x[i])), np.int(np.floor(y[i])) + 1]
+
+        fint[i] = t * u * (y0 - y1 + y2 - y3)
+        fint[i] += t * (y1 - y0)
+        fint[i] += u * (y3 - y0)
+        fint[i] += y0
 
     return fint
 
