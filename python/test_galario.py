@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 
 from utils import *
 
+import pyfftw
 import galario
 
 if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
@@ -33,33 +34,27 @@ g_double.use_gpu(max(0, ngpus-1))
 
 g_double.threads_per_block()
 
-import pyfftw
 
 
-def test_rotixR2C():
-    du = 1.0233
-    size = 16
+@pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib",
+                         [(int(1e6), 'float32', 1.e-14, 1.e-14, g_single),
+                          (int(1e6), 'float64', 1.e-14, 1.e-14, g_double)],
+                         ids=["SP", "DP"])
+def test_uv_idx_R2C(nsamples, real_type, rtol, atol, acc_lib):
 
-    udat = np.array([-3.4, -2.6, -1.5, 0., 0.2, 0.8, 2.6, 3.6, 6.])
-    vdat = np.array([-3.4, -2.6, -1.5, 0., 0.2, 0.8, 2.6, 3.6, 6.])
+    # generate the samples
+    maxuv_generator = 3.e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
 
+    # compute the matrix size and maxuv
+    size, minuv, maxuv = matrix_size(udat, vdat)
+    du = maxuv/size
 
-    ref_real = create_reference_image(size, 0, 0, kernel='gaussian', dtype='float64')
+    uroti_r2c, vroti_r2c = uv_idx_r2c(udat, vdat, du, size/2.)
+    uroti_r2c_galario, vroti_r2c_galario = acc_lib.get_uv_idx_R2C(size, du, udat, vdat)
 
-    fft_c2c_shifted = np.fft.fftshift(
-        np.fft.fft2(np.fft.fftshift(ref_real))).real
-    fft_r2c_shifted = np.fft.fftshift(np.fft.rfft2(np.fft.fftshift(ref_real)),
-                                      axes=0).real
-
-    uroti_old, vroti_old = uv_idx(udat, vdat, du, size/2.)
-    sampled_old = int_bilin_MT(fft_c2c_shifted, uroti_old, vroti_old)
-
-    uroti, vroti = uv_idx_r2c(udat, vdat, du, size/2.)
-    sampled = int_bilin_MT(fft_r2c_shifted, uroti, vroti)
-
-    np.testing.assert_allclose(sampled_old, sampled)
-    np.testing.assert_allclose(uroti_old, size/2.+udat/du)
-    np.testing.assert_allclose(vroti_old, size/2.+vdat/du)
+    np.testing.assert_allclose(uroti_r2c_galario, uroti_r2c, rtol, atol)
+    np.testing.assert_allclose(vroti_r2c_galario, vroti_r2c_galario, rtol, atol)
 
 
 
