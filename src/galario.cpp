@@ -647,23 +647,14 @@ __host__ __device__ inline void uv_idx_core
 #else
 inline void uv_idx_core
 #endif
-        (int const i, dreal const u0, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
-
-    // u
-    int index = floor((u[i] - u0) / du);
-    dreal center_ind = u0 + index * du;
-    indu[i] = index + (u[i] - center_ind) / du;
-
-    // v
-    index = floor((v[i] - u0) / du);
-    center_ind = u0 + index * du;
-    indv[i] = index + (v[i] - center_ind) / du;
-
+        (int const i, int const half_nx, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
+    indu[i] = half_nx + u[i]/du;
+    indv[i] = half_nx + v[i]/du;
 }
 
 
 #ifdef __CUDACC__
-__global__ void uv_idx_d(dreal const u0, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
+__global__ void uv_idx_d(const int nx, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
     {
         // index
         int const i0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -671,24 +662,28 @@ __global__ void uv_idx_d(dreal const u0, dreal du, int nd, dreal const* u, dreal
         // stride
         int const si = blockDim.x * gridDim.x;
 
+        int const half_nx = nx/2;
+
         for (auto i = i0; i < nd; i += si) {
-            uv_idx_core(i, u0, du, u, v, indu, indv);
+            uv_idx_core(i, half_nx, du, u, v, indu, indv);
         }
     }
 #endif
 
-void uv_idx_h(dreal const u0, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv) {
+void uv_idx_h(const int nx, dreal du, int nd, dreal const *u, dreal const *v, dreal *const __restrict__ indu,
+              dreal *const __restrict__ indv) {
+
+    int const half_nx = nx/2;
+
 #pragma omp parallel for
     for (auto i = 0; i < nd; ++i) {
-        uv_idx_core(i, u0, du, u, v, indu, indv);
+        uv_idx_core(i, half_nx, du, u, v, indu, indv);
     }
 }
 
 
 void galario_get_uv_idx(int nx, dreal du, int nd, dreal* u, dreal* v, dreal* indu, dreal* indv) {
     assert(nx >= 2);
-
-    const dreal u0 = -du*nx/2.;
 
 #ifdef __CUDACC__
     dreal *u_d, *v_d;
@@ -703,7 +698,7 @@ void galario_get_uv_idx(int nx, dreal du, int nd, dreal* u, dreal* v, dreal* ind
     CCheck(cudaMalloc((void**)&indu_d, nbytes_nd));
     CCheck(cudaMalloc((void**)&indv_d, nbytes_nd));
 
-    uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(u0, du, nd, u_d, v_d, indu_d, indv_d);
+    uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, du, nd, u_d, v_d, indu_d, indv_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -717,7 +712,7 @@ void galario_get_uv_idx(int nx, dreal du, int nd, dreal* u, dreal* v, dreal* ind
     CCheck(cudaFree(indu_d));
     CCheck(cudaFree(indv_d));
 #else
-    uv_idx_h(u0, du, nd, (dreal*) u, (dreal*) v, (dreal*) indu, (dreal*) indv);
+    uv_idx_h(nx, du, nd, (dreal*) u, (dreal*) v, (dreal*) indu, (dreal*) indv);
 #endif
 }
 
@@ -725,8 +720,9 @@ void _galario_get_uv_idx(int nx, dreal du, int nd, void* u, void* v, void* indu,
     galario_get_uv_idx(nx, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(indu), static_cast<dreal*>(indv));
 }
 
+
 #ifdef __CUDACC__
-inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal u0, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
+inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
 {
 
     const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
@@ -743,7 +739,7 @@ inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dr
      CCheck(cudaDeviceSynchronize());
 
      // Kernel for uv_idx and interpolate
-     uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(u0, du, nd, u_d, v_d, indu_d, indv_d);
+     uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, du, nd, u_d, v_d, indu_d, indv_d);
 
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
      interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
@@ -796,14 +792,85 @@ dcomplex* copy_real_to_device(int nx, dreal* realdata) {
 }
 #endif
 
+
+#ifdef __CUDACC__
+inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
+{
+
+    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec_to_rad;
+    dDec *= arcsec_to_rad;
+
+     // ################################
+     // ########### KERNELS ############
+     // ################################
+     // Kernel for shift --> FFT --> shift
+     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
+     fft_d(nx, (dcomplex*) data_d);
+     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
+     CCheck(cudaDeviceSynchronize());
+
+     // Kernel for uv_idx and interpolate
+     uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(du, nd, u_d, v_d, indu_d, indv_d);
+
+     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
+     interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
+
+     // apply phase to the sampled points
+     apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+}
+
+__global__ void real_to_complex_d(int nx, dreal* realdata, dcomplex* data) {
+    auto idx_x0 = blockIdx.x * blockDim.x + threadIdx.x;
+    auto idx_y0 = blockIdx.y * blockDim.y + threadIdx.y;
+
+    const auto sx = gridDim.x * blockDim.x;
+    const auto sy = gridDim.y * blockDim.y;
+
+    dreal* raw = reinterpret_cast<dreal*>(data);
+    for (int idx_x=idx_x0; idx_x < nx; idx_x += sx) {
+        for (int idx_y=idx_y0; idx_y < nx; idx_y += sy ) {
+            // auto const idx = idx_y + idx_x*nx;  // row-wise
+            // data[idx] = CMPLX(realdata[idx], 0.0);
+            // avoid calling CMPLX and operate on real_buffer directly
+            auto const idx = idx_y + idx_x*nx;  // row-wise
+            raw[idx << 1] = realdata[idx];
+            raw[(idx << 1) +1] = 0.0;
+        }
+    }
+}
+
+/**
+ * Return device pointer to complex image made from real image on the host.
+ *
+ * Caller is responsible for freeing the device memory.
+ */
+dcomplex* copy_real_to_device(int nx, dreal* realdata) {
+    dcomplex *data_d;
+    size_t nbytes = sizeof(dcomplex)*nx*nx;
+
+    CCheck(cudaMalloc((void**)&data_d, nbytes));
+
+    dreal* realdata_d;
+    CCheck(cudaMalloc((void**)&realdata_d, nbytes/2));
+    CCheck(cudaMemcpy(realdata_d, realdata, nbytes/2, cudaMemcpyHostToDevice));
+
+    dim3 nblocks(nx/galario_threads_per_block()+1);
+    dim3 nthreads(galario_threads_per_block(), galario_threads_per_block());
+    real_to_complex_d<<<nblocks, nthreads>>>(nx, realdata_d, data_d);
+    CCheck(cudaFree(realdata_d));
+
+    return data_d;
+}
+#endif
+
+
 /**
  * return result in `fint`
  */
 void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, dreal* u, dreal* v, dcomplex* fint) {
     // Initialization for uv_idx and interpolate
     assert(nx >= 2);
-
-    const dreal u0 = -du*nx/2.;
 
 #ifdef __CUDACC__
     // ################################
@@ -839,7 +906,7 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // do the work on the gpu
-    sample_d(nx, data_d, dRA, dDec, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
+    sample_d(nx, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
 
     // ################################
     // ########### TRANSFER DATA ######
@@ -890,7 +957,7 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     auto indu = (dreal*) malloc(sizeof(dreal)*nd);
     auto indv = (dreal*) malloc(sizeof(dreal)*nd);
 
-    uv_idx_h(u0, du, nd, u, v, indu, indv);
+    uv_idx_h(nx, du, nd, u, v, indu, indv);
 
     // interpolate
     interpolate_h(nx, data, nd, indu, indv,fint);
@@ -1051,7 +1118,6 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
 
-    const dreal u0 = -du*nx/2.;
     dcomplex *data_d = copy_real_to_device(nx, realdata);
 
      /* async memory copy:
@@ -1093,7 +1159,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
      CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
 
-     sample_d(nx, data_d, dRA, dDec, nd, u0, du, u_d, v_d, indu_d, indv_d, fint_d);
+     sample_d(nx, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
      // ################################
      // ########### CLEANUP ############
