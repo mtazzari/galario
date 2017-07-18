@@ -39,7 +39,6 @@ import pyfftw
 def test_rotixR2C():
     du = 1.0233
     size = 16
-    u0 = -du*size/2.
 
     udat = np.array([-3.4, -2.6, -1.5, 0., 0.2, 0.8, 2.6, 3.6, 6.])
     vdat = np.array([-3.4, -2.6, -1.5, 0., 0.2, 0.8, 2.6, 3.6, 6.])
@@ -52,13 +51,17 @@ def test_rotixR2C():
     fft_r2c_shifted = np.fft.fftshift(np.fft.rfft2(np.fft.fftshift(ref_real)),
                                       axes=0).real
 
-    uroti_old, vroti_old = uv_idx(udat, vdat, u0, du)
+    uroti_old, vroti_old = uv_idx(udat, vdat, du, size/2.)
     sampled_old = int_bilin_MT(fft_c2c_shifted, uroti_old, vroti_old)
 
-    uroti, vroti = uv_idx_r2c(udat, vdat, du, size)
+    uroti, vroti = uv_idx_r2c(udat, vdat, du, size/2.)
     sampled = int_bilin_MT(fft_r2c_shifted, uroti, vroti)
 
     np.testing.assert_allclose(sampled_old, sampled)
+    np.testing.assert_allclose(uroti_old, size/2.+udat/du)
+    np.testing.assert_allclose(vroti_old, size/2.+vdat/du)
+
+
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
@@ -101,17 +104,16 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     # tests pass also using pyfftw
 
     du = maxuv/size/wle_m
-    u0 = -du*size/2.
 
     # C2C
-    uroti_old, vroti_old = uv_idx(udat/wle_m, vdat/wle_m, u0, du)
+    uroti_old, vroti_old = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
     ReInt_old = int_bilin_MT(fft_c2c_shifted.real, uroti_old, vroti_old)
     ImInt_old = int_bilin_MT(fft_c2c_shifted.imag, uroti_old, vroti_old)
     fint_old = ReInt_old + 1j*ImInt_old
     fint_old_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint_old, x0_arcsec, y0_arcsec)
 
     # R2C
-    uroti_new, vroti_new = uv_idx_r2c(udat/wle_m, vdat/wle_m, du, size)
+    uroti_new, vroti_new = uv_idx_r2c(udat/wle_m, vdat/wle_m, du, size/2.)
     ReInt = int_bilin_MT(fft_r2c_shifted.real, uroti_new, vroti_new)
     ImInt = int_bilin_MT(fft_r2c_shifted.imag, uroti_new, vroti_new)
     uneg = udat < 0.
@@ -145,24 +147,21 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 #                                                      #
 ########################################################
 @pytest.mark.parametrize("size, real_type, tol, acc_lib",
-                         [(1024, 'float32', 1.e-4, g_single),
+                         [(1024, 'float32', 1.e-6, g_single),
                           (1024, 'float64', 1.e-13, g_double)],
                          ids=["SP", "DP"])
 def test_uv_idx(size, real_type, tol, acc_lib):
     nsamples = 10
     maxuv = 1000.
 
-    uv = pixel_coordinates(maxuv, size).astype(real_type)
     udat, vdat = create_sampling_points(nsamples, maxuv/4.8)
     assert len(udat) == nsamples
     assert len(vdat) == nsamples
     udat = udat.astype(real_type)
     vdat = vdat.astype(real_type)
 
-    # ui, vi = get_uv_idx_n(uv, uv, udat, vdat, len(uv))
     du = maxuv/np.float(size)
-    u0 = -du*size/2.
-    ui, vi = uv_idx(udat, vdat, u0, du)
+    ui, vi = uv_idx(udat, vdat, du, size/2.)
 
     ui = ui.astype(real_type)
     vi = vi.astype(real_type)
@@ -191,7 +190,8 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
 
     # no rotation
     uv = pixel_coordinates(maxuv, size)
-    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, len(uv))
+    du = maxuv/size
+    uroti, vroti = uv_idx(udat, vdat, du, size/2.)
 
     uroti = uroti.astype(real_type)
     vroti = vroti.astype(real_type)
@@ -401,7 +401,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # phase
     ###
-    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
+    du = maxuv/size/wle_m
+    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
     ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt
@@ -420,7 +421,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # rotation indices
     ###
-    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
+    du = maxuv/size/wle_m
+    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
     ui1, vi1 = acc_lib.get_uv_idx(size, maxuv/size, udat.astype(real_type), vdat.astype(real_type))
 
     np.testing.assert_allclose(ui1, uroti, rtol, atol)
@@ -483,8 +485,8 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # CPU version
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
     du = maxuv/size/wle_m
-    u0 = -du*size/2.
-    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, u0, du)
+
+    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
     ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt
@@ -534,7 +536,9 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(ref_complex)))
 
     # compute interpolation and chi2
-    uroti, vroti = get_uv_idx_n(uv, uv, udat, vdat, size)
+    du = maxuv/size/wle_m
+    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
+
     ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt

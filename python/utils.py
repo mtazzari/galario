@@ -47,51 +47,26 @@ def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
     return x[:, 0].astype(dtype), x[:, 1].astype(dtype)
 
 
-def uv_idx(udat, vdat, u0, du):
+def uv_idx(udat, vdat, du, half_size):
     """
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
 
-    Parameters
-    ----------
-
-    uv: nd array
-    u values at which FFT is computed. Assumed identical for v.
-
     """
-    indexu = np.floor((udat - u0) / du)
-    indu = indexu + (udat - u0 - indexu*du) / du
-
-    indexv = np.floor((vdat - u0) / du)
-    indv = indexv + (vdat - u0 - indexv*du) / du
-
-    return indu, indv
+    return half_size + udat/du, half_size + vdat/du
 
 
-def uv_idx_r2c(udat, vdat, du, size):
+def uv_idx_r2c(udat, vdat, du, half_size):
     """
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
 
-    Parameters
-    ----------
-
-    uv: nd array
-    u values at which FFT is computed. Assumed identical for v.
-
     """
-    u0 = -du*size/2.
-    indexu = np.floor((udat - u0) / du)
-    indu = indexu + (udat - u0 - indexu * du) / du
-    indu -= size / 2.
 
-    indexv = np.floor((vdat - u0) / du)
-    indv = indexv + (vdat - u0 - indexv * du) / du
-
+    indu = np.abs(udat) / du
+    indv = half_size + vdat / du
     uneg = udat < 0.
-    indu[uneg] = -udat[uneg] / du
     indv[uneg] = - indv[uneg]
-
 
     return indu, indv
 
