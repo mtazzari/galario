@@ -6,8 +6,8 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 
 __all__ = ["create_reference_image", "create_sampling_points", "uv_idx", 
-           "pixel_coordinates", "get_uv_idx_n", "uv_idx_r2c", "int_bilin_MT",
-           "int_bilin", "matrix_size", "Fourier_shift_static", 
+           "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
+           "matrix_size", "Fourier_shift_static",
            "Fourier_shift_array", "generate_random_vis", 
            "sec2rad"]
 
@@ -17,9 +17,6 @@ def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype
     """
     Creates a reference image: a gaussian brightness with elliptical
     """
-    _ = kwargs.get('kernel', 0.)  # legacy: muted
-    _ = kwargs.get('save', 0.)  # legacy: muted
-
     inc_cos = np.cos(0./180.*np.pi)
 
     delta_x = 1.
@@ -78,57 +75,6 @@ def pixel_coordinates(maxuv, nx, dtype='float64'):
 
     """
     return (np.linspace(0., nx-1, nx, dtype=dtype) - nx/2.) * maxuv/np.float(nx)
-
-
-def get_uv_idx_n(ux, vx, ur, vr, size):
-
-    ntot = len(ur)
-    assert len(ur) == len(vr)
-    uri = np.zeros(len(ur), dtype=ur.dtype)
-    vri = np.zeros(len(vr), dtype=vr.dtype)
-
-    for i in range(ntot):
-        i2u = size-1
-        i1u = 0
-        # binary search: index of closest u element
-        while i2u-i1u > 1:
-            itu = i1u + int(np.real(i2u-i1u)/2.)
-            if ux[itu] > ur[i]:
-                i2u = itu
-            else:
-                i1u = itu
-
-        i2v = size-1
-        i1v=0
-        while i2v-i1v > 1:
-            itv=i1v+int(np.real(i2v-i1v)/2.)
-            if vx[itv] > vr[i]:
-                i2v = itv
-            else:
-                i1v = itv
-
-        uri[i] = i1u + np.real(ur[i]-ux[i1u])/(ux[i2u]-ux[i1u])
-        vri[i] = i1v + np.real(vr[i]-vx[i1v])/(vx[i2v]-vx[i1v])
-
-    return uri, vri
-
-
-def int_bilin(f, x, y):
-
-    nd = len(x)
-
-    fint = np.zeros(nd, dtype=f.dtype)
-    for i in range(nd):
-        jj = int(x[i])
-        ii = int(y[i])
-        dfj = f[ii + 1, jj] - f[ii, jj]           # x
-        dfj1 = f[ii + 1, jj + 1] - f[ii, jj + 1]  # y
-        # numpy has weird promotion rules. Use `trunc` instead of `int` to preserve types of `x` and `f`
-        fix = f[ii, jj] + dfj * (x[i] - np.trunc(x[i]))
-        fix1 = f[ii + 1, jj] + dfj1 * (x[i] - np.trunc(x[i]))
-        fint[i] = fix + (fix1 - fix) * (y[i] - np.trunc(y[i]))
-
-    return fint
 
 
 def int_bilin_MT(f, y, x):
