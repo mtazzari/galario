@@ -18,6 +18,7 @@ extern "C"
     void galario_apply_phase_2d(int nx, dcomplex* data, dreal dRA, dreal dDec);
     void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, dreal* u, dreal* v, dcomplex* fint);
     void galario_get_uv_idx(int nx, dreal du, int nd, dreal* u, dreal* v, dreal* indu, dreal* indv);
+    void galario_get_uv_idx_R2C(int nx, dreal du, int nd, dreal* u, dreal* v, dreal* indu, dreal* indv);
     void galario_reduce_chi2(int nd, dreal* fobs_re, dreal* fobs_im, dcomplex* fint, dreal* weights, dreal* chi2);
 
     /* Required for multithreading */

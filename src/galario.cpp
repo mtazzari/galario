@@ -722,6 +722,87 @@ void _galario_get_uv_idx(int nx, dreal du, int nd, void* u, void* v, void* indu,
 
 
 #ifdef __CUDACC__
+__host__ __device__ inline void uv_idx_core
+#else
+inline void uv_idx_R2C_core
+#endif
+        (int const i, int const half_nx, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
+    indu[i] = abs(u[i])/du;
+    indv[i] = half_nx + v[i]/du;
+
+    if (u[i] < 0.) indv[i] *= -1.;
+}
+
+
+#ifdef __CUDACC__
+__global__ void uv_idx_R2C_d(const int nx, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
+    {
+        // index
+        int const i0 = blockDim.x * blockIdx.x + threadIdx.x;
+
+        // stride
+        int const si = blockDim.x * gridDim.x;
+
+        int const half_nx = nx/2;
+
+        for (auto i = i0; i < nd; i += si) {
+            uv_idx_R2C_core(i, half_nx, du, u, v, indu, indv);
+        }
+    }
+#endif
+
+void uv_idx_R2C_h(const int nx, dreal du, int nd, dreal const *u, dreal const *v, dreal *const __restrict__ indu,
+              dreal *const __restrict__ indv) {
+
+    int const half_nx = nx/2;
+
+#pragma omp parallel for
+    for (auto i = 0; i < nd; ++i) {
+        uv_idx_R2C_core(i, half_nx, du, u, v, indu, indv);
+    }
+}
+
+
+void galario_get_uv_idx_R2C(int nx, dreal du, int nd, dreal* u, dreal* v, dreal* indu, dreal* indv) {
+    assert(nx >= 2);
+
+#ifdef __CUDACC__
+    dreal *u_d, *v_d;
+    size_t nbytes_nd = sizeof(dreal)*nd;
+
+    CCheck(cudaMalloc((void**)&u_d, nbytes_nd));
+    CCheck(cudaMemcpy(u_d, u, nbytes_nd, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc((void**)&v_d, nbytes_nd));
+    CCheck(cudaMemcpy(v_d, v, nbytes_nd, cudaMemcpyHostToDevice));
+
+    dreal *indu_d, *indv_d;
+    CCheck(cudaMalloc((void**)&indu_d, nbytes_nd));
+    CCheck(cudaMalloc((void**)&indv_d, nbytes_nd));
+
+    uv_idx_R2C_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, du, nd, u_d, v_d, indu_d, indv_d);
+
+    CCheck(cudaDeviceSynchronize());
+
+    // retrieve indices
+    CCheck(cudaMemcpy(indu, indu_d, nbytes_nd, cudaMemcpyDeviceToHost));
+    CCheck(cudaMemcpy(indv, indv_d, nbytes_nd, cudaMemcpyDeviceToHost));
+
+    // free memories
+    CCheck(cudaFree(u_d));
+    CCheck(cudaFree(v_d));
+    CCheck(cudaFree(indu_d));
+    CCheck(cudaFree(indv_d));
+#else
+    uv_idx_R2C_h(nx, du, nd, (dreal*) u, (dreal*) v, (dreal*) indu, (dreal*) indv);
+#endif
+}
+
+void _galario_get_uv_idx_R2C(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv) {
+    galario_get_uv_idx_R2C(nx, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(indu), static_cast<dreal*>(indv));
+}
+
+
+#ifdef __CUDACC__
 inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
 {
 
