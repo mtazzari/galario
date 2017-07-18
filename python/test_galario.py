@@ -85,7 +85,7 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     size, minuv, maxuv = matrix_size(udat, vdat)
 
     # create model image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size, -10., 30., kernel='gaussian', dtype=real_type)
+    reference_image = create_reference_image(size, -10., 30., dtype=real_type)
     ref_real = reference_image.copy()
 
     # numpy
@@ -175,7 +175,7 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     nsamples = 10000
     maxuv = 1000.
 
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=real_type)
+    reference_image = create_reference_image(size=size, dtype=real_type)
     udat, vdat = create_sampling_points(nsamples, maxuv/2.2)
     # this factor has to be > than 2 because the matrix cover between -maxuv/2 to +maxuv/2,
     # therefore the sampling points have to be contained inside.
@@ -213,7 +213,7 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
                          ids=["SP", "DP"])
 def test_FFT(size, complex_type, rtol, atol, acc_lib):
 
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    reference_image = create_reference_image(size=size, dtype=complex_type)
 
     ft = np.fft.fft2(reference_image)
 
@@ -235,7 +235,7 @@ def test_FFT(size, complex_type, rtol, atol, acc_lib):
                          ids=["SP", "DP"])
 def test_shift_fft_shift(size, complex_type, rtol, atol, acc_lib):
 
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    reference_image = create_reference_image(size=size, dtype=complex_type)
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
 
     # create a copy of reference_image because galario makes in-place FFT
@@ -254,9 +254,11 @@ def test_shift_fft_shift(size, complex_type, rtol, atol, acc_lib):
                          [(1024, 'complex64', 1.e-8, g_single),
                           (1024, 'complex128', 1.e-16, g_double)],
                          ids=["SP", "DP"])
-def test_shift(size, complex_type, tol, acc_lib):
+def test_shift_axes01(size, complex_type, tol, acc_lib):
 
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    # just a create a runtime-typical image with a big offset disk
+    reference_image = create_reference_image(size=size, x0=size/10., y0=-size/10.,
+                                            sigma_x=3.*size, sigma_y=2.*size, dtype=complex_type)
 
     npshifted = np.fft.fftshift(reference_image)
 
@@ -264,6 +266,30 @@ def test_shift(size, complex_type, tol, acc_lib):
     acc_lib.fftshift(ref_complex)
 
     np.testing.assert_allclose(npshifted, ref_complex, rtol=tol)
+
+
+@pytest.mark.parametrize("size, complex_type, tol, acc_lib",
+                         [(1024, 'complex64', 1.e-8, g_single),
+                          (1024, 'complex128', 1.e-16, g_double)],
+                         ids=["SP", "DP"])
+def test_shift_axis0(size, complex_type, tol, acc_lib):
+
+    # just a create a runtime-typical image with a big offset disk
+    reference_image = create_reference_image(size=size, x0=size/10., y0=-size/10.,
+                                            sigma_x=3.*size, sigma_y=2.*size, dtype=complex_type)
+
+    # take half of the image
+    reference_image = reference_image[:, int(size/4):size-int(size/4)]
+
+    # numpy reference
+    npshifted = np.fft.fftshift(reference_image, axes=0)
+
+    ref_complex = reference_image.copy()
+    acc_lib.fftshift_axis0(ref_complex)
+
+    np.testing.assert_allclose(npshifted, ref_complex, rtol=tol)
+
+
 
 
 @pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
@@ -292,7 +318,7 @@ def test_apply_phase_2d(real_type, complex_type, rtol, atol, acc_lib, pars):
     # print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
 
     # create reference image (complex)
-    ref_complex = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    ref_complex = create_reference_image(size=size, dtype=complex_type)
 
     # compute the shift
     shifted_original_static = Fourier_shift_static(ref_complex, x0_arcsec, y0_arcsec, wle_m, maxuv)
@@ -379,7 +405,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uv = pixel_coordinates(maxuv, size)
 
     # create model complex image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    reference_image = create_reference_image(size=size, dtype=complex_type)
     ref_real = reference_image.real.copy()
 
     ###
@@ -474,7 +500,7 @@ def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     size, minuv, maxuv = matrix_size(udat, vdat)
 
     # create model image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    reference_image = create_reference_image(size=size, dtype=complex_type)
     ref_real = reference_image.real.copy()
 
     # CPU version
@@ -524,7 +550,7 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
     # create model image (it happens to have 0 imaginary part)
-    ref_complex = create_reference_image(size=size, kernel='gaussian', dtype=complex_type)
+    ref_complex = create_reference_image(size=size, dtype=complex_type)
     ref_real = ref_complex.real.copy()
 
     # CPU version
@@ -569,7 +595,7 @@ def test_profile():
     uv = pixel_coordinates(maxuv, size).astype(real_type)
 
     # create model image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, kernel='gaussian', dtype=real_type)
+    reference_image = create_reference_image(size=size, dtype=real_type)
     ref_complex = reference_image.copy()
 
     chi2_cuda = g_double.chi2(ref_complex, x0_arcsec, y0_arcsec,

@@ -310,6 +310,88 @@ void _galario_fftshift_fft2d_fftshift(int nx, void* data) {
     galario_fftshift_fft2d_fftshift(nx, static_cast<dcomplex*>(data));
 }
 
+
+/**
+ * Shift quadrants of a rectangular matrix of size (nx, nx/2).
+ * Swap the upper quadrant with the lower quadrant.
+ *
+ * For cache efficiency, may have to do loop tiling; i.e., the source and target
+ * should fit into the cache. If the image is too large, only part of a row may
+ * fit. This is a responsibility of the caller.
+ **/
+#ifdef __CUDACC__
+__host__ __device__ inline void shift_axis0_core
+#else
+inline void shift_axis0_core
+#endif
+        (int const idx_x, int const idx_y, int const nx, dcomplex* const __restrict__ a) {
+    /* row-wise access */
+
+    // from upper to lower
+    auto const src = idx_x*nx/2 + idx_y;
+    auto const tgt = src + nx*nx/4;
+
+    // swap the values
+    auto const tmp = a[src];
+    a[src] = a[tgt];
+    a[tgt] = tmp;
+
+}
+
+void shift_axis0_h(int const nx, dcomplex* const __restrict__ a) {
+#pragma omp parallel for
+    for (auto x = 0; x < nx/2; ++x) {
+        for (auto y = 0; y < nx/2; ++y) {
+            shift_axis0_core(x, y, nx, a);
+        }
+    }
+}
+
+// TODO nx -> size
+// TODO make shift_d and shift_h the same function, with ifdef __CUDACC__ inside.
+/**
+ * grid stride loop
+ */
+#ifdef __CUDACC__
+__global__ void shift_axis0_d(int const nx, dcomplex* const __restrict__ a) {
+  // indices
+  int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
+  int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
+
+  // stride
+  int const sx = blockDim.x * gridDim.x;
+  int const sy = blockDim.y * gridDim.y;
+
+  for (auto x = x0; x < nx/2; x += sx) {
+    for (auto y = y0; y < nx/2; y += sy) {
+      shift_axis0_core(x, y, nx, a);
+    }
+  }
+}
+#endif
+
+void galario_fftshift_axis0(int nx, dcomplex* data) {
+#ifdef __CUDACC__
+    dcomplex *data_d;
+    size_t nbytes = sizeof(dcomplex)*nx*nx/2;
+    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+
+    shift_axis0_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
+
+    CCheck(cudaDeviceSynchronize());
+    CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
+    CCheck(cudaFree(data_d));
+#else
+    shift_axis0_h(nx, data);
+#endif
+}
+
+void _galario_fftshift_axis0(int nx, void* data) {
+    galario_fftshift_axis0(nx, static_cast<dcomplex*>(data));
+}
+
+
 /**
  * @param nx number of pixels in x and y direction.
  * @param data Fourier transform of the image [nx * nx].
@@ -348,17 +430,6 @@ inline void interpolate_core
     dcomplex const final_add1 = CMPLXADD(term1, final_add2);
 
     fint[idx_x] = CMPLXADD(data[base], final_add1);
-//
-//    y0 = data[base]  f[np.floor(x[i]), np.floor(y[i])]
-//    y1 = data[base+nx] f[np.floor(x[i]) + 1, np.floor(y[i])]
-//    y2 = data[base+nx+1] f[np.floor(x[i]) + 1, np.floor(y[i]) + 1]
-//    y3 = data[base+1] f[np.floor(x[i]), np.floor(y[i]) + 1]
-//
-//    fint[i] = t * u * (y0 - y1 + y2 - y3)
-//    fint[i] += t * (y1 - y0)
-//    fint[i] += u * (y3 - y0)
-//    fint[i] += y0
-
 
 #if 0
     int const ii = int(indu[idx_x]);

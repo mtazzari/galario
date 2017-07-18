@@ -19,6 +19,7 @@ ELSE:
 cdef extern from "galario_py.h":
     void _galario_fft2d(int nx, void* data)
     void _galario_fftshift(int nx, void* data)
+    void _galario_fftshift_axis0(int nx, void* data);
     void _galario_fftshift_fft2d_fftshift(int nx, void* data)
     void _galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
     void _galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec)
@@ -121,6 +122,13 @@ def fftshift(dcomplex[:,::1] data):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
 
     _galario_fftshift(data.shape[0], <void*>&data[0,0])
+
+
+def fftshift_axis0(dcomplex[:,::1] data):
+    assert data.shape[0] == 2*data.shape[1], "Wrong data shape."
+
+    _galario_fftshift_axis0(data.shape[0], <void*>&data[0,0])
+
 
 
 def fftshift_fft2d_fftshift(dcomplex[:,::1] data, shift=True):
