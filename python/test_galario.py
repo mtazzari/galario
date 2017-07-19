@@ -274,22 +274,16 @@ def test_shift_axes01(size, complex_type, tol, acc_lib):
                          ids=["SP", "DP"])
 def test_shift_axis0(size, complex_type, tol, acc_lib):
 
-    # just a create a runtime-typical image with a big offset disk
-    reference_image = create_reference_image(size=size, x0=size/10., y0=-size/10.,
-                                            sigma_x=3.*size, sigma_y=2.*size, dtype=complex_type)
-
-    # take half of the image
-    reference_image = reference_image[:, int(size/4):size-int(size/4)]
+    #  the reference image has the shape of the typical output of FFTW R2C,
+    #  but acc_lib.fftshift_axis0() works for every matrix size.
+    reference_image = np.random.random((size, int(size/2)+1)).astype(complex_type)
 
     # numpy reference
     npshifted = np.fft.fftshift(reference_image, axes=0)
 
     ref_complex = reference_image.copy()
     acc_lib.fftshift_axis0(ref_complex)
-
     np.testing.assert_allclose(npshifted, ref_complex, rtol=tol)
-
-
 
 
 @pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
