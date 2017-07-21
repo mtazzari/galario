@@ -37,6 +37,9 @@ cdef extern from "galario.h":
     void galario_use_gpu(int device_id)
     int  galario_ngpus()
 
+# constants
+sec2rad = 1./3600.*np.pi/180.    # from arcsec to radians
+
 def _check_data(data):
     assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
 
@@ -62,18 +65,18 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
 
     Typical call signature::
 
-      sample(image, dRA, dDec, du, u, v)
+        sample(image, dRA, dDec, du, u, v)
 
     Parameters
     ----------
-    image: 2d array_like, float
+    image : array_like, float
         Square matrix of size (nx, nx) containing the object brightness distribution.
         units: Jy/pixel.
-    dRA: float
-        X-axis offset by which the image has to be translated.
+    dRA : float
+        Right Ascension offset by which the image has to be translated.
         units: arcseconds
-    dDec: float
-        Y-axis offset by which the image has to be translated.
+    dDec : float
+        Declination offset by which the image has to be translated.
         units: arcseconds
     du: float
         uv cell size in the Fourier space.
@@ -92,6 +95,8 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
 
     Example
     -------
+    Typical usage::
+
         from galario import sample, uvcell_size
 
         wle = 0.88e-3  # observing wavelength (m)
@@ -109,6 +114,48 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
     _galario_sample(len(data), <void*>&data[0,0], dRA, dDec, du, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
+
+
+def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
+    """
+    Apply phase to sampled visibility points as to translate the image in the real
+    space by an offset dRA along Right Ascension (R.A.) and dDec along Declination.
+    R.A. increases towards left (East), thus dRA>0 translates the image towards East.
+
+    Parameters
+    ----------
+    dRA : float
+        Right Ascension offset.
+        units: arcseconds
+    dDec : float
+        Declination offset.
+        units: arcseconds
+    u : array_like, float
+        u-coordinates of visibility points.
+        units: observing wavelength
+    v : array_like, float
+        v-coordinates of visibility points.
+        units: observing wavelength
+    fint : array_like, complex
+        complex visibilities, of form Real(Vis) + i*Imag(Vis).
+        units: arbitrary
+
+    Returns
+    -------
+    fint_out : array_like, complex
+        shifted complex visibilities
+        units: arbitrary, same as fint
+
+    TODO change `fint` name into `vis`
+
+    """
+    dRA *= sec2rad
+    dDec *= sec2rad
+
+    fint_out = np.copy(fint, order='C')
+    _galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(fint_out))
+
+    return fint_out
 
 
 # require contiguous arrays with stride=1 in buffer[::1]
@@ -156,11 +203,6 @@ def apply_phase_2d(dcomplex[:,:] data, dRA, dDec):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
 
     _galario_apply_phase_2d(data.shape[0], <void*>&data[0,0], dRA, dDec)
-
-
-def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
-
-    _galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*> &fint[0])
 
 
 def get_uv_idx(nx, du, dreal[::1] u, dreal[::1] v):
@@ -233,14 +275,14 @@ def uvcell_size(dx, nx, dist):
 
     Parameters
     ----------
-    dx: float
+    dx : float
         Image Cell size (units: same as dist).
-    nx: int
+    nx : int
         Size of the image.
-    dist: float
+    dist : float
         Distance to the object in the image (units: same as dx).
 
-    Return
+    Returns
     ------
     The uv cell size (units: observing wavelength).
 
