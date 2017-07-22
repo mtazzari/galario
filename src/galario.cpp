@@ -799,7 +799,7 @@ __host__ __device__ inline void uv_idx_R2C_core
 inline void uv_idx_R2C_core
 #endif
         (int const i, int const half_nx, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
-    indu[i] = abs(u[i])/du;
+    indu[i] = fabs(u[i])/du;
     indv[i] = half_nx + v[i]/du;
 
     if (u[i] < 0.) indv[i] *= -1.;
@@ -1245,7 +1245,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      // ################################
      // ########### CLEANUP ############
      // ################################
-     float elapsed=0;
+     /*float elapsed=0;
      cudaEvent_t start, stop;
      CCheck(cudaEventCreate(&start));
      CCheck(cudaEventCreate(&stop));
@@ -1267,7 +1267,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      CCheck(cudaEventDestroy(start));
      CCheck(cudaEventDestroy(stop));
      printf("The total time to free memory in chi2 is %.3f ms", elapsed);
-
+     */
 #else
 
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);

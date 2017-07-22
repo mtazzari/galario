@@ -48,11 +48,11 @@ def test_uv_idx_R2C(nsamples, real_type, rtol, atol, acc_lib):
     size, minuv, maxuv = matrix_size(udat, vdat)
     du = maxuv/size
 
-    uroti_r2c, vroti_r2c = uv_idx_r2c(udat, vdat, du, size/2.)
+    uroti_r2c, vroti_r2c = uv_idx_r2c(udat, vdat, du, size/2)
     uroti_r2c_galario, vroti_r2c_galario = acc_lib.get_uv_idx_R2C(size, du, udat, vdat)
 
     np.testing.assert_allclose(uroti_r2c_galario, uroti_r2c, rtol, atol)
-    np.testing.assert_allclose(vroti_r2c_galario, vroti_r2c_galario, rtol, atol)
+    np.testing.assert_allclose(vroti_r2c_galario, vroti_r2c, rtol, atol)
 
 
 
