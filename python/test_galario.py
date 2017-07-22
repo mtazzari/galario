@@ -6,12 +6,10 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 import os
 import pytest
-import matplotlib.pyplot as plt
-
+import pyfftw
 
 from utils import *
 
-import pyfftw
 import galario
 
 if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
@@ -351,10 +349,10 @@ def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars)
 
     fint_numpy = Fourier_shift_array(udat, vdat, fint.copy(), x0_arcsec, y0_arcsec)
 
-    acc_lib.apply_phase_sampled(x0_arcsec*sec2rad , y0_arcsec*sec2rad, udat, vdat, fint)
+    fint_shifted = acc_lib.apply_phase_sampled(x0_arcsec, y0_arcsec, udat, vdat, fint)
 
-    np.testing.assert_allclose(fint_numpy.real, fint.real, rtol, atol)
-    np.testing.assert_allclose(fint_numpy.imag, fint.imag, rtol, atol)
+    np.testing.assert_allclose(fint_numpy.real, fint_shifted.real, rtol, atol)
+    np.testing.assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
 
 
 
@@ -423,13 +421,13 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     fint = ReInt + 1j*ImInt
     fint_acc = fint.copy()
     fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
-    acc_lib.apply_phase_sampled(x0_arcsec*sec2rad, y0_arcsec*sec2rad, udat/wle_m, vdat/wle_m, fint_acc)
+    fint_acc_shifted = acc_lib.apply_phase_sampled(x0_arcsec, y0_arcsec, udat/wle_m, vdat/wle_m, fint_acc)
 
 
     # lose some absolute precision here  --> not anymore
     # atol *= 2
-    np.testing.assert_allclose(fint_shifted.real, fint_acc.real, rtol, atol)
-    np.testing.assert_allclose(fint_shifted.imag, fint_acc.imag, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.real, fint_acc_shifted.real, rtol, atol)
+    np.testing.assert_allclose(fint_shifted.imag, fint_acc_shifted.imag, rtol, atol)
     # but continue with previous tolerance
     # atol /= 2
 

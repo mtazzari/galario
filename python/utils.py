@@ -81,7 +81,7 @@ def int_bilin_MT(f, y, x):
     # assume x, y are in pixel
     fint = np.zeros(len(x))
 
-    for i in xrange(len(x)):
+    for i in range(len(x)):
         t = x[i] - np.floor(x[i])
         u = y[i] - np.floor(y[i])
         y0 = f[np.int(np.floor(x[i])), np.int(np.floor(y[i]))]
