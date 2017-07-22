@@ -355,9 +355,9 @@ __global__ void shift_axis0_d(int const nx, int const ny, dcomplex* const __rest
   int const sx = blockDim.x * gridDim.x;
   int const sy = blockDim.y * gridDim.y;
 
-  for (auto x = x0; x < nx/4; x += sx) {
-      for (auto y = y0; y < ny; y += sy) {
-          shift_axis0_core(x, y, nx, ny, a);
+  for (auto x = x0; x < nx/2; x += sx) {
+    for (auto y = y0; y < ny; y += sy) {
+      shift_axis0_core(x, y, nx, ny, a);
     }
   }
 }
@@ -366,7 +366,7 @@ __global__ void shift_axis0_d(int const nx, int const ny, dcomplex* const __rest
 void galario_fftshift_axis0(int nx, int ny, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*nx/2;
+    size_t nbytes = sizeof(dcomplex)*nx*ny;
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
@@ -883,78 +883,6 @@ inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dr
 
      // Kernel for uv_idx and interpolate
      uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, du, nd, u_d, v_d, indu_d, indv_d);
-
-     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
-
-     // apply phase to the sampled points
-     apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
-}
-
-__global__ void real_to_complex_d(int nx, dreal* realdata, dcomplex* data) {
-    auto idx_x0 = blockIdx.x * blockDim.x + threadIdx.x;
-    auto idx_y0 = blockIdx.y * blockDim.y + threadIdx.y;
-
-    const auto sx = gridDim.x * blockDim.x;
-    const auto sy = gridDim.y * blockDim.y;
-
-    dreal* raw = reinterpret_cast<dreal*>(data);
-    for (int idx_x=idx_x0; idx_x < nx; idx_x += sx) {
-        for (int idx_y=idx_y0; idx_y < nx; idx_y += sy ) {
-            // auto const idx = idx_y + idx_x*nx;  // row-wise
-            // data[idx] = CMPLX(realdata[idx], 0.0);
-            // avoid calling CMPLX and operate on real_buffer directly
-            auto const idx = idx_y + idx_x*nx;  // row-wise
-            raw[idx << 1] = realdata[idx];
-            raw[(idx << 1) +1] = 0.0;
-        }
-    }
-}
-
-/**
- * Return device pointer to complex image made from real image on the host.
- *
- * Caller is responsible for freeing the device memory.
- */
-dcomplex* copy_real_to_device(int nx, dreal* realdata) {
-    dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*nx;
-
-    CCheck(cudaMalloc((void**)&data_d, nbytes));
-
-    dreal* realdata_d;
-    CCheck(cudaMalloc((void**)&realdata_d, nbytes/2));
-    CCheck(cudaMemcpy(realdata_d, realdata, nbytes/2, cudaMemcpyHostToDevice));
-
-    dim3 nblocks(nx/galario_threads_per_block()+1);
-    dim3 nthreads(galario_threads_per_block(), galario_threads_per_block());
-    real_to_complex_d<<<nblocks, nthreads>>>(nx, realdata_d, data_d);
-    CCheck(cudaFree(realdata_d));
-
-    return data_d;
-}
-#endif
-
-
-#ifdef __CUDACC__
-inline void sample_d(int nx, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
-{
-
-    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec_to_rad;
-    dDec *= arcsec_to_rad;
-
-     // ################################
-     // ########### KERNELS ############
-     // ################################
-     // Kernel for shift --> FFT --> shift
-     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
-     fft_d(nx, (dcomplex*) data_d);
-     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
-     CCheck(cudaDeviceSynchronize());
-
-     // Kernel for uv_idx and interpolate
-     uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(du, nd, u_d, v_d, indu_d, indv_d);
 
      // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
      interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, data_d, nd, indu_d, indv_d, fint_d);
