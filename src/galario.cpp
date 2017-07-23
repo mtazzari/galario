@@ -1150,6 +1150,7 @@ void galario_reduce_chi2(int nd, dreal* fobs_re, dreal* fobs_im, dcomplex* fint,
      CCheck(cudaFree(fobs_re_d));
      CCheck(cudaFree(fobs_im_d));
      CCheck(cudaFree(weights_d));
+     CCheck(cudaFree(chi2_d));
      CCheck(cudaFree(fint_d));
 
 #else
@@ -1249,7 +1250,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      cudaEvent_t start, stop;
      CCheck(cudaEventCreate(&start));
      CCheck(cudaEventCreate(&stop));
-     CCheck(cudaEventRecord(start, 0));
+     CCheck(cudaEventRecord(start, 0));*/
 
      CCheck(cudaFree(data_d));
      CCheck(cudaFree(u_d));
@@ -1261,7 +1262,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      CCheck(cudaFree(fobs_im_d));
      CCheck(cudaFree(weights_d));
 
-     CCheck(cudaEventRecord(stop, 0));
+     /*CCheck(cudaEventRecord(stop, 0));
      CCheck(cudaEventSynchronize(stop));
      CCheck(cudaEventElapsedTime(&elapsed, start, stop) );
      CCheck(cudaEventDestroy(start));
