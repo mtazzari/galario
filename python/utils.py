@@ -5,10 +5,10 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 
 import numpy as np
 
-__all__ = ["create_reference_image", "create_sampling_points", "uv_idx", 
+__all__ = ["create_reference_image", "create_sampling_points", "uv_idx",
            "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
            "matrix_size", "Fourier_shift_static",
-           "Fourier_shift_array", "generate_random_vis", 
+           "Fourier_shift_array", "generate_random_vis",
            "sec2rad"]
 
 sec2rad = np.pi/180./3600.  # from arcsec to radians
@@ -81,7 +81,7 @@ def int_bilin_MT(f, y, x):
     # assume x, y are in pixel
     fint = np.zeros(len(x))
 
-    for i in xrange(len(x)):
+    for i in range(len(x)):
         t = x[i] - np.floor(x[i])
         u = y[i] - np.floor(y[i])
         y0 = f[np.int(np.floor(x[i])), np.int(np.floor(y[i]))]

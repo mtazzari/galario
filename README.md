@@ -1,4 +1,4 @@
-galario 
+galario
 =======
 
 **Gpu Accelerated Library for Analysing Radio Interferometry Observations**
@@ -42,8 +42,13 @@ libraries are found. In `build/`, do
 
 galario should work with both python 2 and 3. To create conda environments
 
-    conda create --name galario2 python=2 numpy cython astropy pytest
-    conda create --name galario3 python=3 numpy cython astropy pytest
+    conda create --name galario2 python=2 numpy cython pytest
+    conda create --name galario3 python=3 numpy cython pytest
+
+To run the tests, additionally install `pyfftw` within the environment
+
+    conda config --add channels conda-forge
+    conda install pyfftw
 
 cmake may get confused with the conda python and the system
 python. This is a general problem

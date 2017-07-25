@@ -6,8 +6,6 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 import os
 import pytest
-import matplotlib.pyplot as plt
-
 
 from utils import *
 
