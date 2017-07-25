@@ -204,27 +204,26 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     np.testing.assert_allclose(ImInt, complexInt.imag, rtol, atol)
 
 
-
-@pytest.mark.parametrize("size, complex_type, rtol, atol, acc_lib",
-                         [(1024, 'complex64', 1.e-5, 1e-3, g_single),
-                          (1024, 'complex128', 1.e-16, 1e-8, g_double)],
+@pytest.mark.parametrize("size, real_type, rtol, atol, acc_lib",
+                         [(1024, 'float32', 1.e-5, 1e-3, g_single),
+                          (1024, 'float64', 1.e-16, 1e-8, g_double)],
                          ids=["SP", "DP"])
-def test_FFT(size, complex_type, rtol, atol, acc_lib):
+def test_FFT(size, real_type, rtol, atol, acc_lib):
 
-    reference_image = create_reference_image(size=size, dtype=complex_type)
+    reference_image = create_reference_image(size=size, dtype=real_type)
 
     ft = np.fft.fft2(reference_image)
 
-    # create a copy of reference_image because galario makes in-place FFT
-    ref_complex = reference_image.copy()
-    acc_lib.fft2d(ref_complex)
+    acc_res = acc_lib.fft2d(reference_image)
 
-    # print()
-    # print(np.min(np.abs(ft.real)), np.max(np.abs(ft.real)))
+    # outputs of different shape because np doesn't use the redundancy y[i] == y[n-i] for i>0
+    np.testing.assert_equal(ft.shape[0], acc_res.shape[0])
+    np.testing.assert_equal(acc_res.shape[1], int(acc_res.shape[0]/2)+1)
 
     # some real parts can be very close to zero, so we need atol > 0!
-    np.testing.assert_allclose(ft.real, ref_complex.real, rtol, atol)
-    np.testing.assert_allclose(ft.imag, ref_complex.imag, rtol, atol)
+    # only get the 0-th and the first half of columns to compare to compact FFTW output
+    np.testing.assert_allclose(ft[:, 0:int(size/2)+1].real, acc_res.real, rtol, atol)
+    np.testing.assert_allclose(ft[:, 0:int(size/2)+1].imag, acc_res.imag, rtol, atol)
 
 
 @pytest.mark.parametrize("size, complex_type, tol, acc_lib",

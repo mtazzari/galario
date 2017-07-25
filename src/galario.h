@@ -11,7 +11,7 @@ extern "C"
     void galario_chi2(int nx, dreal* data, dreal dRA, dreal dDec, dreal du, int nd, dreal* u, dreal* v, dreal* fobs_re, dreal* fobs_im, dreal* weights, dreal* chi2);
 
     /* Interface for the experts */
-    void galario_fft2d(int nx, dcomplex* data);
+    dcomplex* galario_fft2d(int nx, dreal* data);
     void galario_fftshift(int nx, dcomplex* data);
     void galario_fftshift_axis0(int nx, int ny, dcomplex* data);
     void galario_interpolate(int nx, dcomplex* data, int nd, dreal* u, dreal* v, dcomplex* fint);
