@@ -1,5 +1,6 @@
 cimport numpy as np
 import numpy as np
+from cpython cimport Py_INCREF
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
@@ -43,6 +44,9 @@ cdef extern from "galario.h":
     void galario_use_gpu(int device_id)
     int  galario_ngpus()
 
+cdef extern from "fftw3.h":
+    void fftw_free(void*)
+
 def _check_data(data):
     assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
 
@@ -57,6 +61,41 @@ def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
         assert len(u) == nd, "Wrong array length: u"
     if v is not None:
         assert len(v) == nd, "Wrong array length: v"
+
+
+cdef class ArrayWrapper:
+    cdef void* data_ptr
+    cdef int nx
+
+    cdef set_data(self, int nx, void* data_ptr):
+        """ Set the data of the array
+        This cannot be done in the constructor as it must receive C-level
+        arguments.
+
+        Parameters:
+        -----------
+        nx: int
+            Number of image rows
+        data_ptr: void*
+            Pointer to the data
+        """
+        self.data_ptr = data_ptr
+        self.nx = nx
+
+    def __array__(self):
+        """ Here we use the __array__ method, that is called when numpy
+            tries to get an array from the object."""
+        cdef np.npy_intp shape[2]
+        shape[:] = (self.nx, int(self.nx/2)+1)
+
+        # Create a 2D array, of length `nx x nx/2+1`
+        ndarray = np.PyArray_SimpleNewFromData(2, shape, complex_typenum, self.data_ptr)
+        return ndarray
+
+    def __dealloc__(self):
+        """ Frees the array. This is called by Python when all the
+        references to the object are gone. """
+        fftw_free(self.data_ptr)
 
 
 def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
@@ -123,18 +162,21 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
 def fft2d(dreal[:,::1] data):
     _check_data(data)
 
-    cdef void* res = _galario_fft2d(data.shape[0], <void*>&data[0,0])
+    cdef int nx = data.shape[0]
 
-    # follow https://stackoverflow.com/questions/25102409/
-    cdef extern from "numpy/arrayobject.h":
-        void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
+    cdef void* res = _galario_fft2d(nx, <void*>&data[0,0])
 
-    cdef np.npy_intp size[2]
-    size[:] = [data.shape[0], int(data.shape[0]/2)+1]
-    cdef np.ndarray[dcomplex, ndim=2] arr = np.PyArray_SimpleNewFromData(2, size, complex_typenum, res)
-    PyArray_ENABLEFLAGS(arr, np.NPY_OWNDATA)
+    # Use a custom delete function to free the array http://gael-varoquaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-data-copies.html
+    wrapper = ArrayWrapper()
+    wrapper.set_data(nx, res)
+    ndarray = np.array(wrapper, copy=False)
 
-    return arr
+    # Increment the reference count, as the above assignment was done in
+    # C, and Python does not know that there is this additional reference
+    Py_INCREF(wrapper)
+
+    return ndarray
+
 
 def fftshift(dcomplex[:,::1] data):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
