@@ -1,6 +1,10 @@
 cimport numpy as np
 import numpy as np
 
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+np.import_array()
+
 include "galario_config.pxi"
 
 IF DOUBLE_PRECISION:
@@ -9,15 +13,18 @@ IF DOUBLE_PRECISION:
 
     ctypedef double complex dcomplex
     complex_dtype = np.complex128
+    complex_typenum = np.NPY_COMPLEX128
+
 ELSE:
     ctypedef float dreal
     real_dtype = np.float32
 
     ctypedef float complex dcomplex
     complex_dtype = np.complex64
+    complex_typenum = np.NPY_COMPLEX64
 
 cdef extern from "galario_py.h":
-    void _galario_fft2d(int nx, void* data)
+    void* _galario_fft2d(int nx, void* data)
     void _galario_fftshift(int nx, void* data)
     void _galario_fftshift_axis0(int nx, int ny, void* data);
     void _galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint)
@@ -109,13 +116,25 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
 
     return fint
 
+# TODO wrap memory with custom deleter for fftw_free as in here
+# http://gael-varoquaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-data-copies.html
 
 # require contiguous arrays with stride=1 in buffer[::1]
-def fft2d(dcomplex[:,::1] data):
-    assert data.shape[0] == data.shape[1], "Wrong data shape."
+def fft2d(dreal[:,::1] data):
+    _check_data(data)
 
-    _galario_fft2d(data.shape[0], <void*>&data[0,0])
+    cdef void* res = _galario_fft2d(data.shape[0], <void*>&data[0,0])
 
+    # follow https://stackoverflow.com/questions/25102409/
+    cdef extern from "numpy/arrayobject.h":
+        void PyArray_ENABLEFLAGS(np.ndarray arr, int flags)
+
+    cdef np.npy_intp size[2]
+    size[:] = [data.shape[0], int(data.shape[0]/2)+1]
+    cdef np.ndarray[dcomplex, ndim=2] arr = np.PyArray_SimpleNewFromData(2, size, complex_typenum, res)
+    PyArray_ENABLEFLAGS(arr, np.NPY_OWNDATA)
+
+    return arr
 
 def fftshift(dcomplex[:,::1] data):
     assert data.shape[0] == data.shape[1], "Wrong data shape."

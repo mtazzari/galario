@@ -11,7 +11,7 @@ void _galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd
 void _galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2);
 
 /* Interface for the experts */
-void _galario_fft2d(int nx, void* data);
+void* _galario_fft2d(int nx, void* input);
 void _galario_fftshift(int nx, void* data);
 void _galario_fftshift_axis0(int nx, int ny, void* data);
 void _galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint);

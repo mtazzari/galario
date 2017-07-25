@@ -147,23 +147,14 @@ void fft_d(int nx, dcomplex* data_d) {
 
 /**
  * Requires `data` to be large enough to hold the complex output after an
- * in-place transform, see
+ * in-place transform, and the real input has to in the right memory locations
+ * respecting the padding in the last dimension; see
  * http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html
  */
 void fft_h(int nx, dcomplex* data) {
-    // FFTW replacement
-    FFTW(complex)* fftw_data = reinterpret_cast<FFTW(complex)*>(data);
-    // TODO: should ascertain that data has already been aligned
-
-    // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
-    FFTW(plan) p = FFTW(plan_dft_2d)(nx, nx, fftw_data, fftw_data, FFTW_FORWARD, FFTW_ESTIMATE);
-#if 0
-   // TODO: should ascertain that data have already been aligned
     dreal* input = reinterpret_cast<dreal*>(data);
     FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
-
     FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, nx, input, output, FFTW_ESTIMATE);
-#endif
     FFTW(execute)(p);
 
     // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
@@ -172,8 +163,42 @@ void fft_h(int nx, dcomplex* data) {
 
 #endif
 
-// TODO dcomplex -> dreal
-void galario_fft2d(int nx, dcomplex* data) {
+/**
+ * Copy an (nx, nx) square image into a complex buffer for real-to-complex FFTW.
+ *
+ * Operates only on the host.
+ */
+dcomplex* copy_real_to_buffer(int nx, dreal* realdata) {
+    // in r2c, the last dimension only has ~half the size
+    auto complex_columns = nx/2 + 1;
+
+    // TODO Find a way to free the memory when passing control to python by calling `fftw_free`. The FFTW manual says it's not ok to call `free`.
+    // fftw_alloc for aligned memory to use SIMD acceleration
+    // auto buffer = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*complex_columns));
+    auto buffer = static_cast<dcomplex*>(malloc(sizeof(dcomplex)*nx*complex_columns));
+
+    // copy and respect padding in last dimension. Treating the complex output
+    // buffer as a sequence of real entries, the last (nx odd) or last two
+    // columns (nx even) have to be skipped when copying in the input
+    auto real_buffer = reinterpret_cast<dreal*>(buffer);
+
+    // copy over input to output array
+    auto const rowsize = 2*complex_columns;
+#pragma omp parallel for shared(real_buffer, realdata)
+    for (int i = 0; i < nx; ++i) {
+        for (int j = 0; j < nx; ++j) {
+            real_buffer[i*rowsize + j] = realdata[i*nx + j];
+        }
+    }
+    return buffer;
+}
+
+/**
+ * `realdata`: nx * nx matrix
+ * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
+ */
+dcomplex* galario_fft2d(int nx, dreal* realdata) {
+    // TODO update as for CPU
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*nx;
@@ -185,12 +210,14 @@ void galario_fft2d(int nx, dcomplex* data) {
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(data_d));
 #else
-    fft_h(nx, data);
+    auto buffer = copy_real_to_buffer(nx, realdata);
+    fft_h(nx, buffer);
+    return buffer;
 #endif
 }
 
-void _galario_fft2d(int nx, void* data) {
-    galario_fft2d(nx, static_cast<dcomplex*>(data));
+void* _galario_fft2d(int nx, void* data) {
+    return galario_fft2d(nx, static_cast<dreal*>(data));
 }
 
 /**
@@ -1080,13 +1107,10 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     }
     dcomplex* data = reinterpret_cast<dcomplex*>(real_buffer);
 
-    // shift
     shift_h(nx, data);
 
-    // cuda fft
     fft_h(nx, data);
 
-    // shift
     shift_h(nx, data);
 
     // uv_idx_h
