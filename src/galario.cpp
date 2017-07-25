@@ -110,7 +110,6 @@ void galario_acc_init() {
 #endif
 }
 
-// TODO: define macro FFTW as fftw or fftwf
 void galario_acc_cleanup() {
 #ifdef _OPENMP
   FFTW(cleanup_threads)();
@@ -160,6 +159,7 @@ void fft_h(int nx, dcomplex* data) {
 
 #endif
 
+template <typename T>
 void galario_fft2d(int nx, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
@@ -335,7 +335,6 @@ inline void shift_axis0_core
     auto tmp = a[src_u];
     a[src_u] = a[tgt_u];
     a[tgt_u] = tmp;
-
 }
 
 void shift_axis0_h(int const nx, int const ny, dcomplex *const a) {

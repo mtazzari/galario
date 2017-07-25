@@ -12,6 +12,7 @@ extern "C"
 
     /* Interface for the experts */
     void galario_fft2d(int nx, dcomplex* data);
+    void galario_fft2d(int nx, dreal* data);
     void galario_fftshift(int nx, dcomplex* data);
     void galario_fftshift_axis0(int nx, int ny, dcomplex* data);
     void galario_fftshift_fft2d_fftshift(int nx, dcomplex* data);
