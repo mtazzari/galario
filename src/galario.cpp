@@ -145,6 +145,11 @@ void fft_d(int nx, dcomplex* data_d) {
 }
 #else
 
+/**
+ * Requires `data` to be large enough to hold the complex output after an
+ * in-place transform, see
+ * http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html
+ */
 void fft_h(int nx, dcomplex* data) {
     // FFTW replacement
     FFTW(complex)* fftw_data = reinterpret_cast<FFTW(complex)*>(data);
@@ -152,14 +157,22 @@ void fft_h(int nx, dcomplex* data) {
 
     // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
     FFTW(plan) p = FFTW(plan_dft_2d)(nx, nx, fftw_data, fftw_data, FFTW_FORWARD, FFTW_ESTIMATE);
+#if 0
+   // TODO: should ascertain that data have already been aligned
+    dreal* input = reinterpret_cast<dreal*>(data);
+    FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
+
+    FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, nx, input, output, FFTW_ESTIMATE);
+#endif
     FFTW(execute)(p);
 
+    // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
     FFTW(destroy_plan)(p);
 }
 
 #endif
 
-template <typename T>
+// TODO dcomplex -> dreal
 void galario_fft2d(int nx, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
@@ -310,7 +323,6 @@ void _galario_fftshift_fft2d_fftshift(int nx, void* data) {
     galario_fftshift_fft2d_fftshift(nx, static_cast<dcomplex*>(data));
 }
 
-
 /**
  * Shift quadrants of a rectangular matrix of size (nx, nx/2).
  * Swap the upper quadrant with the lower quadrant.
@@ -320,11 +332,9 @@ void _galario_fftshift_fft2d_fftshift(int nx, void* data) {
  * fit. This is a responsibility of the caller.
  **/
 #ifdef __CUDACC__
-__host__ __device__ inline void shift_axis0_core
-#else
-inline void shift_axis0_core
+__host__ __device__
 #endif
-        (int const idx_x, int const idx_y, int const nx, int const ny, dcomplex* const __restrict__ a) {
+inline void shift_axis0_core(int const idx_x, int const idx_y, int const nx, int const ny, dcomplex* const __restrict__ a) {
     /* row-wise access */
 
     // from top-half to bottom-half
@@ -793,11 +803,9 @@ void _galario_get_uv_idx(int nx, dreal du, int nd, void* u, void* v, void* indu,
 
 
 #ifdef __CUDACC__
-__host__ __device__ inline void uv_idx_core
-#else
-inline void uv_idx_R2C_core
+__host__ __device__
 #endif
-        (int const i, int const half_nx, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
+inline void uv_idx_R2C_core(int const i, int const half_nx, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
     indu[i] = abs(u[i])/du;
     indv[i] = half_nx + v[i]/du;
 
