@@ -170,12 +170,10 @@ void fft_h(int nx, dcomplex* data) {
  */
 dcomplex* copy_real_to_buffer(int nx, dreal* realdata) {
     // in r2c, the last dimension only has ~half the size
-    auto complex_columns = nx/2 + 1;
+    auto const complex_columns = nx/2 + 1;
 
-    // TODO Find a way to free the memory when passing control to python by calling `fftw_free`. The FFTW manual says it's not ok to call `free`.
     // fftw_alloc for aligned memory to use SIMD acceleration
-    // auto buffer = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*complex_columns));
-    auto buffer = static_cast<dcomplex*>(malloc(sizeof(dcomplex)*nx*complex_columns));
+    auto buffer = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*complex_columns));
 
     // copy and respect padding in last dimension. Treating the complex output
     // buffer as a sequence of real entries, the last (nx odd) or last two
