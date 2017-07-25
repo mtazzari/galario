@@ -10,7 +10,7 @@
 int main() {
      galario_acc_init();
 
-     dcomplex data[nx*nx];
+     dreal data[nx*nx];
      galario_fftshift(nx, &data[0]);
      galario_acc_cleanup();
 

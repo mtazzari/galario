@@ -9,6 +9,11 @@ import pytest
 
 from utils import *
 
+# TODO move to utils.py. Couldn't import after first try
+def unique_part(array):
+    """Extract the unique part of a real-to-complex Fourier transform"""
+    return array[:, 0:int(len(array)/2)+1]
+
 import pyfftw
 import galario
 
@@ -222,19 +227,19 @@ def test_FFT(size, real_type, rtol, atol, acc_lib):
 
     # some real parts can be very close to zero, so we need atol > 0!
     # only get the 0-th and the first half of columns to compare to compact FFTW output
-    np.testing.assert_allclose(ft[:, 0:int(size/2)+1].real, acc_res.real, rtol, atol)
-    np.testing.assert_allclose(ft[:, 0:int(size/2)+1].imag, acc_res.imag, rtol, atol)
+    np.testing.assert_allclose(unique_part(ft).real, acc_res.real, rtol, atol)
+    np.testing.assert_allclose(unique_part(ft).imag, acc_res.imag, rtol, atol)
 
 
-@pytest.mark.parametrize("size, complex_type, tol, acc_lib",
-                         [(1024, 'complex64', 1.e-8, g_single),
-                          (1024, 'complex128', 1.e-16, g_double)],
+@pytest.mark.parametrize("size, real_type, tol, acc_lib",
+                         [(1024, 'float32', 1.e-8, g_single),
+                          (1024, 'float64', 1.e-16, g_double)],
                          ids=["SP", "DP"])
-def test_shift_axes01(size, complex_type, tol, acc_lib):
+def test_shift_axes01(size, real_type, tol, acc_lib):
 
     # just a create a runtime-typical image with a big offset disk
     reference_image = create_reference_image(size=size, x0=size/10., y0=-size/10.,
-                                            sigma_x=3.*size, sigma_y=2.*size, dtype=complex_type)
+                                            sigma_x=3.*size, sigma_y=2.*size, dtype=real_type)
 
     npshifted = np.fft.fftshift(reference_image)
 
@@ -375,8 +380,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uv = pixel_coordinates(maxuv, size)
 
     # create model complex image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, dtype=complex_type)
-    ref_real = reference_image.real.copy()
+    reference_image = create_reference_image(size=size, dtype=real_type)
+    ref_real = reference_image.copy()
 
     ###
     # shift - FFT - shift
@@ -384,10 +389,12 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
 
     shift_acc = reference_image.copy()
-    acc_lib.fftshift_fft2d_fftshift(shift_acc)
+    acc_lib.fftshift(shift_acc)
+    transformed = acc_lib.fft2d(shift_acc)
+    acc_lib.fftshift_axis0(transformed)
 
-    np.testing.assert_allclose(cpu_shift_fft_shift.real, shift_acc.real, rtol, atol)
-    np.testing.assert_allclose(cpu_shift_fft_shift.imag, shift_acc.imag, rtol, atol)
+    np.testing.assert_allclose(unique_part(cpu_shift_fft_shift).real, transformed.real, rtol, atol)
+    np.testing.assert_allclose(unique_part(cpu_shift_fft_shift).imag, transformed.imag, rtol, atol)
 
     ###
     # phase
