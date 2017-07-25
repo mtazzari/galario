@@ -227,27 +227,6 @@ def test_FFT(size, complex_type, rtol, atol, acc_lib):
     np.testing.assert_allclose(ft.imag, ref_complex.imag, rtol, atol)
 
 
-@pytest.mark.parametrize("size, complex_type, rtol, atol, acc_lib",
-                         [(1000, 'complex64',  1e-7, 1e-3, g_single),
-                          (1000, 'complex128', 1.e-14, 1e-8, g_double)],
-                         ids=["SP", "DP"])
-def test_shift_fft_shift(size, complex_type, rtol, atol, acc_lib):
-
-    reference_image = create_reference_image(size=size, dtype=complex_type)
-    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
-
-    # create a copy of reference_image because galario makes in-place FFT
-    ref_complex = reference_image.copy()
-    acc_lib.fftshift_fft2d_fftshift(ref_complex)
-
-    # see https://github.com/mtazzari/galario/issues/28
-    # print()
-    # print('%.15e' % cpu_shift_fft_shift.real[0,0])
-    # print('%.15e' % ref_complex.real[0,0])
-    # print('---')
-    np.testing.assert_allclose(cpu_shift_fft_shift, ref_complex, rtol, atol)
-
-
 @pytest.mark.parametrize("size, complex_type, tol, acc_lib",
                          [(1024, 'complex64', 1.e-8, g_single),
                           (1024, 'complex128', 1.e-16, g_double)],

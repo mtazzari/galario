@@ -299,30 +299,6 @@ void _galario_fftshift(int nx, void* data) {
     galario_fftshift(nx, static_cast<dcomplex*>(data));
 }
 
-void galario_fftshift_fft2d_fftshift(int nx, dcomplex* data) {
-#ifdef __CUDACC__
-    dcomplex *data_d;
-     size_t nbytes = sizeof(dcomplex)*nx*nx;
-     CCheck(cudaMalloc((void**)&data_d, nbytes));
-     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
-
-     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
-     fft_d(nx, (dcomplex*) data_d);
-     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
-
-     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(data_d));
-#else
-    shift_h(nx, (dcomplex*) data);
-    galario_fft2d(nx, (dcomplex*) data);
-    shift_h(nx, (dcomplex*) data);
-#endif
-}
-
-void _galario_fftshift_fft2d_fftshift(int nx, void* data) {
-    galario_fftshift_fft2d_fftshift(nx, static_cast<dcomplex*>(data));
-}
-
 /**
  * Shift quadrants of a rectangular matrix of size (nx, nx/2).
  * Swap the upper quadrant with the lower quadrant.
