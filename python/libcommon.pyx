@@ -64,6 +64,7 @@ def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
 
 
 cdef class ArrayWrapper:
+    """Wrap an array created by `fftw_alloc`"""
     cdef void* data_ptr
     cdef int nx
 
@@ -178,8 +179,8 @@ def fft2d(dreal[:,::1] data):
     return ndarray
 
 
-def fftshift(dcomplex[:,::1] data):
-    assert data.shape[0] == data.shape[1], "Wrong data shape."
+def fftshift(dreal[:,::1] data):
+    _check_data(data)
 
     _galario_fftshift(data.shape[0], <void*>&data[0,0])
 
