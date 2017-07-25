@@ -230,27 +230,9 @@ void* _galario_fft2d(int nx, void* data) {
  **/
 // `a` is a matrix (size: nx^2)
 #ifdef __CUDACC__
-__host__ __device__ inline void shift_core
-#else
-inline void shift_core
+__host__ __device__
 #endif
-        (int const idx_x, int const idx_y, int const nx, dcomplex* const __restrict__ a) {
-#if 0
-    /* column-wise access */
-
-    auto const src_ul = idx_x + idx_y*nx;
-    auto const src_ll = idx_x + idx_y*nx + nx*nx/2;
-    auto const tgt_ul = src_ul + nx/2 + nx*nx/2;
-    auto const tgt_ll = src_ll + nx/2 - nx*nx/2 ;
-
-    auto const temp_ul = a[src_ul] ;
-    a[src_ul] = a[tgt_ul] ;
-    a[tgt_ul] = temp_ul ;
-
-    auto const temp_ll = a[src_ll] ;
-    a[src_ll] = a[tgt_ll];
-    a[tgt_ll] = temp_ll;
-#endif
+inline void shift_core(int const idx_x, int const idx_y, int const nx, dreal* const __restrict__ a) {
     /* row-wise access */
 
     // from upper left to lower right
@@ -271,7 +253,7 @@ inline void shift_core
     a[tgt_ur] = tmp_ur;
 }
 
-void shift_h(int const nx, dcomplex* const __restrict__ a) {
+void shift_h(int const nx, dreal* const __restrict__ a) {
 #pragma omp parallel for
     for (auto x = 0; x < nx/2; ++x) {
         for (auto y = 0; y < nx/2; ++y) {
@@ -286,7 +268,7 @@ void shift_h(int const nx, dcomplex* const __restrict__ a) {
  * grid stride loop
  */
 #ifdef __CUDACC__
-__global__ void shift_d(int const nx, dcomplex* const __restrict__ a) {
+__global__ void shift_d(int const nx, dreal* const __restrict__ a) {
   // indices
   int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
   int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
@@ -303,14 +285,14 @@ __global__ void shift_d(int const nx, dcomplex* const __restrict__ a) {
 }
 #endif
 
-void galario_fftshift(int nx, dcomplex* data) {
+void galario_fftshift(int nx, dreal* data) {
 #ifdef __CUDACC__
-    dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*nx;
+    dreal *data_d;
+    size_t nbytes = sizeof(dreal)*nx*nx;
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dcomplex*) data_d);
+    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, (dreal*) data_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
@@ -321,11 +303,11 @@ void galario_fftshift(int nx, dcomplex* data) {
 }
 
 void _galario_fftshift(int nx, void* data) {
-    galario_fftshift(nx, static_cast<dcomplex*>(data));
+    galario_fftshift(nx, static_cast<dreal*>(data));
 }
 
 /**
- * Shift quadrants of a rectangular matrix of size (nx, nx/2).
+ * Shift quadrants of a rectangular matrix of size (nx, ny).
  * Swap the upper quadrant with the lower quadrant.
  *
  * For cache efficiency, may have to do loop tiling; i.e., the source and target
@@ -374,8 +356,8 @@ __global__ void shift_axis0_d(int const nx, int const ny, dcomplex* const __rest
   int const sy = blockDim.y * gridDim.y;
 
   for (auto x = x0; x < nx/4; x += sx) {
-    for (auto y = y0; y < ny; y += sy) {
-      shift_axis0_core(x, y, nx, ny, a);
+      for (auto y = y0; y < ny; y += sy) {
+          shift_axis0_core(x, y, nx, ny, a);
     }
   }
 }
@@ -1090,26 +1072,14 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     dRA *= arcsec_to_rad;
     dDec *= arcsec_to_rad;
 
-    // transform image from real to complex
-    auto real_buffer = (dreal*) malloc(sizeof(dreal)*2*nx*nx);
+    // TODO real shift
+    shift_h(nx, realdata);
 
-    // to avoid calling std::complex, use the fact that real and imaginary part
-    // are stored contiguously. In profiling, this turned out to be significant.
-#pragma omp parallel for shared(real_buffer, realdata)
-    for (int i = 0; i < nx; ++i) {
-        for (int j = 0; j < nx; ++j) {
-            auto const idx = i*nx + j;
-            real_buffer[idx << 1] = realdata[idx];
-            real_buffer[(idx << 1) + 1] = dreal(0);
-        }
-    }
-    dcomplex* data = reinterpret_cast<dcomplex*>(real_buffer);
-
-    shift_h(nx, data);
+    auto data = copy_real_to_buffer(nx, realdata);
 
     fft_h(nx, data);
 
-    shift_h(nx, data);
+    shift_axis0_h(nx, nx/2+1, data);
 
     // uv_idx_h
     auto indu = (dreal*) malloc(sizeof(dreal)*nd);
@@ -1118,14 +1088,14 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     uv_idx_h(nx, du, nd, u, v, indu, indv);
 
     // interpolate
-    interpolate_h(nx, data, nd, indu, indv,fint);
+    interpolate_h(nx, data, nd, indu, indv, fint);
 
     // apply phase to the sampled points
-    apply_phase_sampled_h(dRA, dDec, nd, u, v,fint);
+    apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
 
     free(indv);
     free(indu);
-    free(real_buffer);
+    fftw_free(data);
 #endif
 }
 
