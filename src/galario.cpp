@@ -386,7 +386,15 @@ void _galario_fftshift_axis0(int nx, int ny, void* data) {
 
 
 /**
- * @param nx number of pixels in x and y direction.
+ * Bilinear interpolation in 2D according to Numerical Recipes.
+ *
+ * fint(indu, indv) = (1-t)(1-u)y0 + t(1-u)y1 + t*u*y2 + (1-t)*u*y3
+ *
+ * where `y0` is bottom-left grid point, `y1` the bottom-right etc. and `t` and
+ * `u` are the fractions of the desired location from left (bottom) to right
+ * (upper) grid point.
+ *
+ * @param ny number of columns
  * @param data Fourier transform of the image [nx * nx].
  * @param nd number of data points.
  * @param indu int(indu[i]) is the closest index into data smaller than the x value of the data point. The offset to int(indu[i]) gives the position in the pixel [nd]
@@ -396,26 +404,32 @@ void _galario_fftshift_axis0(int nx, int ny, void* data) {
 //    we need to re-define CUCSUB, CUCADD, CUCMUL if __CUDACC__ not defined.
 //    suggestion: change CUCSUB -> CSUB ... that, CSUB=CUCSUB ifdef __CUDACC__, else CSUB: subtract between two complex numbers
 #ifdef __CUDACC__
-__host__ __device__ inline void interpolate_core
-#else
-inline void interpolate_core
+__host__ __device__
 #endif
-        (int const idx_x, int const nx, dcomplex* const __restrict__ data, int const nd, dreal* const __restrict__ indv, dreal* const __restrict__ indu,  dcomplex* __restrict__ fint) {
+inline void interpolate_core(int const idx_x, int const ny, dcomplex* const __restrict__ data, int const nd, dreal* const __restrict__ indv, dreal* const __restrict__ indu,  dcomplex* __restrict__ fint) {
 
+    // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
+    // lower-left.
     int const fl_u = floor(indu[idx_x]);
     int const fl_v = floor(indv[idx_x]);
     dcomplex const t = {indu[idx_x] - fl_u, 0.0};
     dcomplex const u = {indv[idx_x] - fl_v, 0.0};
 
-    int const base = fl_v + fl_u * nx;
+    // linear index of y0
+    int const base = fl_v + fl_u * ny;
 
-    dcomplex const add1 = CMPLXADD(data[base], data[base+nx+1]);
-    dcomplex const add2 = CMPLXADD(data[base+nx], data[base+1]);
+    // y0 + y2
+    dcomplex const add1 = CMPLXADD(data[base], data[base+ny+1]);
+    // y3 + y1
+    dcomplex const add2 = CMPLXADD(data[base+ny], data[base+1]);
+    // y0+y2-y3-y1
     dcomplex const df1 = CMPLXSUB(add1, add2);
+    //
     dcomplex const mul1 = CMPLXMUL(u, df1);
     dcomplex const term1 = CMPLXMUL(t, mul1);
-    dcomplex const term2_sub = CMPLXSUB(data[base+nx], data[base]);
+    dcomplex const term2_sub = CMPLXSUB(data[base+ny], data[base]);
     dcomplex const term2 = CMPLXMUL(t, term2_sub);
+    // u*y3
     dcomplex const term3_sub = CMPLXSUB(data[base+1], data[base]);
     dcomplex const term3 = CMPLXMUL(u, term3_sub);
 
@@ -447,7 +461,7 @@ inline void interpolate_core
 
 
 #ifdef __CUDACC__
-__global__ void interpolate_d(int const nx, dcomplex* const __restrict__ data, int const nd, dreal* const indu, dreal* const indv, dcomplex* __restrict__ fint)
+__global__ void interpolate_d(int const nx, int const ny, dcomplex* const __restrict__ data, int const nd, dreal* const indu, dreal* const indv, dcomplex* __restrict__ fint)
 {
     //index
     int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -457,24 +471,25 @@ __global__ void interpolate_d(int const nx, dcomplex* const __restrict__ data, i
 
     for (auto idx_x = idx_x0; idx_x < nd; idx_x += sx)
     {
-        interpolate_core(idx_x, nx, data, nd, indu, indv, fint);
+        interpolate_core(idx_x, ny, data, nd, indu, indv, fint);
      }
 }
 #endif
 
-void interpolate_h(int const nx, dcomplex* const __restrict__ data, int const nd, dreal* const indu, dreal* const indv, dcomplex* __restrict__ fint) {
+void interpolate_h(int const nx, int const ny, dcomplex *const data, int const nd, dreal *const indu, dreal *const indv,
+                   dcomplex *fint) {
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx)
     {
-        interpolate_core(idx, nx, data, nd, indu, indv, fint);
+        interpolate_core(idx, ny, data, nd, indu, indv, fint);
     }
 }
 
-void galario_interpolate(int nx, dcomplex* data, int nd, dreal* u, dreal* v, dcomplex* fint) {
+void galario_interpolate(int nx, int ny, dcomplex *data, int nd, dreal *u, dreal *v, dcomplex *fint) {
 #ifdef __CUDACC__
     // copy the image data
     dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*nx;
+    size_t nbytes = sizeof(dcomplex)*nx*ny;
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
@@ -493,7 +508,7 @@ void galario_interpolate(int nx, dcomplex* data, int nd, dreal* u, dreal* v, dco
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
+    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -506,12 +521,13 @@ void galario_interpolate(int nx, dcomplex* data, int nd, dreal* u, dreal* v, dco
     CCheck(cudaFree(v_d));
     CCheck(cudaFree(fint_d));
 #else
-    interpolate_h(nx, data, nd, u, v, fint);
+    interpolate_h(nx, ny, data, nd, u, v, fint);
 #endif
 }
 
-void _galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint) {
-    galario_interpolate(nx, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+void _galario_interpolate(int nx, int ny, void *data, int nd, void *u, void *v, void *fint) {
+    galario_interpolate(nx, ny, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u),
+                        static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
 // APPLY_PHASE TO SAMPLED POINTS //
@@ -1016,7 +1032,7 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     uv_idx_h(nx, du, nd, u, v, indu, indv);
 
     // interpolate
-    interpolate_h(nx, data, nd, indu, indv, fint);
+    interpolate_h(nx, 0, data, nd, indu, indv, fint);
 
     // apply phase to the sampled points
     apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);

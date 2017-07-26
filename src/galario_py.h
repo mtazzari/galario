@@ -14,7 +14,8 @@ void _galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, 
 void* _galario_fft2d(int nx, void* input);
 void _galario_fftshift(int nx, void* data);
 void _galario_fftshift_axis0(int nx, int ny, void* data);
-void _galario_interpolate(int nx, void* data, int nd, void* u, void* v, void* fint);
+void _galario_fftshift_fft2d_fftshift(int nx, void* data);
+void _galario_interpolate(int nx, int ny, void *data, int nd, void *u, void *v, void *fint);
 void _galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec);
 void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint);
 void _galario_get_uv_idx(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv);
