@@ -8,11 +8,11 @@
 #define nx 128
 
 int main() {
-     galario_acc_init();
+     galario_init();
 
      dreal data[nx*nx];
      galario_fftshift(nx, &data[0]);
-     galario_acc_cleanup();
+     galario_cleanup();
 
      return 0;
 }

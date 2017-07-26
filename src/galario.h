@@ -22,8 +22,8 @@ extern "C"
     void galario_reduce_chi2(int nd, dreal* fobs_re, dreal* fobs_im, dcomplex* fint, dreal* weights, dreal* chi2);
 
     /* Required for multithreading */
-    void galario_acc_init();
-    void galario_acc_cleanup();
+    void galario_init();
+    void galario_cleanup();
 
     /* GPU related functions */
     int galario_threads_per_block(int num
