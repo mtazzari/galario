@@ -39,8 +39,8 @@ cdef extern from "galario_py.h":
 
 cdef extern from "galario.h":
     int  galario_threads_per_block(int num);
-    void galario_acc_init();
-    void galario_acc_cleanup();
+    void galario_init();
+    void galario_cleanup();
     void galario_use_gpu(int device_id)
     int  galario_ngpus()
 
@@ -339,11 +339,11 @@ def chi2(dreal[:,::1] data, dRA, dDec, dreal du, dreal[::1] u, dreal[::1] v, dre
 
 
 def init():
-    galario_acc_init()
+    galario_init()
 
 
 def cleanup():
-    galario_acc_cleanup()
+    galario_cleanup()
 
 
 def ngpus():

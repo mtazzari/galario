@@ -99,18 +99,18 @@ int galario_threads_per_block(int x)
 }
 
 #ifdef __CUDACC__
-void galario_acc_init() {}
-void galario_acc_cleanup() {}
+void galario_init() {}
+void galario_cleanup() {}
 
 #else
-void galario_acc_init() {
+void galario_init() {
 #ifdef _OPENMP
     FFTWCheck(fftw_init_threads());
     fftw_plan_with_nthreads(omp_get_max_threads());
 #endif
 }
 
-void galario_acc_cleanup() {
+void galario_cleanup() {
 #ifdef _OPENMP
   FFTW(cleanup_threads)();
 #endif
