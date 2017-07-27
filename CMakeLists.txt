@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.0)
 project(galario)
 set(PACKAGE_VERSION 0.1)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release" CACHE STRING
+      "Choose the type of build, options are: Debug Release
+RelWithDebInfo MinSizeRel."
+      FORCE)
+endif(NOT CMAKE_BUILD_TYPE)
+
 # ship extra findXXX.cmake in `cmake/`
 # APPEND doesn't propagate variable to subdirectory
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
