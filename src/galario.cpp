@@ -318,7 +318,7 @@ void _galario_fftshift(int nx, int ny, void* data) {
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void shift_axis0_core(int const idx_x, int const idx_y, int const nx, int const ny, dcomplex* const __restrict__ a) {
+inline void shift_axis0_core(int const idx_x, int const idx_y, int const nx, int const ny, dcomplex* const __restrict__ matrix) {
     /* row-wise access */
 
     // from top-half to bottom-half
@@ -326,17 +326,17 @@ inline void shift_axis0_core(int const idx_x, int const idx_y, int const nx, int
     auto const tgt_u = src_u + nx/2*ny;
 
     // swap the values
-    auto tmp = a[src_u];
-    a[src_u] = a[tgt_u];
-    a[tgt_u] = tmp;
+    auto tmp = matrix[src_u];
+    matrix[src_u] = matrix[tgt_u];
+    matrix[tgt_u] = tmp;
 }
 
-void shift_axis0_h(int const nx, int const ny, dcomplex *const a) {
+void shift_axis0_h(int const nx, int const ny, dcomplex *const matrix) {
 
 #pragma omp parallel for
     for (auto x = 0; x < nx/2; ++x) {
         for (auto y = 0; y < ny; ++y) {
-            shift_axis0_core(x, y, nx, ny, a);
+            shift_axis0_core(x, y, nx, ny, matrix);
         }
     }
 }
@@ -346,7 +346,7 @@ void shift_axis0_h(int const nx, int const ny, dcomplex *const a) {
  * grid stride loop
  */
 #ifdef __CUDACC__
-__global__ void shift_axis0_d(int const nx, int const ny, dcomplex* const __restrict__ a) {
+__global__ void shift_axis0_d(int const nx, int const ny, dcomplex* const __restrict__ matrix) {
   // indices
   int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
   int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
@@ -357,31 +357,31 @@ __global__ void shift_axis0_d(int const nx, int const ny, dcomplex* const __rest
 
   for (auto x = x0; x < nx/2; x += sx) {
     for (auto y = y0; y < ny; y += sy) {
-      shift_axis0_core(x, y, nx, ny, a);
+      shift_axis0_core(x, y, nx, ny, matrix);
     }
   }
 }
 #endif
 
-void galario_fftshift_axis0(int nx, int ny, dcomplex* data) {
+void galario_fftshift_axis0(int nx, int ny, dcomplex* matrix) {
 #ifdef __CUDACC__
-    dcomplex *data_d;
+    dcomplex *matrix_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2+1);
-    CCheck(cudaMalloc((void**)&data_d, nbytes));
-    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc((void**)&matrix_d, nbytes));
+    CCheck(cudaMemcpy(matrix_d, matrix, nbytes, cudaMemcpyHostToDevice));
 
-    shift_axis0_d<<<dim3(nx/2/galario_threads_per_block()+1, ny/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, (dcomplex*) data_d);
+    shift_axis0_d<<<dim3(nx/2/galario_threads_per_block()+1, ny/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, (dcomplex*) matrix_d);
 
     CCheck(cudaDeviceSynchronize());
-    CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-    CCheck(cudaFree(data_d));
+    CCheck(cudaMemcpy(matrix, matrix_d, nbytes, cudaMemcpyDeviceToHost));
+    CCheck(cudaFree(matrix_d));
 #else
-    shift_axis0_h(nx, ny, data);
+    shift_axis0_h(nx, ny, matrix);
 #endif
 }
 
-void _galario_fftshift_axis0(int nx, int ny, void* data) {
-    galario_fftshift_axis0(nx, ny, static_cast<dcomplex*>(data));
+void _galario_fftshift_axis0(int nx, int ny, void* matrix) {
+    galario_fftshift_axis0(nx, ny, static_cast<dcomplex*>(matrix));
 }
 
 

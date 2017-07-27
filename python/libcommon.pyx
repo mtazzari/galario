@@ -278,16 +278,16 @@ def fftshift(dreal[:,::1] data):
     _galario_fftshift(data.shape[0], data.shape[1], <void*>&data[0,0])
 
 
-def fftshift_axis0(dcomplex[:,::1] data):
-    """
-    Swaps the upper and lower halves of a matrix,
-    equivalent to np.fft.fftshift(data, axes=0).
+def fftshift_axis0(dcomplex[:,::1] matrix):
+    """Swaps the upper and lower halves of a matrix.
 
-    data.shape[0] has to be even.
+    This equivalent to np.fft.fftshift(matrix, axes=0).
+
+    `matrix.shape[0]` has to be even.
 
     """
-    assert data.shape[0] % 2 == 0, "Axis 0 of data has to be even "
-    _galario_fftshift_axis0(data.shape[0], data.shape[1], <void*>&data[0,0])
+    assert matrix.shape[0] % 2 == 0, "Axis 0 of `matrix` has to be even "
+    _galario_fftshift_axis0(matrix.shape[0], matrix.shape[1], <void*>&matrix[0,0])
 
 
 def interpolate(dcomplex[:,::1] data, dreal[::1] u, dreal[::1] v):
