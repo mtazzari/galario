@@ -54,7 +54,7 @@ def test_uv_idx_R2C(nsamples, real_type, rtol, atol, acc_lib):
     du = maxuv/size
 
     uroti_r2c, vroti_r2c = uv_idx_r2c(udat, vdat, du, size/2)
-    uroti_r2c_galario, vroti_r2c_galario = acc_lib.get_uv_idx_R2C(size, du, udat, vdat)
+    uroti_r2c_galario, vroti_r2c_galario = acc_lib.get_uv_idx_R2C(size, size, du, udat, vdat)
 
     np.testing.assert_allclose(uroti_r2c_galario, uroti_r2c, rtol, atol)
     np.testing.assert_allclose(vroti_r2c_galario, vroti_r2c, rtol, atol)
@@ -164,7 +164,7 @@ def test_uv_idx(size, real_type, tol, acc_lib):
     ui = ui.astype(real_type)
     vi = vi.astype(real_type)
 
-    ui1, vi1 = acc_lib.get_uv_idx(size, maxuv/size, udat, vdat)
+    ui1, vi1 = acc_lib.get_uv_idx(size, size, maxuv/size, udat, vdat)
 
     np.testing.assert_allclose(ui1, ui, rtol=tol)
     np.testing.assert_allclose(vi1, vi, rtol=tol)

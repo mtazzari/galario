@@ -25,17 +25,17 @@ ELSE:
     complex_typenum = np.NPY_COMPLEX64
 
 cdef extern from "galario_py.h":
-    void* _galario_fft2d(int nx, void* data)
-    void _galario_fftshift(int nx, void* data)
+    void* _galario_fft2d(int nx, int ny, void* data)
+    void _galario_fftshift(int nx, int ny, void* data)
     void _galario_fftshift_axis0(int nx, int ny, void* data);
     void _galario_interpolate(int nx, int ny, void* data, int nd, void* u, void* v, void* fint)
-    void _galario_apply_phase_2d(int nx, void* data, dreal dRA, dreal dDec)
+    void _galario_apply_phase_2d(int nx, int ny, void* data, dreal dRA, dreal dDec)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
-    void _galario_get_uv_idx(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv)
-    void _galario_get_uv_idx_R2C(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv);
+    void _galario_get_uv_idx(int nx, int ny, dreal du, int nd, void* u, void* v, void* indu, void* indv)
+    void _galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, void* u, void* v, void* indu, void* indv);
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
-    void _galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
-    void _galario_chi2(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+    void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
+    void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
 
 cdef extern from "galario.h":
     int  galario_threads_per_block(int num);
@@ -51,8 +51,8 @@ cdef extern from "fftw3.h":
 sec2rad = 1./3600.*np.pi/180.    # from arcsec to radians
 
 def _check_data(data):
-    assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
-
+    # assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
+    return True
 
 def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
     nd = len(fobs_re)
@@ -66,12 +66,16 @@ def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
         assert len(v) == nd, "Wrong array length: v"
 
 
+def _check_uv(u, v):
+    assert len(u) == len(v), "Wrong array length: u, v."
+
+
 cdef class ArrayWrapper:
     """Wrap an array created by `fftw_alloc`"""
     cdef void* data_ptr
-    cdef int nx
+    cdef int nx, ny
 
-    cdef set_data(self, int nx, void* data_ptr):
+    cdef set_data(self, int nx, int ny, void* data_ptr):
         """ Set the data of the array
         This cannot be done in the constructor as it must receive C-level
         arguments.
@@ -85,12 +89,13 @@ cdef class ArrayWrapper:
         """
         self.data_ptr = data_ptr
         self.nx = nx
+        self.ny = ny
 
     def __array__(self):
         """ Here we use the __array__ method, that is called when numpy
             tries to get an array from the object."""
         cdef np.npy_intp shape[2]
-        shape[:] = (self.nx, int(self.nx/2)+1)
+        shape[:] = (self.nx, int(self.ny/2)+1)
 
         # Create a 2D array, of length `nx x nx/2+1`
         ndarray = np.PyArray_SimpleNewFromData(2, shape, complex_typenum, self.data_ptr)
@@ -116,7 +121,7 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
     Parameters
     ----------
     image : array_like, float
-        Square matrix of size (nx, nx) containing the object brightness distribution.
+        Matrix of size (nx, ny) containing the object brightness distribution.
         units: Jy/pixel.
     dRA : float
         Right Ascension offset by which the image has to be translated.
@@ -157,12 +162,10 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
     """
     _check_data(data)
     fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample(len(data), <void*>&data[0,0], dRA, dDec, du, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_sample(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, du, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
 
-# TODO wrap memory with custom deleter for fftw_free as in here
-# http://gael-varoquaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-data-copies.html
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
     """
@@ -253,12 +256,13 @@ def fft2d(dreal[:,::1] data):
     _check_data(data)
 
     cdef int nx = data.shape[0]
+    cdef int ny = data.shape[1]
 
-    cdef void* res = _galario_fft2d(nx, <void*>&data[0,0])
+    cdef void* res = _galario_fft2d(nx, ny, <void*>&data[0,0])
 
     # Use a custom delete function to free the array http://gael-varoquaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-data-copies.html
     wrapper = ArrayWrapper()
-    wrapper.set_data(nx, res)
+    wrapper.set_data(nx, ny, res)
     ndarray = np.array(wrapper, copy=False)
 
     # Increment the reference count, as the above assignment was done in
@@ -271,7 +275,7 @@ def fft2d(dreal[:,::1] data):
 def fftshift(dreal[:,::1] data):
     _check_data(data)
 
-    _galario_fftshift(data.shape[0], <void*>&data[0,0])
+    _galario_fftshift(data.shape[0], data.shape[1], <void*>&data[0,0])
 
 
 def fftshift_axis0(dcomplex[:,::1] data):
@@ -282,7 +286,7 @@ def fftshift_axis0(dcomplex[:,::1] data):
     data.shape[0] has to be even.
 
     """
-    assert data.shape[0] %  2 == 0, "Axis 0 of data has to be even "
+    assert data.shape[0] % 2 == 0, "Axis 0 of data has to be even "
     _galario_fftshift_axis0(data.shape[0], data.shape[1], <void*>&data[0,0])
 
 
@@ -295,25 +299,25 @@ def interpolate(dcomplex[:,::1] data, dreal[::1] u, dreal[::1] v):
 def apply_phase_2d(dcomplex[:,:] data, dRA, dDec):
     assert data.shape[0] == data.shape[1], "Wrong data shape."
 
-    _galario_apply_phase_2d(data.shape[0], <void*>&data[0,0], dRA, dDec)
+    _galario_apply_phase_2d(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec)
 
 
-def get_uv_idx(nx, du, dreal[::1] u, dreal[::1] v):
-    assert len(u) == len(v), "Wrong array length: u, v."
+def get_uv_idx(nx, ny, du, dreal[::1] u, dreal[::1] v):
+    _check_uv(u, v)
 
     indu = np.zeros(len(u), dtype=real_dtype)
     indv = np.zeros(len(u), dtype=real_dtype)
-    _galario_get_uv_idx(nx, du, len(u), <void*> &u[0],  <void*> &v[0],
+    _galario_get_uv_idx(nx, ny, du, len(u), <void*> &u[0],  <void*> &v[0],
                 <void*>np.PyArray_DATA(indu), <void*>np.PyArray_DATA(indv))
 
     return indu, indv
 
-def get_uv_idx_R2C(nx, du, dreal[::1] u, dreal[::1] v):
-    assert len(u) == len(v), "Wrong array length: u, v."
+def get_uv_idx_R2C(nx, ny, du, dreal[::1] u, dreal[::1] v):
+    _check_uv(u, v)
 
     indu = np.zeros(len(u), dtype=real_dtype)
     indv = np.zeros(len(u), dtype=real_dtype)
-    _galario_get_uv_idx_R2C(nx, du, len(u), <void*> &u[0],  <void*> &v[0],
+    _galario_get_uv_idx_R2C(nx, ny, du, len(u), <void*> &u[0],  <void*> &v[0],
                 <void*>np.PyArray_DATA(indu), <void*>np.PyArray_DATA(indv))
 
     return indu, indv
@@ -333,7 +337,7 @@ def chi2(dreal[:,::1] data, dRA, dDec, dreal du, dreal[::1] u, dreal[::1] v, dre
 
     cdef dreal chi2
 
-    _galario_chi2(data.shape[0], <void*>&data[0,0], dRA, dDec, du, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, du, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
 
     return chi2
 
@@ -358,6 +362,7 @@ def threads_per_block(int num=0):
     return galario_threads_per_block(num)
 
 
+# TODO update to rectangular images
 def uvcell_size(dx, nx, dist):
     """
     Computes the cell size in the Fourier (uv) space,

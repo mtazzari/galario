@@ -10,8 +10,9 @@ int main()
 {
     galario_init();
     constexpr int nx = 128;
-    std::vector<dreal> data(nx*nx);
-    galario_fft2d(nx, &data[0]);
+    constexpr int ny = 128;
+    std::vector<dreal> data(nx*ny);
+    galario_fft2d(nx, ny, &data[0]);
     galario_cleanup();
 
     return 0;
