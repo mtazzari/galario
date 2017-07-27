@@ -195,7 +195,7 @@ dcomplex* copy_real_to_buffer(int nx, int ny, const dreal* realdata) {
  * `realdata`: nx * nx matrix
  * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
  */
-dcomplex* galario_fft2d(int nx, int ny, dreal* realdata) {
+dcomplex* galario_fft2d(int nx, int ny, const dreal* realdata) {
     // TODO update as for CPU
 #ifdef __CUDACC__
     dcomplex *data_d;
@@ -406,7 +406,7 @@ void _galario_fftshift_axis0(int nx, int ny, void* data) {
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void interpolate_core(int const idx_x, int const ny, dcomplex* const __restrict__ data, int const nd, dreal* const __restrict__ indv, dreal* const __restrict__ indu,  dcomplex* __restrict__ fint) {
+inline void interpolate_core(int const idx_x, int const ny, const dcomplex* const __restrict__ data, int const nd, const dreal* const __restrict__ indv, const dreal* const __restrict__ indu,  dcomplex* const __restrict__ fint) {
 
     // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
     // lower-left.
@@ -440,7 +440,7 @@ inline void interpolate_core(int const idx_x, int const ny, dcomplex* const __re
 }
 
 #ifdef __CUDACC__
-__global__ void interpolate_d(int const ny, dcomplex* const __restrict__ data, int const nd, dreal* const indu, dreal* const indv, dcomplex* __restrict__ fint)
+__global__ void interpolate_d(int const ny, const dcomplex* const __restrict__ data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex* const __restrict__ fint)
 {
     //index
     int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -455,8 +455,7 @@ __global__ void interpolate_d(int const ny, dcomplex* const __restrict__ data, i
 }
 #endif
 
-void interpolate_h(int const ny, dcomplex *const data, int const nd, dreal *const indu, dreal *const indv,
-                   dcomplex *fint) {
+void interpolate_h(int const ny, const dcomplex *const data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex *fint) {
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx)
     {
@@ -464,7 +463,7 @@ void interpolate_h(int const ny, dcomplex *const data, int const nd, dreal *cons
     }
 }
 
-void galario_interpolate(int nx, int ny, dcomplex *data, int nd, dreal *u, dreal *v, dcomplex *fint) {
+void galario_interpolate(int nx, int ny, const dcomplex* data, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
 #ifdef __CUDACC__
     // copy the image data
     dcomplex *data_d;
@@ -513,7 +512,7 @@ void _galario_interpolate(int nx, int ny, void *data, int nd, void *u, void *v, 
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void apply_phase_sampled_core(int const idx_x, dreal* const u, dreal* const v, dcomplex* const __restrict__ fint, dreal const dRA, dreal const dDec) {
+inline void apply_phase_sampled_core(int const idx_x, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint, dreal const dRA, dreal const dDec) {
 
     dreal const angle = u[idx_x]*dRA + v[idx_x]*dDec;
 
@@ -524,7 +523,7 @@ inline void apply_phase_sampled_core(int const idx_x, dreal* const u, dreal* con
 
 
 #ifdef __CUDACC__
-__global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, dreal* const u, dreal* const v, dcomplex* __restrict__ fint) {
+__global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* __restrict__ fint) {
 
     if ((dRA==0) || (dDec==0)) {
         return;
@@ -545,7 +544,7 @@ __global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, dreal
 }
 #endif
 
-void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, dreal* const u, dreal* const v, dcomplex* __restrict__ fint) {
+void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
 
     if ((dRA==0) || (dDec==0)) {
         return;
@@ -560,7 +559,7 @@ void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, dreal* const u, 
     }
 }
 
-void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, dreal* const u, dreal* const v, dcomplex* __restrict__ fint) {
+void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
 #ifdef __CUDACC__
 
      size_t nbytes_d_complex = sizeof(dcomplex)*nd;
@@ -702,14 +701,14 @@ __host__ __device__ inline void uv_idx_core
 #else
 inline void uv_idx_core
 #endif
-        (int const i, int const half_nx, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
+        (int const i, int const half_nx, dreal const du, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
     indu[i] = half_nx + u[i]/du;
     indv[i] = half_nx + v[i]/du;
 }
 
 
 #ifdef __CUDACC__
-__global__ void uv_idx_d(const int nx, int ny, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
+__global__ void uv_idx_d(const int nx, int ny, dreal du, int nd, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
     {
         // index
         int const i0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -725,8 +724,8 @@ __global__ void uv_idx_d(const int nx, int ny, dreal du, int nd, dreal const* u,
     }
 #endif
 
-void uv_idx_h(const int nx, int ny, dreal du, int nd, dreal const *u, dreal const *v, dreal *const __restrict__ indu,
-              dreal *const __restrict__ indv) {
+void uv_idx_h(const int nx, int ny, dreal du, int nd, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu,
+              dreal* const __restrict__ indv) {
 
     int const half_nx = nx/2;
 
@@ -737,7 +736,7 @@ void uv_idx_h(const int nx, int ny, dreal du, int nd, dreal const *u, dreal cons
 }
 
 
-void galario_get_uv_idx(int nx, int ny, dreal du, int nd, dreal* u, dreal* v, dreal* indu, dreal* indv) {
+void galario_get_uv_idx(int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* indu, dreal* indv) {
     assert(nx >= 2);
 
 #ifdef __CUDACC__
@@ -779,7 +778,7 @@ void _galario_get_uv_idx(int nx, int ny, dreal du, int nd, void* u, void* v, voi
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void uv_idx_R2C_core(int const i, int const half_nx, dreal const du, dreal const* const u, dreal const* const v, dreal* const __restrict__ indu, dreal*  const __restrict__ indv) {
+inline void uv_idx_R2C_core(int const i, int const half_nx, dreal const du, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu, dreal* const __restrict__ indv) {
     indu[i] = fabs(u[i])/du;
     indv[i] = half_nx + v[i]/du;
 
@@ -788,7 +787,7 @@ inline void uv_idx_R2C_core(int const i, int const half_nx, dreal const du, drea
 
 
 #ifdef __CUDACC__
-__global__ void uv_idx_R2C_d(const int nx, int ny, dreal du, int nd, dreal const* u, dreal const* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
+__global__ void uv_idx_R2C_d(const int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
     {
         // index
         int const i0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -804,8 +803,8 @@ __global__ void uv_idx_R2C_d(const int nx, int ny, dreal du, int nd, dreal const
     }
 #endif
 
-void uv_idx_R2C_h(const int nx, int ny, dreal du, int nd, dreal const *u, dreal const *v, dreal *const __restrict__ indu,
-              dreal *const __restrict__ indv) {
+void uv_idx_R2C_h(const int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* const __restrict__ indu,
+              dreal* const __restrict__ indv) {
 
     int const half_nx = nx/2;
 
@@ -815,7 +814,7 @@ void uv_idx_R2C_h(const int nx, int ny, dreal du, int nd, dreal const *u, dreal 
     }
 }
 
-void galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, dreal* u, dreal* v, dreal* indu, dreal* indv) {
+void galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* indu, dreal* indv) {
     assert(nx >= 2);
 
 #ifdef __CUDACC__
@@ -854,7 +853,7 @@ void _galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, void* u, void* v,
 }
 
 #ifdef __CUDACC__
-inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal du, dreal* u_d, dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
+inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal du, const dreal* u_d, const dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
 {
 
     const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
@@ -905,7 +904,7 @@ dcomplex* copy_real_to_device(int nx, int ny, const dreal* realdata) {
 /**
  * return result in `fint`
  */
-void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, dreal* u, dreal* v, dcomplex* fint) {
+void galario_sample(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
     // Initialization for uv_idx and interpolate
     assert(nx >= 2);
 
@@ -943,7 +942,7 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // do the work on the gpu
-    sample_d(nx, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
+    sample_d(nx, ny, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
 
     // ################################
     // ########### TRANSFER DATA ######
@@ -994,8 +993,8 @@ void galario_sample(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, in
 #endif
 }
 
-void _galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint) {
-    galario_sample(nx, static_cast<dreal*>(data), dRA, dDec, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint) {
+    galario_sample(nx, ny, static_cast<dreal*>(data), dRA, dDec, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
 /**
@@ -1004,9 +1003,9 @@ void _galario_sample(int nx, void* data, dreal dRA, dreal dDec, dreal du, int nd
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void diff_weighted_core(int const idx_x, int const nd, dreal const* const __restrict__ fobs_re,
-                               dreal const* const __restrict__ fobs_im, dcomplex* const __restrict__ fint,
-                               dreal const* const __restrict__ weights)
+inline void diff_weighted_core(int const idx_x, int const nd, const dreal* const __restrict__ fobs_re,
+                               const dreal * const __restrict__ fobs_im, dcomplex* const __restrict__ fint,
+                               const dreal* const __restrict__ weights)
 {
     dcomplex const fobs_cmplx = dcomplex { fobs_re[idx_x], fobs_im[idx_x] };
     dcomplex const sqrt_w_cmplx = dcomplex { SQRT(weights[idx_x]), 0.0 } ;
@@ -1016,7 +1015,7 @@ inline void diff_weighted_core(int const idx_x, int const nd, dreal const* const
 
 #ifdef __CUDACC__
 __global__ void diff_weighted_d
-(int const nd, dreal const* const __restrict__ fobs_re, dreal const* const __restrict__ fobs_im, dcomplex* const __restrict__ fint, dreal const* const __restrict__ weights)
+(int const nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im, const dcomplex* const __restrict__ fint, const dreal* const __restrict__ weights)
 {
     //index
     int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -1031,7 +1030,7 @@ __global__ void diff_weighted_d
 #endif
 
 void diff_weighted_h
-        (int const nd, dreal const* const fobs_re, dreal const* const fobs_im, dcomplex* const fint, dreal const* const weights)
+        (int const nd, const dreal* const fobs_re, const dreal* const fobs_im, dcomplex* const fint, const dreal* const weights)
 {
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx) {
@@ -1041,8 +1040,9 @@ void diff_weighted_h
 
 #ifdef __CUDACC__
 void reduce_chi2_d
-(int nd, dreal const* const __restrict__ fobs_re, dreal const* const __restrict__ fobs_im, dcomplex * const __restrict__ fint, dreal const* const __restrict__ weights, dreal* chi2)
+(int nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im, dcomplex * const __restrict__ fint, const dreal* const __restrict__ weights, dreal* const __restrict__ chi2)
 {
+    // TODO create handle only once in init!
     cublasHandle_t handle;
     CBlasCheck(cublasCreate(&handle));
 
@@ -1059,7 +1059,7 @@ void reduce_chi2_d
 }
 #endif
 
-void galario_reduce_chi2(int nd, dreal* fobs_re, dreal* fobs_im, dcomplex* fint, dreal* weights, dreal* chi2) {
+void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dcomplex* fint, const dreal* weights, dreal* chi2) {
 #ifdef __CUDACC__
 
     /* allocate and copy */
@@ -1131,7 +1131,7 @@ void galario_use_gpu(int device_id)
 #endif
 }
 
-void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, dreal* u, dreal* v, dreal* fobs_re, dreal* fobs_im, dreal* weights, dreal* chi2) {
+void galario_chi2(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
 
     // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
     // Initilization for uv_idx and interpolate
@@ -1142,7 +1142,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
 
-    dcomplex *data_d = copy_real_to_device(nx, realdata);
+    dcomplex* data_d = copy_real_to_device(nx, ny, realdata);
 
      /* async memory copy:
       TODO copy memory asynchronously or create streams to define dependencies
@@ -1183,7 +1183,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
      CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
      CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
 
-     sample_d(nx, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
+     sample_d(nx, ny, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
      // ################################
      // ########### CLEANUP ############
@@ -1214,7 +1214,7 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
 #else
 
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-     galario_sample(nx, realdata, dRA, dDec, du, nd, u, v, fint);
+     galario_sample(nx, ny, realdata, dRA, dDec, du, nd, u, v, fint);
 
      galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
@@ -1224,6 +1224,6 @@ void galario_chi2(int nx, dreal* realdata, dreal dRA, dreal dDec, dreal du, int 
 
 }
 
-void _galario_chi2(int nx, void* realdata, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
-    galario_chi2(nx, static_cast<dreal*>(realdata), dRA, dDec, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dreal*>(weights), chi2);
+void _galario_chi2(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+    galario_chi2(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dreal*>(weights), chi2);
 }
