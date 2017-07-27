@@ -389,6 +389,7 @@ void _galario_fftshift_axis0(int nx, int ny, void* matrix) {
  * Bilinear interpolation in 2D according to Numerical Recipes.
  *
  * fint(indu, indv) = (1-t)(1-u)y0 + t(1-u)y1 + t*u*y2 + (1-t)*u*y3
+ *                  = t*u*(y0-y1+y2-y3) + t(-y0+y1) + u(-y0 + y3) + y0
  *
  * where `y0` is bottom-left grid point, `y1` the bottom-right etc. and `t` and
  * `u` are the fractions of the desired location from left (bottom) to right
@@ -406,52 +407,60 @@ void _galario_fftshift_axis0(int nx, int ny, void* matrix) {
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void interpolate_core(int const idx_x, int const ny, const dcomplex* const __restrict__ data, int const nd, const dreal* const __restrict__ indv, const dreal* const __restrict__ indu,  dcomplex* const __restrict__ fint) {
+inline void interpolate_core(int const idx, int const ny, const dcomplex* const __restrict__ data, int const nd, const dreal* const __restrict__ indv, const dreal* const __restrict__ indu,  dcomplex* const __restrict__ fint) {
 
     // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
     // lower-left.
-    int const fl_u = floor(indu[idx_x]);
-    int const fl_v = floor(indv[idx_x]);
-    dcomplex const t = {indu[idx_x] - fl_u, 0.0};
-    dcomplex const u = {indv[idx_x] - fl_v, 0.0};
+    int const fl_u = floor(indu[idx]);
+    int const fl_v = floor(indv[idx]);
+    dcomplex const t = {indu[idx] - fl_u, 0.0};
+    dcomplex const u = {indv[idx] - fl_v, 0.0};
+
+    const auto rowsize = ny/2+1;
 
     // linear index of y0
-    int const base = fl_v + fl_u * ny;
+    int const base = fl_v + fl_u * rowsize;
 
-    // y0 + y2
-    dcomplex const add1 = CMPLXADD(data[base], data[base+ny+1]);
-    // y3 + y1
-    dcomplex const add2 = CMPLXADD(data[base+ny], data[base+1]);
-    // y0+y2-y3-y1
+    /* the four grid points around the target point */
+    const dcomplex& y0 = data[base];
+    const dcomplex& y1 = data[base + 1];
+    const dcomplex& y2 = data[base + rowsize + 1];
+    const dcomplex& y3 = data[base + rowsize];
+
+    /* ~ t*u */
+    dcomplex const add1 = CMPLXADD(y0, y2);
+    dcomplex const add2 = CMPLXADD(y1, y3);
     dcomplex const df1 = CMPLXSUB(add1, add2);
-    //
     dcomplex const mul1 = CMPLXMUL(u, df1);
     dcomplex const term1 = CMPLXMUL(t, mul1);
-    dcomplex const term2_sub = CMPLXSUB(data[base+ny], data[base]);
+
+    /* ~ t */
+    dcomplex const term2_sub = CMPLXSUB(y1, y0);
     dcomplex const term2 = CMPLXMUL(t, term2_sub);
-    // u*y3
-    dcomplex const term3_sub = CMPLXSUB(data[base+1], data[base]);
+
+    /* ~ u */
+    dcomplex const term3_sub = CMPLXSUB(y3, y0);
     dcomplex const term3 = CMPLXMUL(u, term3_sub);
 
+    /* add up all 4 terms */
     dcomplex const final_add2 = CMPLXADD(term2, term3);
     dcomplex const final_add1 = CMPLXADD(term1, final_add2);
-
-    fint[idx_x] = CMPLXADD(data[base], final_add1);
+    fint[idx] = CMPLXADD(final_add1, y0);
 }
 
 #ifdef __CUDACC__
 __global__ void interpolate_d(int const ny, const dcomplex* const __restrict__ data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex* const __restrict__ fint)
 {
     //index
-    int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
+    int const idx_0 = blockDim.x * blockIdx.x + threadIdx.x;
 
     // stride
     int const sx = blockDim.x * gridDim.x;
 
-    for (auto idx_x = idx_x0; idx_x < nd; idx_x += sx)
+    for (auto idx = idx_0; idx_x < nd; idx_x += sx)
     {
         interpolate_core(idx_x, ny, data, nd, indu, indv, fint);
-     }
+    }
 }
 #endif
 
