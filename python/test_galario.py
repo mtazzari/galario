@@ -13,7 +13,7 @@ from utils import *
 # TODO move to utils.py. Couldn't import after first try
 def unique_part(array):
     """Extract the unique part of a real-to-complex Fourier transform"""
-    return array[:, 0:int(len(array)/2)+1]
+    return array[:, 0:int(array.shape[1]/2)+1]
 
 import galario
 
@@ -131,12 +131,11 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 
     np.testing.assert_allclose(fint_old.imag, fint.imag, rtol, atol)
 
+    np.testing.assert_allclose(fint_old_shifted.real, fint_shifted.real, rtol, atol)
+    np.testing.assert_allclose(fint_old_shifted.imag, fint_shifted.imag, rtol, atol)
+
     np.testing.assert_allclose(fint_galario.real, fint_old_shifted.real, rtol, atol)
     np.testing.assert_allclose(fint_galario.imag, fint_old_shifted.imag, rtol, atol)
-
-    np.testing.assert_allclose(fint_galario.real, fint_shifted.real, rtol, atol)
-    np.testing.assert_allclose(fint_galario.imag, fint_shifted.imag, rtol, atol)
-
 
 
 ########################################################
@@ -196,11 +195,9 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
 
     ft = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image))).astype(complex_type)
 
-    # fortran
     ReInt = int_bilin_MT(ft.real, uroti, vroti)
     ImInt = int_bilin_MT(ft.imag, uroti, vroti)
 
-    # gpu
     complexInt = acc_lib.interpolate(ft,
                                      uroti.astype(real_type),
                                      vroti.astype(real_type))
@@ -384,32 +381,44 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ref_real = reference_image.copy()
 
     ###
-    # shift - FFT - shift
+    # shift real
     ###
-    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
+    py_shift_real = np.fft.fftshift(reference_image)
+    acc_shift_real = reference_image.copy()
+    acc_lib.fftshift(acc_shift_real)
+    np.testing.assert_allclose(py_shift_real, acc_shift_real, rtol, atol)
 
-    shift_acc = reference_image.copy()
-    acc_lib.fftshift(shift_acc)
-    transformed = acc_lib.fft2d(shift_acc)
-    acc_lib.fftshift_axis0(transformed)
+    ###
+    # FFT
+    ###
 
-    np.testing.assert_allclose(unique_part(cpu_shift_fft_shift).real, transformed.real, rtol, atol)
-    np.testing.assert_allclose(unique_part(cpu_shift_fft_shift).imag, transformed.imag, rtol, atol)
+    py_fft = np.fft.fft2(py_shift_real)
+    acc_fft = acc_lib.fft2d(acc_shift_real)
+    np.testing.assert_allclose(unique_part(py_fft).real, acc_fft.real, rtol, atol)
+    np.testing.assert_allclose(unique_part(py_fft).imag, acc_fft.imag, rtol, atol)
+
+    ###
+    # shift complex
+    ###
+    py_shift_cmplx = np.fft.fftshift(py_fft, axes=0)
+    acc_lib.fftshift_axis0(acc_fft)
+    np.testing.assert_allclose(unique_part(py_shift_cmplx).real, acc_fft.real, rtol, atol)
+    np.testing.assert_allclose(unique_part(py_shift_cmplx).imag, acc_fft.imag, rtol, atol)
 
     ###
     # phase
     ###
     du = maxuv/size/wle_m
     uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
-    ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
-    ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
+    ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
+    ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt
     fint_acc = fint.copy()
     fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
     fint_acc_shifted = acc_lib.apply_phase_sampled(x0_arcsec, y0_arcsec, udat/wle_m, vdat/wle_m, fint_acc)
 
 
-    # lose some absolute precision here  --> not anymore
+    # lose some absolute precision here  --> not anymore. Really? check by decreasing rtol, atol
     # atol *= 2
     np.testing.assert_allclose(fint_shifted.real, fint_acc_shifted.real, rtol, atol)
     np.testing.assert_allclose(fint_shifted.imag, fint_acc_shifted.imag, rtol, atol)
@@ -421,7 +430,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     du = maxuv/size/wle_m
     uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
-    ui1, vi1 = acc_lib.get_uv_idx(size, maxuv/size, udat.astype(real_type), vdat.astype(real_type))
+    ui1, vi1 = acc_lib.get_uv_idx(size, size, maxuv/size, udat.astype(real_type), vdat.astype(real_type))
 
     np.testing.assert_allclose(ui1, uroti, rtol, atol)
     np.testing.assert_allclose(vi1, vroti, rtol, atol)
@@ -430,9 +439,9 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # interpolation
     ###
-    ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
-    ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
-    complexInt = acc_lib.interpolate(shift_acc, uroti.astype(real_type), vroti.astype(real_type))
+    ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
+    ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
+    complexInt = acc_lib.interpolate(acc_fft, uroti.astype(real_type), vroti.astype(real_type))
 
     np.testing.assert_allclose(ReInt, complexInt.real, rtol, atol)
     np.testing.assert_allclose(ImInt, complexInt.imag, rtol, atol)
@@ -440,8 +449,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # now all steps in one function
     ###
-    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
-                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
+    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec, du, udat/wle_m, vdat/wle_m)
 
     # a lot of precision lost. Why? --> not anymore
     # rtol = 1
