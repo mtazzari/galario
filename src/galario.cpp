@@ -148,6 +148,28 @@ void fft_d(int nx, int ny, dcomplex* data_d) {
      CCheck(cudaDeviceSynchronize());
      cufftDestroy(plan);
 }
+
+/**
+ * Return device pointer to complex image made from real image with array size `nx*ny` on the host.
+ *
+ * Caller is responsible for freeing the device memory with `cudaFree()`.
+ */
+dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
+    // TODO hide latency with asynchronous copies
+    /*  copy rows individually to skip the padding elements in the
+        destination array */
+    auto const rowsize = ny/2+1;
+    auto const nbytesrow = sizeof(dreal)*ny;
+    dcomplex *data_d;
+    CCheck(cudaMalloc((void**)&data_d, nx*rowsize));
+
+    for (auto i=0; i < nx; ++i) {
+        CCheck(cudaMemcpy(data_d + i*rowsize, realdata + i*ny, nbytesrow, cudaMemcpyHostToDevice));
+    }
+
+    return data_d;
+}
+
 #else
 
 /**
@@ -171,14 +193,18 @@ void fft_h(int nx, int ny, dcomplex* data) {
 /**
  * Copy an (nx, ny) square image into a complex buffer for real-to-complex FFTW.
  *
- * Operates only on the host.
+ * Buffer ownership transferred to caller, use `galario_free(buffer)`.
  */
-dcomplex* copy_real_to_buffer(int nx, int ny, const dreal* realdata) {
+dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     // in r2c, the last dimension only has ~half the size
     auto const complex_columns = ny/2 + 1;
 
+#ifdef __CUDACC__
+    auto buffer = static_cast<dcomplex*>(malloc(sizeof(dcomplex)*nx*complex_columns));
+#else
     // fftw_alloc for aligned memory to use SIMD acceleration
     auto buffer = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*complex_columns));
+#endif
 
     // copy and respect padding in last dimension. Treating the complex output
     // buffer as a sequence of real entries, the last (nx odd) or last two
@@ -201,7 +227,7 @@ dcomplex* copy_real_to_buffer(int nx, int ny, const dreal* realdata) {
  * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
  */
 dcomplex* galario_fft2d(int nx, int ny, const dreal* realdata) {
-    // TODO update as for CPU
+    auto buffer = galario_copy_input(nx, ny, realdata);
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2 + 1);
@@ -215,10 +241,9 @@ dcomplex* galario_fft2d(int nx, int ny, const dreal* realdata) {
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(data_d));
 #else
-    auto buffer = copy_real_to_buffer(nx, ny, realdata);
     fft_h(nx, ny, buffer);
-    return buffer;
 #endif
+    return buffer;
 }
 
 void* _galario_fft2d(int nx, int ny, void* data) {
@@ -979,11 +1004,9 @@ void galario_sample(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, drea
     dRA *= arcsec_to_rad;
     dDec *= arcsec_to_rad;
 
-    // TODO real shift
-    // TODO first copy, then shift, so input remains untouched
-    shift_h(nx, ny, realdata);
+    auto data = galario_copy_input(nx, ny, realdata);
 
-    auto data = copy_real_to_buffer(nx, ny, realdata);
+    shift_h(nx, ny, reinterpret_cast<dreal*>(data));
 
     fft_h(nx, ny, data);
 
@@ -1003,7 +1026,7 @@ void galario_sample(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, drea
 
     free(indv);
     free(indu);
-    fftw_free(data);
+    galario_free(data);
 #endif
 }
 
