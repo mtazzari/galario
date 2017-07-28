@@ -41,6 +41,7 @@ cdef extern from "galario.h":
     int  galario_threads_per_block(int num);
     void galario_init();
     void galario_cleanup();
+    void galario_free(void*);
     void galario_use_gpu(int device_id)
     int  galario_ngpus()
 
@@ -104,7 +105,7 @@ cdef class ArrayWrapper:
     def __dealloc__(self):
         """ Frees the array. This is called by Python when all the
         references to the object are gone. """
-        fftw_free(self.data_ptr)
+        galario_free(self.data_ptr)
 
 
 def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):

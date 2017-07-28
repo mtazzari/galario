@@ -12,7 +12,8 @@ int main()
     constexpr int nx = 128;
     constexpr int ny = 128;
     std::vector<dreal> data(nx*ny);
-    galario_fft2d(nx, ny, &data[0]);
+    auto res = galario_fft2d(nx, ny, &data[0]);
+    galario_free(res);
     galario_cleanup();
 
     return 0;
