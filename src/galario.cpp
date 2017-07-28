@@ -1,6 +1,13 @@
 #include "galario.h"
 #include "galario_py.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <cassert>
+#include <cmath>
+
 #ifdef __CUDACC__
     #include <cuda_runtime_api.h>
     #include <cuda.h>
@@ -55,25 +62,21 @@
         #define CUBLASNRM2 cublasScnrm2
     #endif  // DOUBLE_PRECISION
 #else
+    #include <fftw3.h>
+    #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
+
+    inline void __fftwSafeCall(int status, const char *file, const int line) {
+    #ifndef NDEBUG
+        if(status == 0) {
+            fprintf(stderr, "[ERROR] FFTW call %s: %d\n", file, line);
+            exit(44);
+        }
+    #endif // NDEBUG
+    }
+
     #define CMPLXSUB(a, b) ((a) - (b))
     #define CMPLXADD(a, b) ((a) + (b))
     #define CMPLXMUL(a, b) ((a) * (b))
-#ifdef _OPENMP
-    #include <omp.h>
-#endif
-    #include <fftw3.h>
-
-#define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
-
-inline void __fftwSafeCall(int status, const char *file, const int line) {
-#ifndef NDEBUG
-    if(status == 0) {
-        fprintf(stderr, "[ERROR] FFTW call %s: %d\n", file, line);
-        exit(44);
-    }
-#endif // NDEBUG
-}
-
 #endif // __CUDACC__
 
 #ifdef DOUBLE_PRECISION
@@ -83,9 +86,6 @@ inline void __fftwSafeCall(int status, const char *file, const int line) {
     #define SQRT sqrtf
     #define FFTW(name) fftwf_ ## name
 #endif
-
-#include <cassert>
-#include <cmath>
 
 constexpr int NRANK = 2;
 constexpr int BATCH = 1;
@@ -98,25 +98,23 @@ int galario_threads_per_block(int x)
     return mynthreads;
 }
 
-#ifdef __CUDACC__
-void galario_init() {}
-void galario_cleanup() {}
-
-#else
 void galario_init() {
-#ifdef _OPENMP
+#ifndef __CUDACC__
+    #ifdef _OPENMP
     FFTWCheck(fftw_init_threads());
     fftw_plan_with_nthreads(omp_get_max_threads());
+    #endif
 #endif
 }
 
 void galario_cleanup() {
-#ifdef _OPENMP
-  FFTW(cleanup_threads)();
+#ifndef __CUDACC__
+    #ifdef _OPENMP
+    FFTW(cleanup_threads)();
+    #endif
+    FFTW(cleanup)();
 #endif
-  FFTW(cleanup)();
 }
-#endif // __CUDACC__
 
 void galario_free(void* data) {
 #ifdef __CUDACC__
