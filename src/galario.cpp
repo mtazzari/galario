@@ -118,6 +118,13 @@ void galario_cleanup() {
 }
 #endif // __CUDACC__
 
+void galario_free(void* data) {
+#ifdef __CUDACC__
+    free(data);
+#else
+    fftw_free(data);
+#endif
+}
 
 #ifdef __CUDACC__
 void fft_d(int nx, int ny, dcomplex* data_d) {

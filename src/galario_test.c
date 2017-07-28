@@ -12,7 +12,8 @@ int main() {
      galario_init();
 
      dreal data[nx*ny];
-     galario_fftshift(nx, ny, &data[0]);
+     dcomplex* res = galario_fft2d(nx, ny, &data[0]);
+     galario_free(res);
      galario_cleanup();
 
      return 0;
