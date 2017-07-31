@@ -14,12 +14,12 @@
     #include <cuComplex.h>
 
     #include <cublas_v2.h>
+    #include <cufft.h>
 
     #include <cstdio>
     #include <cstdlib>
 
     #define CCheck(err) __cudaSafeCall((err), __FILE__, __LINE__)
-
     inline void __cudaSafeCall(cudaError err, const char *file, const int line) {
     #ifndef NDEBUG
         if(cudaSuccess != err) {
@@ -29,17 +29,23 @@
     }
     #endif
 
-    // TODO do for cufft
-
     #define CBlasCheck(err) __cublasSafeCall((err), __FILE__, __LINE__)
-
-    // TODO output error code
     inline void __cublasSafeCall(cublasStatus_t err, const char *file, const int line) {
     #ifndef NDEBUG
         if(CUBLAS_STATUS_SUCCESS != err) {
-            fprintf(stderr, "[ERROR] Cublas call %s: %d\n", file, line);
+           fprintf(stderr, "[ERROR] Cublas call %s: %d failed with code %d\n", file, line, err);
             exit(43);
         }
+    #endif
+    }
+
+    #define CUFFTCheck(err) __cufftwSafeCall((err), __FILE__, __LINE__)
+    inline void __cufftwSafeCall(cufftResult_t err, const char *file, const int line) {
+    #ifndef NDEBUG
+       if (CUFFT_SUCCESS != err) {
+           fprintf(stderr, "[ERROR] Cufftw call %s: %d\n failed with code %d\n", file, line, err);
+           exit(44);
+       }
     #endif
     }
 
@@ -131,22 +137,13 @@ void fft_d(int nx, int ny, dcomplex* data_d) {
 
      /* Create a 2D FFT plan. */
      // TODO: find a way to store the plan
-     if (cufftPlanMany(&plan, NRANK, n,
-                       NULL, 1, 0,
-                       NULL, 1, 0,
-                       CUFFTTYPE,BATCH) != CUFFT_SUCCESS){
-          fprintf(stderr, "CUFFT Error: Unable to create plan\n");
-          return;
-     }
+     CUFFTCheck(cufftPlanMany(&plan, NRANK, n, NULL, 1, 0, NULL, 1, 0, CUFFTTYPE, BATCH));
+     CUFFTCheck(CUFFTEXEC(plan, data_d, data_d, CUFFT_FORWARD));
 
-     if (CUFFTEXEC(plan, data_d, data_d, CUFFT_FORWARD) != CUFFT_SUCCESS){
-          fprintf(stderr, "CUFFT Error: Unable to execute plan\n");
-          return;
-     }
 
      // cufft calls are asynchronous
      CCheck(cudaDeviceSynchronize());
-     cufftDestroy(plan);
+     CUFFTCheck(cufftDestroy(plan));
 }
 
 /**
@@ -161,7 +158,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
     auto const rowsize = ny/2+1;
     auto const nbytesrow = sizeof(dreal)*ny;
     dcomplex *data_d;
-    CCheck(cudaMalloc((void**)&data_d, nx*rowsize));
+    CCheck(cudaMalloc((void**)&data_d, sizeof(dcomplex)*nx*rowsize));
 
     for (auto i=0; i < nx; ++i) {
         CCheck(cudaMemcpy(data_d + i*rowsize, realdata + i*ny, nbytesrow, cudaMemcpyHostToDevice));
@@ -291,7 +288,9 @@ inline void shift_core(int const idx_x, int const idx_y, int const nx, int const
     a[tgt_ur] = tmp;
 }
 
-void shift_h(int const nx, int const ny, dreal* const __restrict__ a) {
+void shift_h(int const nx, int const ny, dcomplex* const __restrict__ data) {
+   dreal* a = reinterpret_cast<dreal*>(data);
+
 #pragma omp parallel for
     for (auto x = 0; x < nx/2; ++x) {
         for (auto y = 0; y < ny/2; ++y) {
@@ -304,7 +303,10 @@ void shift_h(int const nx, int const ny, dreal* const __restrict__ a) {
  * grid stride loop
  */
 #ifdef __CUDACC__
- __global__ void shift_d(const int nx, const int ny, dreal* const __restrict__ a) {
+ __global__ void shift_d(const int nx, const int ny, dcomplex* const __restrict__ data) {
+
+    dreal* a = reinterpret_cast<dreal*>(data);
+
     // indices
     int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
     int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
@@ -323,18 +325,18 @@ void shift_h(int const nx, int const ny, dreal* const __restrict__ a) {
 
 void galario_fftshift(int nx, int ny, dcomplex* data) {
 #ifdef __CUDACC__
-    dreal *data_d;
-    size_t nbytes = sizeof(dreal)*nx*ny;
+    dcomplex *data_d;
+    size_t nbytes = sizeof(dcomplex)*nx*(ny/2+1);
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, (dreal*) data_d);
+    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(data_d));
 #else
-    shift_h(nx, ny, reinterpret_cast<dreal*>(data));
+    shift_h(nx, ny, data);
 #endif
 }
 
@@ -895,7 +897,7 @@ void _galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, void* u, void* v,
 }
 
 #ifdef __CUDACC__
-inline void sample_d(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, int nd, dreal du, const dreal* u, const dreal* v, dcomplex* fint_d)
+inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, int nd, dreal du, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
     // ################################
     // ### ALLOCATION, INITIALIZATION ###
@@ -941,7 +943,7 @@ inline void sample_d(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, int
     uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, data_d, nd, indu_d, indv_d, fint_d);
+    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(ny, data_d, nd, indu_d, indv_d, fint_d);
 
     // apply phase to the sampled points
     apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
@@ -972,7 +974,7 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // do the actual computation
-    sample_d(nx, ny, realdata, dRa, dDec, nd, du, u, v, fint_d);
+    sample_d(nx, ny, realdata, dRA, dDec, nd, du, u, v, fint_d);
 
     // retrieve interpolated values
     CCheck(cudaDeviceSynchronize());
@@ -1042,7 +1044,7 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
 
     auto data = galario_copy_input(nx, ny, realdata);
 
-    shift_h(nx, ny, reinterpret_cast<dreal*>(data));
+    shift_h(nx, ny, data);
 
     fft_h(nx, ny, data);
 
@@ -1088,7 +1090,7 @@ inline void diff_weighted_core(int const idx_x, int const nd, const dreal* const
 
 #ifdef __CUDACC__
 __global__ void diff_weighted_d
-(int const nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im, const dcomplex* const __restrict__ fint, const dreal* const __restrict__ weights)
+(int const nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im,  dcomplex* const __restrict__ fint, const dreal* const __restrict__ weights)
 {
     //index
     int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -1214,8 +1216,6 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
 
-    dcomplex* data_d = copy_input_d(nx, ny, realdata);
-
      /* async memory copy:
       TODO copy memory asynchronously or create streams to define dependencies
       use nonzero cudaStream_t
@@ -1224,20 +1224,11 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
       all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
       same for cublas
       draw dependcies on paper: first thing is to do fft while other data is transferred
+
+      While the FFT etc. are calculated, we can copy over the weights and observed values.
      */
 
-     dreal *u_d, *v_d;
-     size_t nbytes_ndat = sizeof(dreal)*nd;
-     dreal *indu_d, *indv_d;
-     CCheck(cudaMalloc((void**)&indu_d, nbytes_ndat));
-     CCheck(cudaMalloc((void**)&indv_d, nbytes_ndat));
-
-     CCheck(cudaMalloc((void**)&u_d, nbytes_ndat));
-     CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
-     CCheck(cudaMalloc((void**)&v_d, nbytes_ndat));
-     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
-
-     // take indu_d and indv_d as u and v (no need to copy them) and reserve memory for the interpolated values
+     // reserve memory for the interpolated values
      dcomplex *fint_d;
      int nbytes_fint = sizeof(dcomplex) * nd;
      CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
@@ -1246,6 +1237,7 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
      /* allocate and copy observational data */
      dreal *fobs_re_d, *fobs_im_d, *weights_d;
 
+     size_t nbytes_ndat = sizeof(dreal)*nd;
      CCheck(cudaMalloc((void**)&fobs_re_d, nbytes_ndat));
      CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_ndat, cudaMemcpyHostToDevice));
 
@@ -1255,7 +1247,7 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
      CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
      CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
 
-     sample_d(nx, ny, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
+     sample_d(nx, ny, realdata, dRA, dDec, nd, du, u, v, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
      // ################################
      // ########### CLEANUP ############
@@ -1266,11 +1258,6 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
      CCheck(cudaEventCreate(&stop));
      CCheck(cudaEventRecord(start, 0));*/
 
-     CCheck(cudaFree(data_d));
-     CCheck(cudaFree(u_d));
-     CCheck(cudaFree(v_d));
-     CCheck(cudaFree(indu_d));
-     CCheck(cudaFree(indv_d));
      CCheck(cudaFree(fint_d));
      CCheck(cudaFree(fobs_re_d));
      CCheck(cudaFree(fobs_im_d));
