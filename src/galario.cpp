@@ -304,20 +304,20 @@ void shift_h(int const nx, int const ny, dreal* const __restrict__ a) {
  * grid stride loop
  */
 #ifdef __CUDACC__
-__global__ void shift_d(int const nx, dreal* const __restrict__ a) {
-  // indices
-  int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
-  int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
+ __global__ void shift_d(const int nx, const int ny, dreal* const __restrict__ a) {
+    // indices
+    int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
+    int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
 
-  // stride
-  int const sx = blockDim.x * gridDim.x;
-  int const sy = blockDim.y * gridDim.y;
+    // stride
+    int const sx = blockDim.x * gridDim.x;
+    int const sy = blockDim.y * gridDim.y;
 
-  for (auto x = x0; x < nx/2; x += sx) {
-    for (auto y = y0; y < ny/2; y += sy) {
-      shift_core(x, y, nx, a);
+    for (auto x = x0; x < nx/2; x += sx) {
+        for (auto y = y0; y < ny/2; y += sy) {
+            shift_core(x, y, nx, ny, a);
+        }
     }
-  }
 }
 #endif
 
@@ -492,9 +492,8 @@ __global__ void interpolate_d(int const ny, const dcomplex* const __restrict__ d
     // stride
     int const sx = blockDim.x * gridDim.x;
 
-    for (auto idx = idx_0; idx_x < nd; idx_x += sx)
-    {
-        interpolate_core(idx_x, ny, data, nd, indu, indv, fint);
+    for (auto idx = idx_0; idx < nd; idx += sx) {
+        interpolate_core(idx, ny, data, nd, indu, indv, fint);
     }
 }
 #endif
@@ -896,52 +895,67 @@ void _galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, void* u, void* v,
 }
 
 #ifdef __CUDACC__
-inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal du, const dreal* u_d, const dreal* v_d, dreal* indu_d, dreal* indv_d, dcomplex* fint_d)
+inline void sample_d(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, int nd, dreal du, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
+    // ################################
+    // ### ALLOCATION, INITIALIZATION ###
+    // ################################
+    dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
+    /* async memory copy:, see issue https://github.com/mtazzari/galario/issues/40
+       TODO copy memory asynchronously or create streams to define dependencies
+       use nonzero cudaStream_t
+       kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
+
+       all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
+       same for cublas
+       draw dependencies on paper: first thing is to do fft while other data is transferred
+    */
+
+    dreal *u_d, *v_d;
+    size_t nbytes_ndat = sizeof(dreal)*nd;
+    dreal *indu_d, *indv_d;
+    CCheck(cudaMalloc((void**)&indu_d, nbytes_ndat));
+    CCheck(cudaMalloc((void**)&indv_d, nbytes_ndat));
+
+    CCheck(cudaMalloc((void**)&u_d, nbytes_ndat));
+    CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc((void**)&v_d, nbytes_ndat));
+    CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
+
+    // TODO turn into a function. Don't duplicate
     const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
     dRA *= arcsec_to_rad;
     dDec *= arcsec_to_rad;
 
-     // ################################
-     // ########### KERNELS ############
-     // ################################
-     // Kernel for shift --> FFT --> shift
-     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
-     fft_d(nx, ny, (dcomplex*) data_d);
-     shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
-     CCheck(cudaDeviceSynchronize());
+    // ################################
+    // ########### KERNELS ############
+    // ################################
+    // Kernel for shift --> FFT --> shift
+    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
+    fft_d(nx, ny, (dcomplex*) data_d);
+    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
+    CCheck(cudaDeviceSynchronize());
 
-     // Kernel for uv_idx and interpolate
-     uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
+    // Kernel for uv_idx and interpolate
+    uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
 
-     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-     interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, data_d, nd, indu_d, indv_d, fint_d);
+    // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
+    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, data_d, nd, indu_d, indv_d, fint_d);
 
-     // apply phase to the sampled points
-     apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+    // apply phase to the sampled points
+    apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+
+    // ################################
+    // ########### CLEANUP ############
+    // ################################
+    CCheck(cudaFree(data_d));
+    CCheck(cudaFree(u_d));
+    CCheck(cudaFree(v_d));
+    CCheck(cudaFree(indu_d));
+    CCheck(cudaFree(indv_d));
 }
 
-/**
- * Return device pointer to complex image made from real image on the host.
- *
- * Caller is responsible for freeing the device memory.
- */
-dcomplex* copy_real_to_device(int nx, int ny, const dreal* realdata) {
-    dcomplex *data_d;
-    CCheck(cudaMalloc((void**)&data_d, nx*nbytesrow));
-
-    // TODO hide latency with asynchronous copies
-    /*  copy rows individually to skip the padding elements in the
-        destination array */
-    auto const rowsize = (ny/2+1) << 1;
-    auto const nbytesrow = sizeof(dreal)*ny;
-    for (auto i=0; i < nx; ++i) {
-        CCheck(cudaMemcpy(data_d + i*rowsize, realdata + i*ny, nbytesrow, cudaMemcpyHostToDevice));
-    }
-
-    return data_d;
-}
 #endif
 
 /**
@@ -952,11 +966,27 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
     assert(nx >= 2);
 
 #ifdef __CUDACC__
+    // take indu_d and indv_d as u and v (no need to copy them) and reserve memory for the interpolated values
+    dcomplex *fint_d;
+    int nbytes_fint = sizeof(dcomplex) * nd;
+    CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+
+    // do the actual computation
+    sample_d(nx, ny, realdata, dRa, dDec, nd, du, u, v, fint_d);
+
+    // retrieve interpolated values
+    CCheck(cudaDeviceSynchronize());
+    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
+
+    CCheck(cudaFree(fint_d));
+
+    #if 0
+
     // ################################
     // ### ALLOCATION, INITIALIZATION ###
     // ################################
 
-    dcomplex* data_d = copy_real_to_device(nx, ny, realdata);
+    dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
     /* async memory copy:, see issue https://github.com/mtazzari/galario/issues/40
        TODO copy memory asynchronously or create streams to define dependencies
@@ -1002,6 +1032,8 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
     CCheck(cudaFree(indu_d));
     CCheck(cudaFree(indv_d));
     CCheck(cudaFree(fint_d));
+    #endif
+
 #else
 
     const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
@@ -1182,7 +1214,7 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
 
-    dcomplex* data_d = copy_real_to_device(nx, ny, realdata);
+    dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
      /* async memory copy:
       TODO copy memory asynchronously or create streams to define dependencies
