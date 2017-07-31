@@ -943,7 +943,7 @@ dcomplex* copy_real_to_device(int nx, int ny, const dreal* realdata) {
 /**
  * return result in `fint`
  */
-void galario_sample(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
+void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
     // Initialization for uv_idx and interpolate
     assert(nx >= 2);
 
@@ -1168,11 +1168,10 @@ void galario_use_gpu(int device_id)
 #endif
 }
 
-void galario_chi2(int nx, int ny, dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
-
-    // dcomplex* data_cmplx = (dcomplex*) data;  // casting all the times or only once?
-    // Initilization for uv_idx and interpolate
+void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
+    // TODO turn checks into a reusable function
     assert(nx >= 2);
+    assert(ny >= 2);
 
 #ifdef __CUDACC__
      // ################################
