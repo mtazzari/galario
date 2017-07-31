@@ -241,9 +241,12 @@ def test_shift_axes01(size, real_type, tol, acc_lib):
     npshifted = np.fft.fftshift(reference_image)
 
     ref_complex = reference_image.copy()
-    acc_lib.fftshift(ref_complex)
+    acc_shift_real = acc_lib.fftshift(ref_complex)
 
-    np.testing.assert_allclose(npshifted, ref_complex, rtol=tol)
+    # interpret complex array as real and skip last two columns
+    real_view = acc_shift_real.view(dtype=real_type)[:, :-2]
+
+    np.testing.assert_allclose(npshifted, real_view, rtol=tol)
 
 
 @pytest.mark.parametrize("size, complex_type, tol, acc_lib",
@@ -384,16 +387,22 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # shift real
     ###
     py_shift_real = np.fft.fftshift(reference_image)
-    acc_shift_real = reference_image.copy()
-    acc_lib.fftshift(acc_shift_real)
-    np.testing.assert_allclose(py_shift_real, acc_shift_real, rtol, atol)
+    acc_shift_real = acc_lib.fftshift(reference_image)
+
+    # interpret complex array as real and skip last two columns
+    real_view = acc_shift_real.view(dtype=real_type)[:, :-2]
+
+    # shifting the values should make no difference, so ask for high precision
+    np.testing.assert_allclose(py_shift_real, real_view, rtol=1e-15, atol=1e-15)
 
     ###
     # FFT
     ###
 
     py_fft = np.fft.fft2(py_shift_real)
-    acc_fft = acc_lib.fft2d(acc_shift_real)
+    # use the real input!
+    acc_fft = acc_lib.fft2d(py_shift_real)
+
     np.testing.assert_allclose(unique_part(py_fft).real, acc_fft.real, rtol, atol)
     np.testing.assert_allclose(unique_part(py_fft).imag, acc_fft.imag, rtol, atol)
 

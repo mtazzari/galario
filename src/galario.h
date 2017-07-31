@@ -12,9 +12,9 @@ extern "C"
 
     /* Interface for the experts */
     dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata);
-    dcomplex* galario_fft2d(int nx, int ny, const dreal* data);
+    void galario_fft2d(int nx, int ny, dcomplex* data);
     void galario_free(void*);
-    void galario_fftshift(int nx, int ny, dreal* data);
+    void galario_fftshift(int nx, int ny, dcomplex* data);
     void galario_fftshift_axis0(int nx, int ny, dcomplex* matrix);
     void galario_interpolate(int nx, int ny, const dcomplex* data, int nd, const dreal* u, const dreal* v, dcomplex* fint);
     void galario_apply_phase_2d(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec);

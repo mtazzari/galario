@@ -25,6 +25,7 @@ ELSE:
     complex_typenum = np.NPY_COMPLEX64
 
 cdef extern from "galario_py.h":
+    void* _galario_copy_input(int nx, int ny, void* realdata);
     void* _galario_fft2d(int nx, int ny, void* data)
     void _galario_fftshift(int nx, int ny, void* data)
     void _galario_fftshift_axis0(int nx, int ny, void* data);
@@ -92,19 +93,24 @@ cdef class ArrayWrapper:
         self.nx = nx
         self.ny = ny
 
-    def __array__(self):
-        """ Here we use the __array__ method, that is called when numpy
-            tries to get an array from the object."""
+    cdef as_ndarray(self, int nx, int ny, void* data_ptr):
+        """Create an `ndarray` that doesn't own the memory, we do."""
+        self.set_data(nx, ny, data_ptr)
         cdef np.npy_intp shape[2]
         shape[:] = (self.nx, int(self.ny/2)+1)
 
-        # Create a 2D array, of length `nx x nx/2+1`
+        # Create a 2D array, of length `nx*ny/2+1`
         ndarray = np.PyArray_SimpleNewFromData(2, shape, complex_typenum, self.data_ptr)
+
+        # without this, data would be cleaned up right away
+        # TODO If nobody calls Py_DECREF, will the memory ever be deallocated?
+        Py_INCREF(self)
         return ndarray
 
     def __dealloc__(self):
         """ Frees the array. This is called by Python when all the
         references to the object are gone. """
+        print("Deallocating array")
         galario_free(self.data_ptr)
 
 
@@ -255,28 +261,23 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
 # require contiguous arrays with stride=1 in buffer[::1]
 def fft2d(dreal[:,::1] data):
     _check_data(data)
+    nx, ny = data.shape[0], data.shape[1]
+    cdef void* res = _galario_copy_input(nx, ny, <void*>&data[0,0])
 
-    cdef int nx = data.shape[0]
-    cdef int ny = data.shape[1]
+    _galario_fft2d(nx, ny, res)
 
-    cdef void* res = _galario_fft2d(nx, ny, <void*>&data[0,0])
-
-    # Use a custom delete function to free the array http://gael-varoquaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-data-copies.html
-    wrapper = ArrayWrapper()
-    wrapper.set_data(nx, ny, res)
-    ndarray = np.array(wrapper, copy=False)
-
-    # Increment the reference count, as the above assignment was done in
-    # C, and Python does not know that there is this additional reference
-    Py_INCREF(wrapper)
-
-    return ndarray
+    # Use a custom delete function to free the array http://gael-varo1quaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-data-copies.html
+    return ArrayWrapper().as_ndarray(nx, ny, res)
 
 
 def fftshift(dreal[:,::1] data):
     _check_data(data)
+    nx, ny = data.shape[0], data.shape[1]
+    cdef void* res = _galario_copy_input(nx, ny, <void*>&data[0,0])
 
-    _galario_fftshift(data.shape[0], data.shape[1], <void*>&data[0,0])
+    _galario_fftshift(nx, ny, res)
+
+    return ArrayWrapper().as_ndarray(nx, ny, res)
 
 
 def fftshift_axis0(dcomplex[:,::1] matrix):
@@ -287,6 +288,7 @@ def fftshift_axis0(dcomplex[:,::1] matrix):
     `matrix.shape[0]` has to be even.
 
     """
+    # TODO unify checks for evenness, move into separate function
     assert matrix.shape[0] % 2 == 0, "Axis 0 of `matrix` has to be even "
     _galario_fftshift_axis0(matrix.shape[0], matrix.shape[1], <void*>&matrix[0,0])
 
