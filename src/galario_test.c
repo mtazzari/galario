@@ -10,9 +10,9 @@
 
 int main() {
      galario_init();
-
-     dreal data[nx*ny];
-     dcomplex* res = galario_fft2d(nx, ny, &data[0]);
+     dreal realdata[nx*ny];
+     dcomplex* res = galario_copy_input(nx, ny, realdata);
+     galario_fft2d(nx, ny, res);
      galario_free(res);
      galario_cleanup();
 

@@ -11,8 +11,9 @@ int main()
     galario_init();
     constexpr int nx = 128;
     constexpr int ny = 128;
-    std::vector<dreal> data(nx*ny);
-    auto res = galario_fft2d(nx, ny, &data[0]);
+    std::vector<dreal> realdata(nx*ny);
+    dcomplex* res = galario_copy_input(nx, ny, &realdata[0]);
+    galario_fft2d(nx, ny, res);
     galario_free(res);
     galario_cleanup();
 

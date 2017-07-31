@@ -222,37 +222,38 @@ dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     return buffer;
 }
 
+void* _galario_copy_input(int nx, int ny, void* realdata) {
+    return galario_copy_input(nx, ny, static_cast<dreal*>(realdata));
+}
+
 /**
  * `realdata`: nx * nx matrix
  * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
  */
-dcomplex* galario_fft2d(int nx, int ny, const dreal* realdata) {
-    auto buffer = galario_copy_input(nx, ny, realdata);
+void galario_fft2d(int nx, int ny, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2 + 1);
     CCheck(cudaMalloc((void**)&data_d, nbytes));
-
-    // TODO copy data on device to respect padding for in-place trafo
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
-    FIXME_copy_over();
-    fft_d(nx, ny, (dcomplex*) data_d);
+    fft_d(nx, ny, data_d);
 
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(data_d));
 #else
-    fft_h(nx, ny, buffer);
+    fft_h(nx, ny, data);
 #endif
-    return buffer;
 }
 
-void* _galario_fft2d(int nx, int ny, void* data) {
-    return galario_fft2d(nx, ny, static_cast<dreal*>(data));
+void _galario_fft2d(int nx, int ny, void* data) {
+    galario_fft2d(nx, ny, static_cast<dcomplex*>(data));
 }
 
 /**
  * Shift quadrants of the square image. Swap the upper-left quadrant with the
  * lower-right quadrant and the upper-right with the lower-left quadrant.
+ *
+ * We work on an array of real numbers stored inside a complex array, FFTW in-place format.
  *
  * To avoid if statements, we do two swaps.
  *
@@ -267,22 +268,27 @@ __host__ __device__
 inline void shift_core(int const idx_x, int const idx_y, int const nx, int const ny, dreal* const __restrict__ a) {
     /* row-wise access */
 
-    // from upper left to lower right
-    auto const src_ul = idx_x*ny + idx_y;
-    auto const tgt_ul = src_ul + nx*(ny+1)/2;
+    // number of real elements in the complex row of length ny/2+1
+    auto const rowsize = 2*(ny/2+1);
 
-    // from upper right to lower left
+    /* from upper left to lower right and from upper right to lower left */
+    auto const src_ul = idx_x * rowsize + idx_y;
     auto const src_ur = src_ul + ny/2;
+
+    // half the rows down
+    auto const tgt_ul = src_ur + nx/2 * rowsize;
+
+    // half a column to the left
     auto const tgt_ur = tgt_ul - ny/2;
 
-    // swap the values
-    auto const tmp_ul = a[src_ul];
+    /* swap the values */
+    auto tmp = a[src_ul];
     a[src_ul] = a[tgt_ul];
-    a[tgt_ul] = tmp_ul;
+    a[tgt_ul] = tmp;
 
-    auto const tmp_ur = a[src_ur];
+    tmp = a[src_ur];
     a[src_ur] = a[tgt_ur];
-    a[tgt_ur] = tmp_ur;
+    a[tgt_ur] = tmp;
 }
 
 void shift_h(int const nx, int const ny, dreal* const __restrict__ a) {
@@ -294,7 +300,6 @@ void shift_h(int const nx, int const ny, dreal* const __restrict__ a) {
     }
 }
 
-// TODO make shift_d and shift_h the same function, with ifdef __CUDACC__ inside.
 /**
  * grid stride loop
  */
@@ -316,7 +321,7 @@ __global__ void shift_d(int const nx, dreal* const __restrict__ a) {
 }
 #endif
 
-void galario_fftshift(int nx, int ny, dreal* data) {
+void galario_fftshift(int nx, int ny, dcomplex* data) {
 #ifdef __CUDACC__
     dreal *data_d;
     size_t nbytes = sizeof(dreal)*nx*ny;
@@ -329,12 +334,12 @@ void galario_fftshift(int nx, int ny, dreal* data) {
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(data_d));
 #else
-    shift_h(nx, ny, data);
+    shift_h(nx, ny, reinterpret_cast<dreal*>(data));
 #endif
 }
 
 void _galario_fftshift(int nx, int ny, void* data) {
-    galario_fftshift(nx, ny, static_cast<dreal*>(data));
+    galario_fftshift(nx, ny, static_cast<dcomplex*>(data));
 }
 
 /**
@@ -496,8 +501,7 @@ __global__ void interpolate_d(int const ny, const dcomplex* const __restrict__ d
 
 void interpolate_h(int const ny, const dcomplex *const data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex *fint) {
 #pragma omp parallel for
-    for (auto idx = 0; idx < nd; ++idx)
-    {
+    for (auto idx = 0; idx < nd; ++idx) {
         interpolate_core(idx, ny, data, nd, indu, indv, fint);
     }
 }
