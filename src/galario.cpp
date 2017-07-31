@@ -128,19 +128,6 @@ void galario_free(void* data) {
 }
 
 #ifdef __CUDACC__
-void fft_d(int nx, int ny, dcomplex* data_d) {
-     cufftHandle plan;
-
-     /* Create a 2D FFT plan and execute it. */
-     // TODO: find a way to store the plan
-     CUFFTCheck(cufftPlan2d(&plan, nx, ny, CUFFTTYPE));
-     CUFFTCheck(CUFFTEXEC(plan, reinterpret_cast<dreal*>(data_d), data_d));
-
-     // cufft calls are asynchronous but in default stream
-     CCheck(cudaDeviceSynchronize());
-     CUFFTCheck(cufftDestroy(plan));
-}
-
 /**
  * Return device pointer to complex image made from real image with array size `nx*ny` on the host.
  *
@@ -161,25 +148,6 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
 
     return data_d;
 }
-
-#else
-
-/**
- * Requires `data` to be large enough to hold the complex output after an
- * in-place transform, and the real input has to in the right memory locations
- * respecting the padding in the last dimension; see
- * http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html
- */
-void fft_h(int nx, int ny, dcomplex* data) {
-    dreal* input = reinterpret_cast<dreal*>(data);
-    FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
-    FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, ny, input, output, FFTW_ESTIMATE);
-    FFTW(execute)(p);
-
-    // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
-    FFTW(destroy_plan)(p);
-}
-
 #endif
 
 /**
@@ -217,6 +185,37 @@ dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
 void* _galario_copy_input(int nx, int ny, void* realdata) {
     return galario_copy_input(nx, ny, static_cast<dreal*>(realdata));
 }
+
+#ifdef __CUDACC__
+void fft_d(int nx, int ny, dcomplex* data_d) {
+     cufftHandle plan;
+
+     /* Create a 2D FFT plan and execute it. */
+     // TODO: find a way to store the plan
+     CUFFTCheck(cufftPlan2d(&plan, nx, ny, CUFFTTYPE));
+     CUFFTCheck(CUFFTEXEC(plan, reinterpret_cast<dreal*>(data_d), data_d));
+
+     // cufft calls are asynchronous but in default stream
+     CCheck(cudaDeviceSynchronize());
+     CUFFTCheck(cufftDestroy(plan));
+}
+#else
+/**
+ * Requires `data` to be large enough to hold the complex output after an
+ * in-place transform, and the real input has to in the right memory locations
+ * respecting the padding in the last dimension; see
+ * http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html
+ */
+void fft_h(int nx, int ny, dcomplex* data) {
+    dreal* input = reinterpret_cast<dreal*>(data);
+    FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
+    FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, ny, input, output, FFTW_ESTIMATE);
+    FFTW(execute)(p);
+
+    // TODO: find a way to store the plan (maybe homogeneously with the cuFFTPlan
+    FFTW(destroy_plan)(p);
+}
+#endif
 
 /**
  * `realdata`: nx * nx matrix
@@ -283,22 +282,11 @@ inline void shift_core(int const idx_x, int const idx_y, int const nx, int const
     a[tgt_ur] = tmp;
 }
 
-void shift_h(int const nx, int const ny, dcomplex* const __restrict__ data) {
-   dreal* a = reinterpret_cast<dreal*>(data);
-
-#pragma omp parallel for
-    for (auto x = 0; x < nx/2; ++x) {
-        for (auto y = 0; y < ny/2; ++y) {
-            shift_core(x, y, nx, ny, a);
-        }
-    }
-}
-
 /**
  * grid stride loop
  */
 #ifdef __CUDACC__
- __global__ void shift_d(const int nx, const int ny, dcomplex* const __restrict__ data) {
+__global__ void shift_d(const int nx, const int ny, dcomplex* const __restrict__ data) {
 
     dreal* a = reinterpret_cast<dreal*>(data);
 
@@ -312,6 +300,17 @@ void shift_h(int const nx, int const ny, dcomplex* const __restrict__ data) {
 
     for (auto x = x0; x < nx/2; x += sx) {
         for (auto y = y0; y < ny/2; y += sy) {
+            shift_core(x, y, nx, ny, a);
+        }
+    }
+}
+#else
+
+void shift_h(int const nx, int const ny, dcomplex* const __restrict__ data) {
+   dreal* a = reinterpret_cast<dreal*>(data);
+#pragma omp parallel for
+    for (auto x = 0; x < nx/2; ++x) {
+        for (auto y = 0; y < ny/2; ++y) {
             shift_core(x, y, nx, ny, a);
         }
     }
@@ -363,35 +362,34 @@ inline void shift_axis0_core(int const idx_x, int const idx_y, int const nx, int
     matrix[tgt_u] = tmp;
 }
 
-void shift_axis0_h(int const nx, int const ncol, dcomplex* const __restrict__ matrix) {
+/**
+ * grid stride loop
+ */
+#ifdef __CUDACC__
+__global__ void shift_axis0_d(int const nx, int const ncol, dcomplex* const __restrict__ matrix) {
+    // indices
+    int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
+    int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
 
+    // stride
+    int const sx = blockDim.x * gridDim.x;
+    int const sy = blockDim.y * gridDim.y;
+
+    for (auto x = x0; x < nx/2; x += sx) {
+        for (auto y = y0; y < ncol; y += sy) {
+            shift_axis0_core(x, y, nx, ncol, matrix);
+        }
+    }
+}
+#else
+
+void shift_axis0_h(int const nx, int const ncol, dcomplex* const __restrict__ matrix) {
 #pragma omp parallel for
     for (auto x = 0; x < nx/2; ++x) {
         for (auto y = 0; y < ncol; ++y) {
             shift_axis0_core(x, y, nx, ncol, matrix);
         }
     }
-}
-
-// TODO make shift_d and shift_h the same function, with ifdef __CUDACC__ inside.
-/**
- * grid stride loop
- */
-#ifdef __CUDACC__
-__global__ void shift_axis0_d(int const nx, int const ncol, dcomplex* const __restrict__ matrix) {
-  // indices
-  int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
-  int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
-
-  // stride
-  int const sx = blockDim.x * gridDim.x;
-  int const sy = blockDim.y * gridDim.y;
-
-  for (auto x = x0; x < nx/2; x += sx) {
-    for (auto y = y0; y < ncol; y += sy) {
-      shift_axis0_core(x, y, nx, ncol, matrix);
-    }
-  }
 }
 #endif
 
@@ -415,7 +413,6 @@ void galario_fftshift_axis0(int nx, int ncol, dcomplex* matrix) {
 void _galario_fftshift_axis0(int nx, int ncol, void* matrix) {
     galario_fftshift_axis0(nx, ncol, static_cast<dcomplex*>(matrix));
 }
-
 
 /**
  * Bilinear interpolation in 2D according to Numerical Recipes.
@@ -493,7 +490,7 @@ __global__ void interpolate_d(int const ny, const dcomplex* const __restrict__ d
         interpolate_core(idx, ny, data, nd, indu, indv, fint);
     }
 }
-#endif
+#else
 
 void interpolate_h(int const ny, const dcomplex *const data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex *fint) {
 #pragma omp parallel for
@@ -501,6 +498,7 @@ void interpolate_h(int const ny, const dcomplex *const data, int const nd, const
         interpolate_core(idx, ny, data, nd, indu, indv, fint);
     }
 }
+#endif
 
 void galario_interpolate(int nx, int ny, const dcomplex* data, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
 #ifdef __CUDACC__
@@ -560,7 +558,6 @@ inline void apply_phase_sampled_core(int const idx_x, const dreal* const u, cons
     fint[idx_x] = CMPLXMUL(fint[idx_x], phase);
 }
 
-
 #ifdef __CUDACC__
 __global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* __restrict__ fint) {
 
@@ -581,7 +578,7 @@ __global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, const
         apply_phase_sampled_core(x, u, v, fint, dRA, dDec);
     }
 }
-#endif
+#else
 
 void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
 
@@ -597,6 +594,7 @@ void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, const dreal* con
         apply_phase_sampled_core(x, u, v, fint, dRA, dDec);
     }
 }
+#endif
 
 void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
 #ifdef __CUDACC__
@@ -674,7 +672,7 @@ __global__ void apply_phase_d(int const nx, int const ny, dcomplex* const __rest
         }
     }
 }
-#endif
+#else
 
 void apply_phase_h(int const nx, int const ny, dcomplex* const __restrict__ data, dreal dRA, dreal dDec) {
 
@@ -692,6 +690,7 @@ void apply_phase_h(int const nx, int const ny, dcomplex* const __restrict__ data
         }
     }
 }
+#endif
 
 void galario_apply_phase_2d(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec) {
 #ifdef __CUDACC__
@@ -745,7 +744,6 @@ inline void uv_idx_core
     indv[i] = half_nx + v[i]/du;
 }
 
-
 #ifdef __CUDACC__
 __global__ void uv_idx_d(const int nx, int ny, dreal du, int nd, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
     {
@@ -761,10 +759,9 @@ __global__ void uv_idx_d(const int nx, int ny, dreal du, int nd, const dreal* co
             uv_idx_core(i, half_nx, du, u, v, indu, indv);
         }
     }
-#endif
+#else
 
-void uv_idx_h(const int nx, int ny, dreal du, int nd, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu,
-              dreal* const __restrict__ indv) {
+void uv_idx_h(const int nx, int ny, dreal du, int nd, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu, dreal* const __restrict__ indv) {
 
     int const half_nx = nx/2;
 
@@ -773,7 +770,7 @@ void uv_idx_h(const int nx, int ny, dreal du, int nd, const dreal* const u, cons
         uv_idx_core(i, half_nx, du, u, v, indu, indv);
     }
 }
-
+#endif
 
 void galario_get_uv_idx(int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* indu, dreal* indv) {
     assert(nx >= 2);
@@ -813,7 +810,6 @@ void _galario_get_uv_idx(int nx, int ny, dreal du, int nd, void* u, void* v, voi
     galario_get_uv_idx(nx, ny, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(indu), static_cast<dreal*>(indv));
 }
 
-
 #ifdef __CUDACC__
 __host__ __device__
 #endif
@@ -823,7 +819,6 @@ inline void uv_idx_R2C_core(int const i, int const half_nx, dreal const du, cons
 
     if (u[i] < 0.) indv[i] *= -1.;
 }
-
 
 #ifdef __CUDACC__
 __global__ void uv_idx_R2C_d(const int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* const __restrict__ indu, dreal* const __restrict__ indv)
@@ -840,7 +835,7 @@ __global__ void uv_idx_R2C_d(const int nx, int ny, dreal du, int nd, const dreal
             uv_idx_R2C_core(i, half_nx, du, u, v, indu, indv);
         }
     }
-#endif
+#else
 
 void uv_idx_R2C_h(const int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* const __restrict__ indu,
               dreal* const __restrict__ indv) {
@@ -852,6 +847,7 @@ void uv_idx_R2C_h(const int nx, int ny, dreal du, int nd, const dreal* u, const 
         uv_idx_R2C_core(i, half_nx, du, u, v, indu, indv);
     }
 }
+#endif
 
 void galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* indu, dreal* indv) {
     assert(nx >= 2);
@@ -976,63 +972,7 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
     CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
 
     CCheck(cudaFree(fint_d));
-
-    #if 0
-
-    // ################################
-    // ### ALLOCATION, INITIALIZATION ###
-    // ################################
-
-    dcomplex* data_d = copy_input_d(nx, ny, realdata);
-
-    /* async memory copy:, see issue https://github.com/mtazzari/galario/issues/40
-       TODO copy memory asynchronously or create streams to define dependencies
-       use nonzero cudaStream_t
-       kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
-
-       all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
-       same for cublas
-       draw dependencies on paper: first thing is to do fft while other data is transferred
-    */
-
-    dreal *u_d, *v_d;
-    size_t nbytes_ndat = sizeof(dreal)*nd;
-    dreal *indu_d, *indv_d;
-    CCheck(cudaMalloc((void**)&indu_d, nbytes_ndat));
-    CCheck(cudaMalloc((void**)&indv_d, nbytes_ndat));
-
-    CCheck(cudaMalloc((void**)&u_d, nbytes_ndat));
-    CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
-    CCheck(cudaMalloc((void**)&v_d, nbytes_ndat));
-    CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
-
-    // take indu_d and indv_d as u and v (no need to copy them) and reserve memory for the interpolated values
-    dcomplex *fint_d;
-    int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
-
-    // do the work on the gpu
-    sample_d(nx, ny, data_d, dRA, dDec, nd, du, u_d, v_d, indu_d, indv_d, fint_d);
-
-    // ################################
-    // ########### TRANSFER DATA ######
-    // ################################
-    CCheck(cudaDeviceSynchronize());
-    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
-
-    // ################################
-    // ########### CLEANUP ############
-    // ################################
-    CCheck(cudaFree(data_d));
-    CCheck(cudaFree(u_d));
-    CCheck(cudaFree(v_d));
-    CCheck(cudaFree(indu_d));
-    CCheck(cudaFree(indv_d));
-    CCheck(cudaFree(fint_d));
-    #endif
-
 #else
-
     const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
     dRA *= arcsec_to_rad;
     dDec *= arcsec_to_rad;
@@ -1097,7 +1037,7 @@ __global__ void diff_weighted_d
         diff_weighted_core(idx_x, nd, fobs_re, fobs_im, fint, weights);
     }
 }
-#endif
+#else
 
 void diff_weighted_h
         (int const nd, const dreal* const fobs_re, const dreal* const fobs_im, dcomplex* const fint, const dreal* const weights)
@@ -1107,6 +1047,7 @@ void diff_weighted_h
         diff_weighted_core(idx, nd, fobs_re, fobs_im, fint, weights);
     }
 }
+#endif
 
 #ifdef __CUDACC__
 void reduce_chi2_d
