@@ -50,8 +50,8 @@
     }
 
     #ifdef DOUBLE_PRECISION
-        #define CUFFTEXEC cufftExecZ2Z
-        #define CUFFTTYPE CUFFT_Z2Z
+        #define CUFFTEXEC cufftExecD2Z
+        #define CUFFTTYPE CUFFT_D2Z
         #define CMPLX(a, b) (make_cuDoubleComplex(a,b))
         #define CMPLXSUB cuCsub
         #define CMPLXADD cuCadd
@@ -59,8 +59,8 @@
         #define CUBLASNRM2 cublasDznrm2
 
     #else
-        #define CUFFTEXEC cufftExecC2C
-        #define CUFFTTYPE CUFFT_C2C
+        #define CUFFTEXEC cufftExecR2C
+        #define CUFFTTYPE CUFFT_R2C
         #define CMPLX(a, b) (make_cuFloatComplex(a,b))
         #define CMPLXSUB cuCsubf
         #define CMPLXADD cuCaddf
@@ -92,9 +92,6 @@
     #define SQRT sqrtf
     #define FFTW(name) fftwf_ ## name
 #endif
-
-constexpr int NRANK = 2;
-constexpr int BATCH = 1;
 
 int galario_threads_per_block(int x)
 {
@@ -133,15 +130,13 @@ void galario_free(void* data) {
 #ifdef __CUDACC__
 void fft_d(int nx, int ny, dcomplex* data_d) {
      cufftHandle plan;
-     int n[NRANK] = {nx, ny};
 
-     /* Create a 2D FFT plan. */
+     /* Create a 2D FFT plan and execute it. */
      // TODO: find a way to store the plan
-     CUFFTCheck(cufftPlanMany(&plan, NRANK, n, NULL, 1, 0, NULL, 1, 0, CUFFTTYPE, BATCH));
-     CUFFTCheck(CUFFTEXEC(plan, data_d, data_d, CUFFT_FORWARD));
+     CUFFTCheck(cufftPlan2d(&plan, nx, ny, CUFFTTYPE));
+     CUFFTCheck(CUFFTEXEC(plan, reinterpret_cast<dreal*>(data_d), data_d));
 
-
-     // cufft calls are asynchronous
+     // cufft calls are asynchronous but in default stream
      CCheck(cudaDeviceSynchronize());
      CUFFTCheck(cufftDestroy(plan));
 }
