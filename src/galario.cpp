@@ -1,6 +1,9 @@
 #include "galario.h"
 #include "galario_py.h"
 
+// full function makes code hard to read
+#define tpb = galario_threads_per_block();
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -137,13 +140,13 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
     // TODO hide latency with asynchronous copies
     /*  copy rows individually to skip the padding elements in the
         destination array */
-    auto const rowsize = ny/2+1;
+    auto const ncol = ny/2+1;
     auto const nbytesrow = sizeof(dreal)*ny;
     dcomplex *data_d;
-    CCheck(cudaMalloc((void**)&data_d, sizeof(dcomplex)*nx*rowsize));
+    CCheck(cudaMalloc((void**)&data_d, sizeof(dcomplex)*nx*ncol));
 
     for (auto i=0; i < nx; ++i) {
-        CCheck(cudaMemcpy(data_d + i*rowsize, realdata + i*ny, nbytesrow, cudaMemcpyHostToDevice));
+        CCheck(cudaMemcpy(data_d + i*ncol, realdata + i*ny, nbytesrow, cudaMemcpyHostToDevice));
     }
 
     return data_d;
@@ -157,13 +160,13 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
  */
 dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     // in r2c, the last dimension only has ~half the size
-    auto const complex_columns = ny/2 + 1;
+    auto const ncol = ny/2 + 1;
 
 #ifdef __CUDACC__
-    auto buffer = static_cast<dcomplex*>(malloc(sizeof(dcomplex)*nx*complex_columns));
+    auto buffer = static_cast<dcomplex*>(malloc(sizeof(dcomplex)*nx*ncol));
 #else
     // fftw_alloc for aligned memory to use SIMD acceleration
-    auto buffer = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*complex_columns));
+    auto buffer = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*ncol));
 #endif
 
     // copy and respect padding in last dimension. Treating the complex output
@@ -172,7 +175,7 @@ dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     auto real_buffer = reinterpret_cast<dreal*>(buffer);
 
     // copy over input to output array
-    auto const rowsize = 2*complex_columns;
+    auto const rowsize = 2*ncol;
 #pragma omp parallel for shared(real_buffer, realdata)
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < ny; ++j) {
@@ -252,7 +255,7 @@ void _galario_fft2d(int nx, int ny, void* data) {
  * should fit into the cache. If the image is too large, only part of a row may
  * fit. This is a responsibility of the caller.
  **/
-// `a` is a matrix (size: nx^2)
+// `a` is a matrix (size: nx*ny)
 #ifdef __CUDACC__
 __host__ __device__
 #endif
@@ -324,7 +327,7 @@ void galario_fftshift(int nx, int ny, dcomplex* data) {
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
+    shift_d<<<dim3(nx/2/tpb+1, nx/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
@@ -400,7 +403,7 @@ void galario_fftshift_axis0(int nx, int ncol, dcomplex* matrix) {
     CCheck(cudaMalloc((void**)&matrix_d, nbytes));
     CCheck(cudaMemcpy(matrix_d, matrix, nbytes, cudaMemcpyHostToDevice));
 
-    shift_axis0_d<<<dim3(nx/2/galario_threads_per_block()+1, ncol/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ncol, matrix_d);
+    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, matrix_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(matrix, matrix_d, nbytes, cudaMemcpyDeviceToHost));
@@ -445,16 +448,16 @@ inline void interpolate_core(int const idx, int const ny, const dcomplex* const 
     dcomplex const t = {indu[idx] - fl_u, 0.0};
     dcomplex const u = {indv[idx] - fl_v, 0.0};
 
-    const auto rowsize = ny/2+1;
+    const auto ncol = ny/2+1;
 
     // linear index of y0
-    int const base = fl_v + fl_u * rowsize;
+    int const base = fl_v + fl_u * ncol;
 
     /* the four grid points around the target point */
     const dcomplex& y0 = data[base];
     const dcomplex& y1 = data[base + 1];
-    const dcomplex& y2 = data[base + rowsize + 1];
-    const dcomplex& y3 = data[base + rowsize];
+    const dcomplex& y2 = data[base + ncol + 1];
+    const dcomplex& y3 = data[base + ncol];
 
     /* ~ t*u */
     dcomplex const add1 = CMPLXADD(y0, y2);
@@ -523,7 +526,7 @@ void galario_interpolate(int nx, int ny, const dcomplex* data, int nd, const dre
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(ny, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
+    interpolate_d<<<nd / tpb + 1, tpb>>>(ny, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -614,7 +617,7 @@ void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const drea
      CCheck(cudaMalloc((void**)&fint_d, nbytes_d_complex));
      CCheck(cudaMemcpy(fint_d, fint, nbytes_d_complex, cudaMemcpyHostToDevice));
 
-     apply_phase_sampled_d<<<nd/galario_threads_per_block()+1, nd/galario_threads_per_block()+1>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+     apply_phase_sampled_d<<<nd/tpb+1, tpb>>>(dRA, dDec, nd, u_d, v_d, fint_d);
 
      CCheck(cudaDeviceSynchronize());
      CCheck(cudaMemcpy(fint, fint_d, nbytes_d_complex, cudaMemcpyDeviceToHost));
@@ -701,7 +704,7 @@ void galario_apply_phase_2d(int nx, int ny, dcomplex* data, dreal dRA, dreal dDe
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-    apply_phase_d<<<dim3(nx/galario_threads_per_block()+1, nx/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, (dcomplex*) data_d, dRA, dDec);
+    apply_phase_d<<<dim3(nx/tpb+1, nx/tpb+1), dim3(tpb, tpb)>>>(nx, ny, (dcomplex*) data_d, dRA, dDec);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
@@ -788,7 +791,7 @@ void galario_get_uv_idx(int nx, int ny, dreal du, int nd, const dreal* u, const 
     CCheck(cudaMalloc((void**)&indu_d, nbytes_nd));
     CCheck(cudaMalloc((void**)&indv_d, nbytes_nd));
 
-    uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
+    uv_idx_d<<<nd / tpb + 1, tpb>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -865,7 +868,7 @@ void galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, const dreal* u, co
     CCheck(cudaMalloc((void**)&indu_d, nbytes_nd));
     CCheck(cudaMalloc((void**)&indv_d, nbytes_nd));
 
-    uv_idx_R2C_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
+    uv_idx_R2C_d<<<nd / tpb + 1, tpb>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -925,19 +928,19 @@ inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDe
     // ########### KERNELS ############
     // ################################
     // Kernel for shift --> FFT --> shift
-    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
+    shift_d<<<dim3(nx/2/tpb+1, nx/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
     fft_d(nx, ny, (dcomplex*) data_d);
-    shift_d<<<dim3(nx/2/galario_threads_per_block()+1, nx/2/galario_threads_per_block()+1), dim3(galario_threads_per_block(), galario_threads_per_block())>>>(nx, ny, data_d);
+    shift_d<<<dim3(nx/2/tpb+1, nx/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
     CCheck(cudaDeviceSynchronize());
 
     // Kernel for uv_idx and interpolate
-    uv_idx_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
+    uv_idx_d<<<nd / tpb + 1, tpb>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(ny, data_d, nd, indu_d, indv_d, fint_d);
+    interpolate_d<<<nd / tpb + 1, tpb>>>(ny, data_d, nd, indu_d, indv_d, fint_d);
 
     // apply phase to the sampled points
-    apply_phase_sampled_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+    apply_phase_sampled_d<<<nd / tpb + 1, tpb>>>(dRA, dDec, nd, u_d, v_d, fint_d);
 
     // ################################
     // ########### CLEANUP ############
@@ -1058,7 +1061,7 @@ void reduce_chi2_d
     CBlasCheck(cublasCreate(&handle));
 
     /* compute weighted difference */
-    diff_weighted_d<<<nd / galario_threads_per_block() + 1, galario_threads_per_block()>>>(nd, fobs_re, fobs_im, fint, weights);
+    diff_weighted_d<<<nd / tpb + 1, tpb>>>(nd, fobs_re, fobs_im, fint, weights);
 
     // only device pointers! maybe not ... check with jiri
     // compute the Euclidean norm
