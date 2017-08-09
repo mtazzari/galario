@@ -2,7 +2,7 @@
 #include "galario_py.h"
 
 // full function makes code hard to read
-#define tpb = galario_threads_per_block();
+#define tpb galario_threads_per_block()
 
 #ifdef _OPENMP
 #include <omp.h>
