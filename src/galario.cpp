@@ -846,8 +846,7 @@ __global__ void uv_idx_R2C_d(const int nx, int ny, dreal du, int nd, const dreal
     }
 #else
 
-void uv_idx_R2C_h(const int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* const __restrict__ indu,
-              dreal* const __restrict__ indv) {
+void uv_idx_R2C_h(const int nx, dreal du, int nd, const dreal *u, const dreal *v, dreal *const indu, dreal *const indv) {
 
     int const half_nx = nx/2;
 
@@ -858,7 +857,7 @@ void uv_idx_R2C_h(const int nx, int ny, dreal du, int nd, const dreal* u, const 
 }
 #endif
 
-void galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, dreal* indu, dreal* indv) {
+void galario_get_uv_idx_R2C(int nx, dreal du, int nd, const dreal *u, const dreal *v, dreal *indu, dreal *indv) {
     assert(nx >= 2);
 
 #ifdef __CUDACC__
@@ -888,12 +887,13 @@ void galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, const dreal* u, co
     CCheck(cudaFree(indu_d));
     CCheck(cudaFree(indv_d));
 #else
-    uv_idx_R2C_h(nx, ny, du, nd, u, v, indu, indv);
+    uv_idx_R2C_h(nx, du, nd, u, v, indu, indv);
 #endif
 }
 
-void _galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, void* u, void* v, void* indu, void* indv) {
-    galario_get_uv_idx_R2C(nx, ny, du, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(indu), static_cast<dreal*>(indv));
+void _galario_get_uv_idx_R2C(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv) {
+    galario_get_uv_idx_R2C(nx, du, nd, static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dreal *>(indu),
+                           static_cast<dreal *>(indv));
 }
 
 #ifdef __CUDACC__
@@ -1032,7 +1032,7 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
     auto indu = (dreal*) malloc(sizeof(dreal)*nd);
     auto indv = (dreal*) malloc(sizeof(dreal)*nd);
 
-    uv_idx_R2C_h(nx, ny, du, nd, u, v, indu, indv);
+    uv_idx_R2C_h(nx, du, nd, u, v, indu, indv);
 
     // interpolate
     interpolate_h(ncol, data, nd, indu, indv, fint);
