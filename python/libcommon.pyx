@@ -303,16 +303,6 @@ def apply_phase_2d(dcomplex[:,:] data, dRA, dDec):
     _galario_apply_phase_2d(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec)
 
 
-def get_uv_idx(nx, ny, du, dreal[::1] u, dreal[::1] v):
-    _check_uv(u, v)
-
-    indu = np.zeros(len(u), dtype=real_dtype)
-    indv = np.zeros(len(u), dtype=real_dtype)
-    _galario_get_uv_idx(nx, ny, du, len(u), <void*> &u[0],  <void*> &v[0],
-                <void*>np.PyArray_DATA(indu), <void*>np.PyArray_DATA(indv))
-
-    return indu, indv
-
 def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, dreal[::1] weights):
     _check_obs(fobs_re, fobs_im, weights, fint)
 

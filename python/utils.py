@@ -13,6 +13,7 @@ __all__ = ["create_reference_image", "create_sampling_points", "uv_idx",
 
 sec2rad = np.pi/180./3600.  # from arcsec to radians
 
+
 def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype='float64',
                            reverse_xaxis=False, correct_axes=True, sizey=None, **kwargs):
     """
@@ -51,20 +52,19 @@ def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
 
 def uv_idx(udat, vdat, du, half_size):
     """
+    For C2C transform.
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
-
     """
     return half_size + udat/du, half_size + vdat/du
 
 
 def uv_idx_r2c(udat, vdat, du, half_size):
     """
+    For R2C transform.
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
-
     """
-
     indu = np.abs(udat) / du
     indv = half_size + vdat / du
     uneg = udat < 0.
