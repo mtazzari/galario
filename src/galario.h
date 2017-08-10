@@ -18,7 +18,6 @@ extern "C"
     void galario_fftshift_axis0(int nx, int ny, dcomplex* matrix);
     void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const dreal *u, const dreal *v,
                              const dreal duv, dcomplex *fint);
-    void galario_apply_phase_2d(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec);
     void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* fint);
     void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2);
 
