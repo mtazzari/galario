@@ -423,25 +423,34 @@ void _galario_fftshift_axis0(int nx, int ncol, void* matrix) {
 /**
  * Bilinear interpolation in 2D according to Numerical Recipes.
  *
- * fint(indu, indv) = (1-t)(1-q)y0 + t(1-q)y1 + t*q*y2 + (1-t)*q*y3
- *                  = t*q*(y0-y1+y2-y3) + t(-y0+y1) + q(-y0 + y3) + y0
+ * Interpolation of a matrix `data` in the generic point (u, v).
  *
- * where `y0` is bottom-left grid point, `y1` the bottom-right etc. and `t` and
- * `q` are the fractions of the desired location from left (bottom) to right
- * (upper) grid point.
+ *     fint(u, v) = (1-t)(1-q)y0 + t(1-q)y1 + t*q*y2 + (1-t)*q*y3
+ *                = t*q*(y0-y1+y2-y3) + t(-y0+y1) + q(-y0 + y3) + y0
  *
- * @param ny number of columns
- * @param data Fourier transform of the image [nx * nx].
- * @param nd number of data points.
- * @param indu int(indu[i]) is the closest index into data smaller than the x value of the data point. The offset to int(indu[i]) gives the position in the pixel [nd]
- * @param indv same as indu but for the v direction [nd].
- * @param fint The image values obtained with bilinear interpolation at the data point values [nd].
+ * `y0` is bottom-left grid point, `y1` the bottom-right etc. forming a
+ * a grid square around (u, v), ordered counter-clockwise.
+ * `q` and `t` are the fractions of the desired location from left (bottom)
+ * to right (upper) grid point.
+ *
+ * @param nrow, ncol : shape of the matrix `data`
+ * @param data : complex 2D matrix containing the Real to Complex transform of an input image
+ * @param u : x-axis coordinate of the point where `data` has to be interpolated
+ * @param v : y-axis coordinate of the point where `data` has to be interpolated
+ * @returns: the interpolated point.
+ *
+ * Notes
+ * The u and v coordinate axes follow the convention for radio interferometry for which
+ * an input image has Right Ascension (x axis) increasing from Right to Left, and Declination
+ * (y axis) increasing from Bottom to Top. u and v are parallel to Right Ascension and Declination, respectively.
  */
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline dcomplex interpolate_core(int const half_nx, int const ncol, const dcomplex *const data,
+inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex *const data,
                                  const dreal u, const dreal v, const dreal du) {
+
+    const int half_nrow = nrow/2;
 
     // compute indices
     dreal const indu = fabs(u)/du;
@@ -449,10 +458,10 @@ inline dcomplex interpolate_core(int const half_nx, int const ncol, const dcompl
 
     // could be shorter: half_nx + sign(u)*v/du;
     if (u < 0.) {
-        indv = half_nx - v/du;
+        indv = half_nrow - v/du;
     }
     else {
-        indv = half_nx + v/du;
+        indv = half_nrow + v/du;
     }
 
     // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
@@ -509,28 +518,27 @@ __global__ void interpolate_d(int const ncol, const dcomplex* const __restrict__
     int const sx = blockDim.x * gridDim.x;
 
     for (auto idx = idx_0; idx < nd; idx += sx) {
-        interpolate_core(idx, ncol, data, nd, indu, indv, fint);
+        fint[idx] = interpolate_core(nx, ncol, data,  u[idx], v[idx], du);
     }
 }
 #else
 
-void interpolate_h(int const nx, int const ncol, const dcomplex *const data, int const nd, const dreal* const u, const dreal* const v, dreal const du, dcomplex *fint) {
-
-    int const half_nx = nx/2;
+void interpolate_h(int const nrow, int const ncol, const dcomplex *const data, int const nd, const dreal* const u, const dreal* const v, dreal const du, dcomplex *fint) {
 
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx) {
-        fint[idx] = interpolate_core(half_nx, ncol, data, u[idx], v[idx], du);
+        fint[idx] = interpolate_core(nrow, ncol, data, u[idx], v[idx], du);
     }
 }
 #endif
 
-void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const dreal* u, const dreal* v, const dreal du, dcomplex* fint) {
+void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const dreal *u, const dreal *v,
+                         const dreal du, dcomplex *fint) {
 
 #ifdef __CUDACC__
     // copy the image data
     dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*ncol;
+    size_t nbytes = sizeof(dcomplex)*nrow*ncol;
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
@@ -549,7 +557,7 @@ void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const d
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / tpb + 1, tpb>>>(nx, ncol, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, du, (dcomplex*) fint_d);
+    interpolate_d<<<nd / tpb + 1, tpb>>>(nrow, ncol, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, du, (dcomplex*) fint_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -562,12 +570,12 @@ void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const d
     CCheck(cudaFree(v_d));
     CCheck(cudaFree(fint_d));
 #else
-    interpolate_h(nx, ncol, data, nd, u, v, du, fint);
+    interpolate_h(nrow, ncol, data, nd, u, v, du, fint);
 #endif
 }
 
-void _galario_interpolate(int nx, int ncol, void *data, int nd, void *u, void *v, dreal du, void *fint) {
-    galario_interpolate(nx, ncol, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u),
+void _galario_interpolate(int nrow, int ncol, void *data, int nd, void *u, void *v, dreal du, void *fint) {
+    galario_interpolate(nrow, ncol, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u),
                         static_cast<dreal*>(v), du, static_cast<dcomplex*>(fint));
 }
 
