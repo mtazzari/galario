@@ -423,11 +423,11 @@ void _galario_fftshift_axis0(int nx, int ncol, void* matrix) {
 /**
  * Bilinear interpolation in 2D according to Numerical Recipes.
  *
- * fint(indu, indv) = (1-t)(1-u)y0 + t(1-u)y1 + t*u*y2 + (1-t)*u*y3
- *                  = t*u*(y0-y1+y2-y3) + t(-y0+y1) + u(-y0 + y3) + y0
+ * fint(indu, indv) = (1-t)(1-q)y0 + t(1-q)y1 + t*q*y2 + (1-t)*q*y3
+ *                  = t*q*(y0-y1+y2-y3) + t(-y0+y1) + q(-y0 + y3) + y0
  *
  * where `y0` is bottom-left grid point, `y1` the bottom-right etc. and `t` and
- * `u` are the fractions of the desired location from left (bottom) to right
+ * `q` are the fractions of the desired location from left (bottom) to right
  * (upper) grid point.
  *
  * @param ny number of columns
@@ -440,14 +440,26 @@ void _galario_fftshift_axis0(int nx, int ncol, void* matrix) {
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline dcomplex interpolate_core(int const ncol, const dcomplex *const data, const dreal indu, const dreal indv) {
+inline dcomplex interpolate_core(int const half_nx, int const ncol, const dcomplex *const data,
+                                 const dreal u, const dreal v, const dreal du) {
+
+    // compute indices
+    dreal const indu = fabs(u)/du;
+    dreal indv = 0.;
+
+    if (u < 0.) {
+        indv = half_nx - v/du;
+    }
+    else {
+        indv = half_nx + v/du;
+    }
 
     // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
     // lower-left.
     int const fl_u = floor(indu);
     int const fl_v = floor(indv);
     dcomplex const t = {indv - fl_v, 0.0};
-    dcomplex const u = {indu - fl_u, 0.0};
+    dcomplex const q = {indu - fl_u, 0.0};
 
     // linear index of y0
     int const base = fl_u + fl_v * ncol;
@@ -458,20 +470,20 @@ inline dcomplex interpolate_core(int const ncol, const dcomplex *const data, con
     const dcomplex& y2 = data[base + ncol + 1];
     const dcomplex& y3 = data[base + 1];
 
-    /* ~ t*u */
+    /* ~ t*q */
     dcomplex const add1 = CMPLXADD(y0, y2);
     dcomplex const add2 = CMPLXADD(y1, y3);
     dcomplex const df1 = CMPLXSUB(add1, add2);
-    dcomplex const mul1 = CMPLXMUL(u, df1);
+    dcomplex const mul1 = CMPLXMUL(q, df1);
     dcomplex const term1 = CMPLXMUL(t, mul1);
 
     /* ~ t */
     dcomplex const term2_sub = CMPLXSUB(y1, y0);
     dcomplex const term2 = CMPLXMUL(t, term2_sub);
 
-    /* ~ u */
+    /* ~ q */
     dcomplex const term3_sub = CMPLXSUB(y3, y0);
-    dcomplex const term3 = CMPLXMUL(u, term3_sub);
+    dcomplex const term3 = CMPLXMUL(q, term3_sub);
 
     /* add up all 4 terms */
     dcomplex const final_add2 = CMPLXADD(term2, term3);
@@ -495,15 +507,18 @@ __global__ void interpolate_d(int const ncol, const dcomplex* const __restrict__
 }
 #else
 
-void interpolate_h(int const ncol, const dcomplex *const data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex *fint) {
+void interpolate_h(int const nx, int const ncol, const dcomplex *const data, int const nd, const dreal* const u, const dreal* const v, dreal const du, dcomplex *fint) {
+
+    int const half_nx = nx/2;
+
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx) {
-        fint[idx] = interpolate_core(ncol, data, indu[idx], indv[idx]);
+        fint[idx] = interpolate_core(half_nx, ncol, data, u[idx], v[idx], du);
     }
 }
 #endif
 
-void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
+void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const dreal* u, const dreal* v, const dreal du, dcomplex* fint) {
 
 #ifdef __CUDACC__
     // copy the image data
@@ -527,7 +542,7 @@ void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const d
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / tpb + 1, tpb>>>(ncol, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, (dcomplex*) fint_d);
+    interpolate_d<<<nd / tpb + 1, tpb>>>(nx, ncol, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, du, (dcomplex*) fint_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -540,13 +555,13 @@ void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const d
     CCheck(cudaFree(v_d));
     CCheck(cudaFree(fint_d));
 #else
-    interpolate_h(ncol, data, nd, u, v, fint);
+    interpolate_h(nx, ncol, data, nd, u, v, du, fint);
 #endif
 }
 
-void _galario_interpolate(int nx, int ncol, void *data, int nd, void *u, void *v, void *fint) {
+void _galario_interpolate(int nx, int ncol, void *data, int nd, void *u, void *v, dreal du, void *fint) {
     galario_interpolate(nx, ncol, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u),
-                        static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+                        static_cast<dreal*>(v), du, static_cast<dcomplex*>(fint));
 }
 
 // APPLY_PHASE TO SAMPLED POINTS //
@@ -975,7 +990,7 @@ inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDe
     uv_idx_R2C_d<<<nd / tpb + 1, tpb>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / tpb + 1, tpb>>>(ncol, data_d, nd, indu_d, indv_d, fint_d);
+    interpolate_d<<<nd / tpb + 1, tpb>>>(nx, ncol, data_d, nd, u_d, v_d, du, fint_d);
 
     // apply phase to the sampled points
     apply_phase_sampled_d<<<nd / tpb + 1, tpb>>>(dRA, dDec, nd, u_d, v_d, fint_d);
@@ -1028,20 +1043,20 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
     shift_axis0_h(nx, ncol, data);
 
     // uv_idx_h
-    auto indu = (dreal*) malloc(sizeof(dreal)*nd);
-    auto indv = (dreal*) malloc(sizeof(dreal)*nd);
+//    auto indu = (dreal*) malloc(sizeof(dreal)*nd);
+//    auto indv = (dreal*) malloc(sizeof(dreal)*nd);
 
-    uv_idx_R2C_h(nx, du, nd, u, v, indu, indv);
+//    uv_idx_R2C_h(nx, du, nd, u, v, indu, indv);
 
     // interpolate
-    interpolate_h(ncol, data, nd, indu, indv, fint);
+    interpolate_h(nx, ncol, data, nd, u, v, du, fint);
     conj_R2C_h(nd, u, fint);
 
     // apply phase to the sampled points
     apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
 
-    free(indv);
-    free(indu);
+//    free(indv);
+//    free(indu);
     galario_free(data);
 #endif
 }
