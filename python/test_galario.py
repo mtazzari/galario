@@ -38,29 +38,6 @@ g_double.use_gpu(max(0, ngpus-1))
 g_double.threads_per_block()
 
 
-
-@pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib",
-                         [(int(1e6), 'float32', 1.e-14, 1.e-14, g_single),
-                          (int(1e6), 'float64', 1.e-14, 1.e-14, g_double)],
-                         ids=["SP", "DP"])
-def test_uv_idx_R2C(nsamples, real_type, rtol, atol, acc_lib):
-
-    # generate the samples
-    maxuv_generator = 3.e3
-    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
-
-    # compute the matrix size and maxuv
-    size, minuv, maxuv = matrix_size(udat, vdat)
-    du = maxuv/size
-
-    uroti_r2c, vroti_r2c = uv_idx_r2c(udat, vdat, du, size/2)
-    uroti_r2c_galario, vroti_r2c_galario = acc_lib.get_uv_idx_R2C(size, size, du, udat, vdat)
-
-    np.testing.assert_allclose(uroti_r2c_galario, uroti_r2c, rtol, atol)
-    np.testing.assert_allclose(vroti_r2c_galario, vroti_r2c, rtol, atol)
-
-
-
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
                          # [(1000, 'float32', 'complex64',  1e-3,  1e-4, g_single, par1),
