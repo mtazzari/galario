@@ -490,7 +490,13 @@ inline dcomplex interpolate_core(int const half_nx, int const ncol, const dcompl
     dcomplex const final_add2 = CMPLXADD(term2, term3);
     dcomplex const final_add1 = CMPLXADD(term1, final_add2);
 
-    return CMPLXADD(final_add1, y0);
+    dcomplex interpolated = CMPLXADD(final_add1, y0);
+
+    if (u < 0.) {
+        interpolated = CMPLXCONJ(interpolated);
+    }
+
+    return interpolated;
 }
 
 #ifdef __CUDACC__
@@ -831,38 +837,6 @@ void _galario_get_uv_idx(int nx, int ny, dreal du, int nd, void* u, void* v, voi
 }
 
 #ifdef __CUDACC__
-__host__ __device__
-#endif
-inline void conj_R2C_core(int const i, const dreal* const u, dcomplex* const __restrict__ fint) {
-    if (u[i] < 0.) {
-        fint[i] = CMPLXCONJ(fint[i]);
-    }
-}
-
-#ifdef __CUDACC__
-__global__ void conj_R2C_d(int nd, const dreal* u, dcomplex* const __restrict__ fint)
-    {
-        // index
-        int const i0 = blockDim.x * blockIdx.x + threadIdx.x;
-
-        // stride
-        int const si = blockDim.x * gridDim.x;
-
-        for (auto i = i0; i < nd; i += si) {
-            conj_R2C_core(i, u, fint);
-        }
-    }
-#else
-
-void conj_R2C_h(const int nd, const dreal* u, dcomplex* const __restrict__ fint) {
-#pragma omp parallel for
-    for (auto i = 0; i < nd; ++i) {
-        conj_R2C_core(i, u, fint);
-    }
-}
-#endif
-
-#ifdef __CUDACC__
 inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, int nd, dreal du, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
     // ################################
@@ -955,7 +929,6 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
 
     // interpolate
     interpolate_h(nx, ncol, data, nd, u, v, du, fint);
-    conj_R2C_h(nd, u, fint);
 
     // apply phase to the sampled points
     apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
