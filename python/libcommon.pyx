@@ -30,7 +30,6 @@ cdef extern from "galario_py.h":
     void _galario_fftshift(int nx, int ny, void* data)
     void _galario_fftshift_axis0(int nx, int ny, void* data);
     void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, dreal duv, void* fint)
-    void _galario_apply_phase_2d(int nx, int ny, void* data, dreal dRA, dreal dDec)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
     void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint);
@@ -295,12 +294,6 @@ def interpolate(dcomplex[:,::1] data, dreal[::1] u, dreal[::1] v, duv):
     fint = np.empty(len(u), dtype=complex_dtype)
     _galario_interpolate(data.shape[0], data.shape[1], <void*>&data[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(fint))
     return fint
-
-
-def apply_phase_2d(dcomplex[:,:] data, dRA, dDec):
-    assert data.shape[0] == data.shape[1], "Wrong data shape."
-
-    _galario_apply_phase_2d(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec)
 
 
 def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, dreal[::1] weights):

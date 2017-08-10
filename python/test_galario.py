@@ -222,44 +222,6 @@ def test_shift_axis0(size, complex_type, tol, acc_lib):
 
 @pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
                          [('float32', 'complex64',  1.e-7,  1e-5, g_single, par1),
-                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par1),
-                          ('float32', 'complex64',  1.e-3,  1e-5, g_single, par2),
-                          ('float64', 'complex128', 1.e-16, 1e-14, g_double, par2),
-                          ('float32', 'complex64',  1.e-7,  1e-5, g_single, par3),
-                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par3)],
-                         ids=["SP_par1", "DP_par1",
-                              "SP_par2", "DP_par2",
-                              "SP_par3", "DP_par3"])
-def test_apply_phase_2d(real_type, complex_type, rtol, atol, acc_lib, pars):
-
-    wle_m = pars.get('wle_m', 0.003)
-    x0_arcsec = pars.get('x0_arcsec', 0.4)
-    y0_arcsec = pars.get('y0_arcsec', 10.)
-
-    # generate the samples
-    nsamples = 1000
-    maxuv_generator = 3.e3
-    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
-
-    # compute the matrix size and maxuv given the sampling points
-    size, minuv, maxuv = matrix_size(udat, vdat)
-    # print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
-
-    # create reference image (complex)
-    ref_complex = create_reference_image(size=size, dtype=complex_type)
-
-    # compute the shift
-    shifted_original_static = Fourier_shift_static(ref_complex, x0_arcsec, y0_arcsec, wle_m, maxuv)
-
-    # GPU version
-    factor = sec2rad/wle_m*maxuv
-    acc_lib.apply_phase_2d(ref_complex, x0_arcsec * factor, y0_arcsec * factor)
-
-    np.testing.assert_allclose(shifted_original_static, ref_complex, rtol, atol)
-
-
-@pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
-                         [('float32', 'complex64',  1.e-7,  1e-5, g_single, par1),
                           ('float64', 'complex128', 1.e-16, 1e-14, g_double, par1),
                           ('float32', 'complex64',  1.e-3,  1e-5, g_single, par2),
                           ('float64', 'complex128', 1.e-16, 1e-14, g_double, par2),
