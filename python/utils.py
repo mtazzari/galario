@@ -68,7 +68,7 @@ def uv_idx_r2c(udat, vdat, du, half_size):
     indu = np.abs(udat) / du
     indv = half_size + vdat / du
     uneg = udat < 0.
-    indv[uneg] = - indv[uneg]
+    indv[uneg] = half_size - vdat[uneg] / du
 
     return indu, indv
 
