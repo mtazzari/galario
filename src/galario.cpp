@@ -817,9 +817,13 @@ __host__ __device__
 #endif
 inline void uv_idx_R2C_core(int const i, int const half_nx, dreal const du, const dreal* const u, const dreal* const v, dreal* const __restrict__ indu, dreal* const __restrict__ indv) {
     indu[i] = fabs(u[i])/du;
-    indv[i] = half_nx + v[i]/du;
 
-    if (u[i] < 0.) indv[i] *= -1.;
+    if (u[i] < 0.) {
+        indv[i] = half_nx - v[i]/du;
+    }
+    else {
+        indv[i] = half_nx + v[i]/du;
+    }
 }
 
 #ifdef __CUDACC__
@@ -934,7 +938,7 @@ inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDe
     CCheck(cudaDeviceSynchronize());
 
     // Kernel for uv_idx and interpolate
-    uv_idx_d<<<nd / tpb + 1, tpb>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
+    uv_idx_R2C_d<<<nd / tpb + 1, tpb>>>(nx, ny, du, nd, u_d, v_d, indu_d, indv_d);
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
     interpolate_d<<<nd / tpb + 1, tpb>>>(ncol, data_d, nd, indu_d, indv_d, fint_d);
@@ -993,7 +997,7 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
     auto indu = (dreal*) malloc(sizeof(dreal)*nd);
     auto indv = (dreal*) malloc(sizeof(dreal)*nd);
 
-    uv_idx_h(nx, ny, du, nd, u, v, indu, indv);
+    uv_idx_R2C_h(nx, ny, du, nd, u, v, indu, indv);
 
     // interpolate
     interpolate_h(ncol, data, nd, indu, indv, fint);
