@@ -33,7 +33,7 @@ cdef extern from "galario_py.h":
     void _galario_apply_phase_2d(int nx, int ny, void* data, dreal dRA, dreal dDec)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_get_uv_idx(int nx, int ny, dreal du, int nd, void* u, void* v, void* indu, void* indv)
-    void _galario_get_uv_idx_R2C(int nx, int ny, dreal du, int nd, void* u, void* v, void* indu, void* indv);
+    void _galario_get_uv_idx_R2C(int nx, dreal du, int nd, void* u, void* v, void* indu, void* indv);
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
     void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
     void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
@@ -320,7 +320,7 @@ def get_uv_idx_R2C(nx, ny, du, dreal[::1] u, dreal[::1] v):
 
     indu = np.zeros(len(u), dtype=real_dtype)
     indv = np.zeros(len(u), dtype=real_dtype)
-    _galario_get_uv_idx_R2C(nx, ny, du, len(u), <void*> &u[0],  <void*> &v[0],
+    _galario_get_uv_idx_R2C(nx, du, len(u), <void*> &u[0],  <void*> &v[0],
                 <void*>np.PyArray_DATA(indu), <void*>np.PyArray_DATA(indv))
 
     return indu, indv
