@@ -6,29 +6,34 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 
 __all__ = ["create_reference_image", "create_sampling_points", "uv_idx",
-           "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
+           "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT", "int_bilin_MT2",
            "matrix_size", "Fourier_shift_static",
            "Fourier_shift_array", "generate_random_vis",
            "sec2rad"]
 
 sec2rad = np.pi/180./3600.  # from arcsec to radians
 
-def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype='float64', reverse_xaxis=False, correct_axes=True, **kwargs):
+def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype='float64',
+                           reverse_xaxis=False, correct_axes=True, sizey=None, **kwargs):
     """
     Creates a reference image: a gaussian brightness with elliptical
     """
     inc_cos = np.cos(0./180.*np.pi)
 
     delta_x = 1.
-    x = (np.linspace(0., size-1, size) - size/2.) * delta_x
+    x = (np.linspace(0., size - 1, size) - size / 2.) * delta_x
 
+    if sizey:
+        y = (np.linspace(0., sizey-1, sizey) - sizey/2.) * delta_x
+    else:
+        y = x.copy()
 
     if reverse_xaxis:
-        xx, yy = np.meshgrid(-x, x/inc_cos)
+        xx, yy = np.meshgrid(-x, y/inc_cos)
     elif correct_axes:
-        xx, yy = np.meshgrid(-x, -x/inc_cos)
+        xx, yy = np.meshgrid(-x, -y/inc_cos)
     else:
-        xx, yy = np.meshgrid(x, x/inc_cos)
+        xx, yy = np.meshgrid(x, y/inc_cos)
 
     image = np.exp(-(xx-x0)**2./sigma_x - (yy-y0)**2./sigma_y)
 
@@ -88,6 +93,26 @@ def int_bilin_MT(f, y, x):
         y1 = f[np.int(np.floor(x[i])) + 1, np.int(np.floor(y[i]))]
         y2 = f[np.int(np.floor(x[i])) + 1, np.int(np.floor(y[i])) + 1]
         y3 = f[np.int(np.floor(x[i])), np.int(np.floor(y[i])) + 1]
+
+        fint[i] = t * u * (y0 - y1 + y2 - y3)
+        fint[i] += t * (y1 - y0)
+        fint[i] += u * (y3 - y0)
+        fint[i] += y0
+
+    return fint
+
+
+def int_bilin_MT2(f, x, y):
+    # assume x, y are in pixel
+    fint = np.zeros(len(x))
+
+    for i in range(len(x)):
+        t = y[i] - np.floor(y[i])
+        u = x[i] - np.floor(x[i])
+        y0 = f[np.int(np.floor(y[i])), np.int(np.floor(x[i]))]
+        y1 = f[np.int(np.floor(y[i])) + 1, np.int(np.floor(x[i]))]
+        y2 = f[np.int(np.floor(y[i])) + 1, np.int(np.floor(x[i])) + 1]
+        y3 = f[np.int(np.floor(y[i])), np.int(np.floor(x[i])) + 1]
 
         fint[i] = t * u * (y0 - y1 + y2 - y3)
         fint[i] += t * (y1 - y0)

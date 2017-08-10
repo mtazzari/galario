@@ -29,7 +29,7 @@ cdef extern from "galario_py.h":
     void* _galario_fft2d(int nx, int ny, void* data)
     void _galario_fftshift(int nx, int ny, void* data)
     void _galario_fftshift_axis0(int nx, int ny, void* data);
-    void _galario_interpolate(int nx, int ny, void* data, int nd, void* u, void* v, void* fint)
+    void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, void* fint)
     void _galario_apply_phase_2d(int nx, int ny, void* data, dreal dRA, dreal dDec)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_get_uv_idx(int nx, int ny, dreal du, int nd, void* u, void* v, void* indu, void* indv)
