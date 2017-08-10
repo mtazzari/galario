@@ -29,13 +29,12 @@ cdef extern from "galario_py.h":
     void* _galario_fft2d(int nx, int ny, void* data)
     void _galario_fftshift(int nx, int ny, void* data)
     void _galario_fftshift_axis0(int nx, int ny, void* data);
-    void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, dreal du, void* fint)
+    void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, dreal duv, void* fint)
     void _galario_apply_phase_2d(int nx, int ny, void* data, dreal dRA, dreal dDec)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
-    void _galario_get_uv_idx(int nx, int ny, dreal du, int nd, void* u, void* v, void* indu, void* indv)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
-    void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fint);
-    void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+    void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint);
+    void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
 
 cdef extern from "galario.h":
     int  galario_threads_per_block(int num);
@@ -113,7 +112,7 @@ cdef class ArrayWrapper:
         galario_free(self.data_ptr)
 
 
-def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
+def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
     """
     Performs Fourier transform, translation by (dRA, dDec) and sampling in (u, v) locations of a given image.
 
@@ -122,7 +121,7 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
 
     Typical call signature::
 
-        sample(image, dRA, dDec, du, u, v)
+        sample(image, dRA, dDec, duv, u, v)
 
     Parameters
     ----------
@@ -135,8 +134,8 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
     dDec : float
         Declination offset by which the image has to be translated.
         units: arcseconds
-    du: float
-        uv cell size in the Fourier space.
+    duv: float
+        uv cell size in the Fourier space, assumed uniform and equal on u and v directions.
         units: observing wavelength
     u: array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
@@ -160,15 +159,15 @@ def sample(dreal[:,::1] data, dRA, dDec, du, dreal[::1] u, dreal[::1] v):
         nx = image.shape[0]  # size of the square matrix containing the image.
         dx = 1.49e14  # cm
         dist = 3.1e20  # cm
-        du = uvcell_size(dist, dx, nx)
-        fint = sample(image, dRA, dDec, du, u/wle, v/wle)
+        duv = uvcell_size(dist, dx, nx)
+        fint = sample(image, dRA, dDec, duv, u/wle, v/wle)
         Re_V = fint.real
         Im_V = fint.imag
 
     """
     _check_data(data)
     fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, du, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_sample(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
 
@@ -292,9 +291,9 @@ def fftshift_axis0(dcomplex[:,::1] matrix):
     _galario_fftshift_axis0(matrix.shape[0], matrix.shape[1], <void*>&matrix[0,0])
 
 
-def interpolate(dcomplex[:,::1] data, dreal[::1] u, dreal[::1] v, du):
+def interpolate(dcomplex[:,::1] data, dreal[::1] u, dreal[::1] v, duv):
     fint = np.empty(len(u), dtype=complex_dtype)
-    _galario_interpolate(data.shape[0], data.shape[1], <void*>&data[0,0], len(u), <void*>&u[0], <void*>&v[0], du, <void*>np.PyArray_DATA(fint))
+    _galario_interpolate(data.shape[0], data.shape[1], <void*>&data[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(fint))
     return fint
 
 
@@ -323,13 +322,13 @@ def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, drea
     return chi2
 
 
-def chi2(dreal[:,::1] data, dRA, dDec, dreal du, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
+def chi2(dreal[:,::1] data, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
     _check_data(data)
     _check_obs(fobs_re, fobs_im, weights)
 
     cdef dreal chi2
 
-    _galario_chi2(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, du, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
 
     return chi2
 
