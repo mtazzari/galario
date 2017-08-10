@@ -173,6 +173,8 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
 
     ReInt = int_bilin_MT(ft.real, uroti, vroti)
     ImInt = int_bilin_MT(ft.imag, uroti, vroti)
+    uneg = udat < 0.
+    ImInt[uneg] *= -1.
 
     complexInt = acc_lib.interpolate(ft,
                                      udat.astype(real_type),
@@ -427,6 +429,9 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uroti, vroti = uv_idx_r2c(udat/wle_m, vdat/wle_m, du, size/2.)
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
+    uneg = udat < 0.
+    ImInt[uneg] *= -1.
+    
     complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
                                      udat.astype(real_type)/wle_m,
                                      vdat.astype(real_type)/wle_m,
