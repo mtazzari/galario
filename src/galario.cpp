@@ -437,22 +437,21 @@ void _galario_fftshift_axis0(int nx, int ncol, void* matrix) {
  * @param indv same as indu but for the v direction [nd].
  * @param fint The image values obtained with bilinear interpolation at the data point values [nd].
  */
-//    we need to re-define CUCSUB, CUCADD, CUCMUL if __CUDACC__ not defined.
-//    suggestion: change CUCSUB -> CSUB ... that, CSUB=CUCSUB ifdef __CUDACC__, else CSUB: subtract between two complex numbers
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void interpolate_core(int const idx, int const ncol, const dcomplex* const __restrict__ data, int const nd, const dreal* const __restrict__ indv, const dreal* const __restrict__ indu,  dcomplex* const __restrict__ fint) {
+inline void interpolate_core(int const idx, int const ncol, const dcomplex *const data, const dreal *const indu,
+                             const dreal *const indv, dcomplex *const fint) {
 
     // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
     // lower-left.
     int const fl_u = floor(indu[idx]);
     int const fl_v = floor(indv[idx]);
-    dcomplex const t = {indu[idx] - fl_u, 0.0};
-    dcomplex const u = {indv[idx] - fl_v, 0.0};
+    dcomplex const t = {indv[idx] - fl_v, 0.0};
+    dcomplex const u = {indu[idx] - fl_u, 0.0};
 
     // linear index of y0
-    int const base = fl_v + fl_u * ncol;
+    int const base = fl_u + fl_v * ncol;
 
     /* the four grid points around the target point */
     const dcomplex& y0 = data[base];
@@ -499,7 +498,7 @@ __global__ void interpolate_d(int const ncol, const dcomplex* const __restrict__
 void interpolate_h(int const ncol, const dcomplex *const data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex *fint) {
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx) {
-        interpolate_core(idx, ncol, data, nd, indu, indv, fint);
+        interpolate_core(idx, ncol, data, indu, indv, fint);
     }
 }
 #endif
