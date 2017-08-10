@@ -120,31 +120,6 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 #                      TESTS                           #
 #                                                      #
 ########################################################
-@pytest.mark.parametrize("size, real_type, tol, acc_lib",
-                         [(1024, 'float32', 1.e-6, g_single),
-                          (1024, 'float64', 1.e-13, g_double)],
-                         ids=["SP", "DP"])
-def test_uv_idx(size, real_type, tol, acc_lib):
-    nsamples = 10
-    maxuv = 1000.
-
-    udat, vdat = create_sampling_points(nsamples, maxuv/4.8)
-    assert len(udat) == nsamples
-    assert len(vdat) == nsamples
-    udat = udat.astype(real_type)
-    vdat = vdat.astype(real_type)
-
-    du = maxuv/np.float(size)
-    ui, vi = uv_idx(udat, vdat, du, size/2.)
-
-    ui = ui.astype(real_type)
-    vi = vi.astype(real_type)
-
-    ui1, vi1 = acc_lib.get_uv_idx(size, size, maxuv/size, udat, vdat)
-
-    np.testing.assert_allclose(ui1, ui, rtol=tol)
-    np.testing.assert_allclose(vi1, vi, rtol=tol)
-
 @pytest.mark.parametrize("size, real_type, complex_type, rtol, atol, acc_lib",
                          [(1024, 'float32', 'complex64',  1e-7,  1e-5, g_single),
                           (1024, 'float64', 'complex128', 1e-16, 1e-8, g_double)],
@@ -413,17 +388,6 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # atol /= 2
 
     ###
-    # rotation indices
-    ###
-    du = maxuv/size/wle_m
-    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
-    ui1, vi1 = acc_lib.get_uv_idx(size, size, maxuv/size, udat.astype(real_type), vdat.astype(real_type))
-
-    np.testing.assert_allclose(ui1, uroti, rtol, atol)
-    np.testing.assert_allclose(vi1, vroti, rtol, atol)
-
-
-    ###
     # interpolation
     ###
     uroti, vroti = uv_idx_r2c(udat/wle_m, vdat/wle_m, du, size/2.)
@@ -431,7 +395,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
     uneg = udat < 0.
     ImInt[uneg] *= -1.
-    
+
     complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
                                      udat.astype(real_type)/wle_m,
                                      vdat.astype(real_type)/wle_m,
