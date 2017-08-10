@@ -59,6 +59,7 @@
         #define CMPLXSUB cuCsub
         #define CMPLXADD cuCadd
         #define CMPLXMUL cuCmul
+        #define CMPLXCONJ cuConj
         #define CUBLASNRM2 cublasDznrm2
 
     #else
@@ -68,6 +69,7 @@
         #define CMPLXSUB cuCsubf
         #define CMPLXADD cuCaddf
         #define CMPLXMUL cuCmulf
+        #define CMPLXCONJ cuConjf
         #define CUBLASNRM2 cublasScnrm2
     #endif  // DOUBLE_PRECISION
 #else
@@ -86,6 +88,7 @@
     #define CMPLXSUB(a, b) ((a) - (b))
     #define CMPLXADD(a, b) ((a) + (b))
     #define CMPLXMUL(a, b) ((a) * (b))
+    #define CMPLXCONJ conj
 #endif // __CUDACC__
 
 #ifdef DOUBLE_PRECISION
@@ -506,7 +509,7 @@ void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const d
 #ifdef __CUDACC__
     // copy the image data
     dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*ny;
+    size_t nbytes = sizeof(dcomplex)*nx*ncol;
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
@@ -898,7 +901,7 @@ __host__ __device__
 #endif
 inline void conj_R2C_core(int const i, const dreal* const u, dcomplex* const __restrict__ fint) {
     if (u[i] < 0.) {
-        fint[i] = conj(fint[i]);
+        fint[i] = CMPLXCONJ(fint[i]);
     }
 }
 
@@ -1156,7 +1159,8 @@ void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dco
 #pragma omp parallel for reduction(+:y)
     for (auto i = 0; i < nd; ++i) {
         dcomplex const x = fint[i];
-        y += real(CMPLXMUL(x, conj(x)));
+        dcomplex const x_conj = CMPLXCONJ(fint[i]);
+        y += real(CMPLXMUL(x, x_conj));
     }
     *chi2 = y;
 
