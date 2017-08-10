@@ -221,7 +221,7 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     # no rotation
     uv = pixel_coordinates(maxuv, size)
     du = maxuv/size
-    uroti, vroti = uv_idx(udat, vdat, du, size/2.)
+    uroti, vroti = uv_idx_r2c(udat, vdat, du, size/2.)
 
     uroti = uroti.astype(real_type)
     vroti = vroti.astype(real_type)
@@ -232,8 +232,8 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     ImInt = int_bilin_MT(ft.imag, uroti, vroti)
 
     complexInt = acc_lib.interpolate(ft,
-                                     uroti.astype(real_type),
-                                     vroti.astype(real_type))
+                                     udat.astype(real_type),
+                                     vdat.astype(real_type), du)
 
     np.testing.assert_allclose(ReInt, complexInt.real, rtol, atol)
     np.testing.assert_allclose(ImInt, complexInt.imag, rtol, atol)
@@ -481,9 +481,13 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # interpolation
     ###
+    uroti, vroti = uv_idx_r2c(udat/wle_m, vdat/wle_m, du, size/2.)
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
-    complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type), uroti.astype(real_type), vroti.astype(real_type))
+    complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
+                                     udat.astype(real_type)/wle_m,
+                                     vdat.astype(real_type)/wle_m,
+                                     du)
 
     np.testing.assert_allclose(ReInt, complexInt.real, rtol, atol)
     np.testing.assert_allclose(ImInt, complexInt.imag, rtol, atol)
