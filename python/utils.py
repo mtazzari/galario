@@ -6,7 +6,7 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 
 __all__ = ["create_reference_image", "create_sampling_points", "uv_idx",
-           "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT", "int_bilin_MT2",
+           "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
            "matrix_size", "Fourier_shift_static",
            "Fourier_shift_array", "generate_random_vis",
            "sec2rad"]
@@ -81,28 +81,7 @@ def pixel_coordinates(maxuv, nx, dtype='float64'):
     """
     return (np.linspace(0., nx-1, nx, dtype=dtype) - nx/2.) * maxuv/np.float(nx)
 
-
-def int_bilin_MT(f, y, x):
-    # assume x, y are in pixel
-    fint = np.zeros(len(x))
-
-    for i in range(len(x)):
-        t = x[i] - np.floor(x[i])
-        u = y[i] - np.floor(y[i])
-        y0 = f[np.int(np.floor(x[i])), np.int(np.floor(y[i]))]
-        y1 = f[np.int(np.floor(x[i])) + 1, np.int(np.floor(y[i]))]
-        y2 = f[np.int(np.floor(x[i])) + 1, np.int(np.floor(y[i])) + 1]
-        y3 = f[np.int(np.floor(x[i])), np.int(np.floor(y[i])) + 1]
-
-        fint[i] = t * u * (y0 - y1 + y2 - y3)
-        fint[i] += t * (y1 - y0)
-        fint[i] += u * (y3 - y0)
-        fint[i] += y0
-
-    return fint
-
-
-def int_bilin_MT2(f, x, y):
+def int_bilin_MT(f, x, y):
     # assume x, y are in pixel
     fint = np.zeros(len(x))
 
