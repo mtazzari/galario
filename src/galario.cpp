@@ -327,7 +327,7 @@ void galario_fftshift(int nx, int ny, dcomplex* data) {
     CCheck(cudaMalloc((void**)&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
-    shift_d<<<dim3(nx/2/tpb+1, nx/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
+    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
@@ -928,9 +928,9 @@ inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDe
     // ########### KERNELS ############
     // ################################
     // Kernel for shift --> FFT --> shift
-    shift_d<<<dim3(nx/2/tpb+1, nx/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
+    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
     fft_d(nx, ny, (dcomplex*) data_d);
-    shift_d<<<dim3(nx/2/tpb+1, nx/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
+    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d);
     CCheck(cudaDeviceSynchronize());
 
     // Kernel for uv_idx and interpolate
@@ -987,7 +987,7 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
 
     fft_h(nx, ny, data);
 
-    shift_axis0_h(nx, ny/2+1, data);
+    shift_axis0_h(nx, ncol, data);
 
     // uv_idx_h
     auto indu = (dreal*) malloc(sizeof(dreal)*nd);
