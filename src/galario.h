@@ -7,8 +7,8 @@ extern "C"
 {
 #endif /* __cplusplus */
     /* Main user functions */
-    void galario_sample(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, dcomplex* fint);
-    void galario_chi2(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal du, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2);
+    void galario_sample(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint);
+    void galario_chi2(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2);
 
     /* Interface for the experts */
     dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata);
@@ -16,7 +16,8 @@ extern "C"
     void galario_free(void*);
     void galario_fftshift(int nx, int ny, dcomplex* data);
     void galario_fftshift_axis0(int nx, int ny, dcomplex* matrix);
-    void galario_interpolate(int nx, int ncol, const dcomplex* data, int nd, const dreal* u, const dreal* v, const dreal du, dcomplex* fint);
+    void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const dreal *u, const dreal *v,
+                             const dreal duv, dcomplex *fint);
     void galario_apply_phase_2d(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec);
     void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* fint);
     void galario_get_uv_idx(int nx, int ny, dreal du, int nd, const dreal* u, const dreal* v, const dreal* indu, dreal* indv);
