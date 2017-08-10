@@ -119,9 +119,9 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     fint = ReInt + 1j*ImInt
     fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
 
-    # GPU (C2C)
+    # galario (C2C)
     fint_galario = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
-                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
+                             du, udat/wle_m, vdat/wle_m)
 
     uneg = udat < 0.
     upos = udat > 0.
@@ -168,6 +168,39 @@ def test_uv_idx(size, real_type, tol, acc_lib):
     np.testing.assert_allclose(ui1, ui, rtol=tol)
     np.testing.assert_allclose(vi1, vi, rtol=tol)
 
+
+@pytest.mark.parametrize("size, real_type, complex_type, rtol, atol, acc_lib",
+                         [(1024, 'float32', 'complex64',  1e-7,  1e-5, g_single),
+                          (1024, 'float64', 'complex128', 1e-16, 1e-8, g_double)],
+                         ids=["SP", "DP"])
+def test_interpolate2(size, real_type, complex_type, rtol, atol, acc_lib):
+    nsamples = 10000
+    maxuv = 1000.
+
+    reference_image = create_reference_image(size=size/2+1, sizey=size, dtype=real_type)
+    udat, vdat = create_sampling_points(nsamples, maxuv/4)
+    # this factor has to be > than 2 because the matrix cover between -maxuv/2 to +maxuv/2,
+    # therefore the sampling points have to be contained inside.
+    udat = udat.astype(real_type)
+    vdat = vdat.astype(real_type)
+
+    # no rotation
+    du = maxuv/size
+    uroti, vroti = uv_idx_r2c(udat, vdat, du, size/2.)
+
+    uroti = uroti.astype(real_type)
+    vroti = vroti.astype(real_type)
+
+    ft = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image))).astype(complex_type)
+
+    ReInt = int_bilin_MT(ft.real, uroti, vroti)
+    ImInt = int_bilin_MT(ft.imag, uroti, vroti)
+
+    ReInt2 = int_bilin_MT2(ft.real, uroti, vroti)
+    ImInt2 = int_bilin_MT2(ft.imag, uroti, vroti)
+
+    np.testing.assert_allclose(ReInt, ReInt2, rtol, atol)
+    np.testing.assert_allclose(ImInt, ImInt2, rtol, atol)
 
 @pytest.mark.parametrize("size, real_type, complex_type, rtol, atol, acc_lib",
                          [(1024, 'float32', 'complex64',  1e-7,  1e-5, g_single),
@@ -450,21 +483,22 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
-    complexInt = acc_lib.interpolate(acc_fft, uroti.astype(real_type), vroti.astype(real_type))
+    complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type), uroti.astype(real_type), vroti.astype(real_type))
 
     np.testing.assert_allclose(ReInt, complexInt.real, rtol, atol)
     np.testing.assert_allclose(ImInt, complexInt.imag, rtol, atol)
 
     ###
     # now all steps in one function
+    # -> MT removed this because there is already a test for sample and here it is not clear what is the reference.
     ###
-    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec, du, udat/wle_m, vdat/wle_m)
-
-    # a lot of precision lost. Why? --> not anymore
-    # rtol = 1
-    # atol = 0.5
-    np.testing.assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
-    np.testing.assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
+    # sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec, du, udat/wle_m, vdat/wle_m)
+    #
+    # # a lot of precision lost. Why? --> not anymore
+    # # rtol = 1
+    # # atol = 0.5
+    # np.testing.assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
+    # np.testing.assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
 
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
