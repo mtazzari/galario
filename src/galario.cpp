@@ -440,15 +440,14 @@ void _galario_fftshift_axis0(int nx, int ncol, void* matrix) {
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void interpolate_core(int const idx, int const ncol, const dcomplex *const data, const dreal *const indu,
-                             const dreal *const indv, dcomplex *const fint) {
+inline dcomplex interpolate_core(int const ncol, const dcomplex *const data, const dreal indu, const dreal indv) {
 
     // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
     // lower-left.
-    int const fl_u = floor(indu[idx]);
-    int const fl_v = floor(indv[idx]);
-    dcomplex const t = {indv[idx] - fl_v, 0.0};
-    dcomplex const u = {indu[idx] - fl_u, 0.0};
+    int const fl_u = floor(indu);
+    int const fl_v = floor(indv);
+    dcomplex const t = {indv - fl_v, 0.0};
+    dcomplex const u = {indu - fl_u, 0.0};
 
     // linear index of y0
     int const base = fl_u + fl_v * ncol;
@@ -477,7 +476,8 @@ inline void interpolate_core(int const idx, int const ncol, const dcomplex *cons
     /* add up all 4 terms */
     dcomplex const final_add2 = CMPLXADD(term2, term3);
     dcomplex const final_add1 = CMPLXADD(term1, final_add2);
-    fint[idx] = CMPLXADD(final_add1, y0);
+
+    return CMPLXADD(final_add1, y0);
 }
 
 #ifdef __CUDACC__
@@ -498,7 +498,7 @@ __global__ void interpolate_d(int const ncol, const dcomplex* const __restrict__
 void interpolate_h(int const ncol, const dcomplex *const data, int const nd, const dreal* const indu, const dreal* const indv, dcomplex *fint) {
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx) {
-        interpolate_core(idx, ncol, data, indu, indv, fint);
+        fint[idx] = interpolate_core(ncol, data, indu[idx], indv[idx]);
     }
 }
 #endif
