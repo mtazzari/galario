@@ -9,6 +9,7 @@
 #endif
 
 #include <cassert>
+#include <cstring>
 #include <cmath>
 
 #ifdef __CUDACC__
@@ -182,12 +183,11 @@ dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     // #reals = 2*#complex
     auto const rowsize = 2*ncol;
 
-    // copy over input to output array
+    // copy over entire input rows to output array
+    auto const nbytes = sizeof(dreal)*ny;
 #pragma omp parallel for shared(real_buffer, realdata)
     for (int i = 0; i < nx; ++i) {
-        for (int j = 0; j < ny; ++j) {
-            real_buffer[i*rowsize + j] = realdata[i*ny + j];
-        }
+       std::memcpy(&real_buffer[i*rowsize], &realdata[i*ny], nbytes);
     }
     return buffer;
 }
