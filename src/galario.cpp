@@ -140,18 +140,17 @@ void galario_free(void* data) {
  * Caller is responsible for freeing the device memory with `cudaFree()`.
  */
 dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
-    // TODO hide latency with asynchronous copies
-    /*  copy rows individually to skip the padding elements in the
-        destination array */
     auto const ncol = ny/2+1;
-    auto const nbytesrow = sizeof(dreal)*ny;
+    auto const rowsize_real = sizeof(dreal)*ny;
+    auto const rowsize_complex = sizeof(dcomplex)*ncol;
+    
+    // create destination array
     dcomplex *data_d;
     CCheck(cudaMalloc((void**)&data_d, sizeof(dcomplex)*nx*ncol));
-
-    for (auto i=0; i < nx; ++i) {
-        CCheck(cudaMemcpy(data_d + i*ncol, realdata + i*ny, nbytesrow, cudaMemcpyHostToDevice));
-    }
-
+    
+    // set the padding by defining different sizes of a row in bytes
+    CCheck(cudaMemcpy2D(data_d, rowsize_complex, realdata, rowsize_real, rowsize_real, nx, cudaMemcpyHostToDevice));
+    
     return data_d;
 }
 #endif
