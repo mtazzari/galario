@@ -144,14 +144,14 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
     auto const ncol = ny/2+1;
     auto const rowsize_real = sizeof(dreal)*ny;
     auto const rowsize_complex = sizeof(dcomplex)*ncol;
-    
+
     // create destination array
     dcomplex *data_d;
     CCheck(cudaMalloc((void**)&data_d, sizeof(dcomplex)*nx*ncol));
-    
+
     // set the padding by defining different sizes of a row in bytes
     CCheck(cudaMemcpy2D(data_d, rowsize_complex, realdata, rowsize_real, rowsize_real, nx, cudaMemcpyHostToDevice));
-    
+
     return data_d;
 }
 #endif
@@ -562,7 +562,7 @@ void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const
     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / tpb + 1, tpb>>>(nrow, ncol, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, duv, (dcomplex*) fint_d);
+    interpolate_d<<<nd / tpb + 1, tpb*tpb>>>(nrow, ncol, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, duv, (dcomplex*) fint_d);
 
     CCheck(cudaDeviceSynchronize());
 
@@ -653,7 +653,7 @@ void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const drea
      CCheck(cudaMalloc((void**)&fint_d, nbytes_d_complex));
      CCheck(cudaMemcpy(fint_d, fint, nbytes_d_complex, cudaMemcpyHostToDevice));
 
-     apply_phase_sampled_d<<<nd/tpb+1, tpb>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+     apply_phase_sampled_d<<<nd/tpb+1, tpb*tpb>>>(dRA, dDec, nd, u_d, v_d, fint_d);
 
      CCheck(cudaDeviceSynchronize());
      CCheck(cudaMemcpy(fint, fint_d, nbytes_d_complex, cudaMemcpyDeviceToHost));
@@ -713,10 +713,10 @@ inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDe
     CCheck(cudaDeviceSynchronize());
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / tpb + 1, tpb>>>(nx, ncol, data_d, nd, u_d, v_d, duv, fint_d);
+    interpolate_d<<<nd / tpb + 1, tpb*tpb>>>(nx, ncol, data_d, nd, u_d, v_d, duv, fint_d);
 
     // apply phase to the sampled points
-    apply_phase_sampled_d<<<nd / tpb + 1, tpb>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+    apply_phase_sampled_d<<<nd / tpb + 1, tpb*tpb>>>(dRA, dDec, nd, u_d, v_d, fint_d);
 
     // ################################
     // ########### CLEANUP ############
@@ -827,7 +827,7 @@ void reduce_chi2_d
     CBlasCheck(cublasCreate(&handle));
 
     /* compute weighted difference */
-    diff_weighted_d<<<nd / tpb + 1, tpb>>>(nd, fobs_re, fobs_im, fint, weights);
+    diff_weighted_d<<<nd / tpb + 1, tpb*tpb>>>(nd, fobs_re, fobs_im, fint, weights);
 
     // only device pointers! maybe not ... check with jiri
     // compute the Euclidean norm
