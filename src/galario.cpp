@@ -180,8 +180,10 @@ dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     // columns (nx even) have to be skipped when copying in the input
     auto real_buffer = reinterpret_cast<dreal*>(buffer);
 
-    // copy over input to output array
+    // #reals = 2*#complex
     auto const rowsize = 2*ncol;
+
+    // copy over input to output array
 #pragma omp parallel for shared(real_buffer, realdata)
     for (int i = 0; i < nx; ++i) {
         for (int j = 0; j < ny; ++j) {
