@@ -37,6 +37,7 @@ find_package(FFTW3 COMPONENTS SINGLE DOUBLE ${FFTW_PARALLEL})
 
 foreach(t IN ITEMS galario_single galario)
   target_link_libraries(${t} ${FFTW3_LIBRARIES})
+  target_include_directories(${t} PUBLIC ${FFTW3_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIR_PARALLEL})
 endforeach()
 
 if (CUDA_FOUND)
