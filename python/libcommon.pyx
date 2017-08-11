@@ -193,7 +193,7 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
         units: observing wavelength
     fint : array_like, complex
         complex visibilities, of form Real(Vis) + i*Imag(Vis).
-        units: arbitrary
+        units: Jy
 
     Returns
     -------
@@ -235,7 +235,7 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
         units: observing wavelength
     fint : array_like, complex
         complex visibilities, of form Real(Vis) + i*Imag(Vis).
-        units: arbitrary
+        units: Jy.
 
     Returns
     -------
