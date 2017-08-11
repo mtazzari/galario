@@ -407,11 +407,11 @@ void shift_axis0_h(int const nrow, int const ncol, dcomplex* const __restrict__ 
 void galario_fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
 #ifdef __CUDACC__
     dcomplex *matrix_d;
-    size_t nbytes = sizeof(dcomplex)*nx*ncol;
+    size_t nbytes = sizeof(dcomplex)*nrow*ncol;
     CCheck(cudaMalloc((void**)&matrix_d, nbytes));
     CCheck(cudaMemcpy(matrix_d, matrix, nbytes, cudaMemcpyHostToDevice));
 
-    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nrow, ncol, matrix_d);
+    shift_axis0_d<<<dim3(nrow/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nrow, ncol, matrix_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(matrix, matrix_d, nbytes, cudaMemcpyDeviceToHost));
@@ -515,7 +515,7 @@ inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex 
 }
 
 #ifdef __CUDACC__
-__global__ void interpolate_d(int const nrow, int const ncol, const dcomplex* const __restrict__ data, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint)
+__global__ void interpolate_d(int const nrow, int const ncol, const dcomplex* const __restrict__ data, int const nd, const dreal* const u, const dreal* const v, dreal const duv, dcomplex* const __restrict__ fint)
 {
     //index
     int const idx_0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -529,7 +529,7 @@ __global__ void interpolate_d(int const nrow, int const ncol, const dcomplex* co
 }
 #else
 
-void interpolate_h(int const nrow, int const ncol, const dcomplex *const data, int const nd, const dreal* const u, const dreal* const v, dreal const duv, dcomplex *fint) {
+void interpolate_h(int const nrow, int const ncol, const dcomplex* const data, int const nd, const dreal* const u, const dreal* const v, dreal const duv, dcomplex* fint) {
 
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx) {
