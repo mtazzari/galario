@@ -160,6 +160,9 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
  * Copy an (nx, ny) square image into a complex buffer for real-to-complex FFTW.
  *
  * Buffer ownership transferred to caller, use `galario_free(buffer)`.
+ *
+ * If turns out to be slow have a look here:
+ *   https://stackoverflow.com/questions/19601696/what-is-the-fastest-do-array-padding-of-the-image-array
  */
 dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     // in r2c, the last dimension only has ~half the size
@@ -345,7 +348,7 @@ void _galario_fftshift(int nx, int ny, void* data) {
 }
 
 /**
- * Shift quadrants of a rectangular matrix of size (nx, ny).
+ * Shift quadrants of a rectangular matrix of size (nrow, ncol).
  * Swap the upper quadrant with the lower quadrant.
  *
  * For cache efficiency, may have to do loop tiling; i.e., the source and target
@@ -355,12 +358,12 @@ void _galario_fftshift(int nx, int ny, void* data) {
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void shift_axis0_core(int const idx_x, int const idx_y, int const nx, int const ncol, dcomplex* const __restrict__ matrix) {
+inline void shift_axis0_core(int const idx_x, int const idx_y, int const nrow, int const ncol, dcomplex* const __restrict__ matrix) {
     /* row-wise access */
 
     // from top-half to bottom-half
     auto const src_u = idx_x*ncol + idx_y;
-    auto const tgt_u = src_u + nx/2*ncol;
+    auto const tgt_u = src_u + nrow/2*ncol;
 
     // swap the values
     auto tmp = matrix[src_u];
@@ -372,7 +375,7 @@ inline void shift_axis0_core(int const idx_x, int const idx_y, int const nx, int
  * grid stride loop
  */
 #ifdef __CUDACC__
-__global__ void shift_axis0_d(int const nx, int const ncol, dcomplex* const __restrict__ matrix) {
+__global__ void shift_axis0_d(int const nrow, int const ncol, dcomplex* const __restrict__ matrix) {
     // indices
     int const x0 = blockDim.x * blockIdx.x + threadIdx.x;
     int const y0 = blockDim.y * blockIdx.y + threadIdx.y;
@@ -381,43 +384,43 @@ __global__ void shift_axis0_d(int const nx, int const ncol, dcomplex* const __re
     int const sx = blockDim.x * gridDim.x;
     int const sy = blockDim.y * gridDim.y;
 
-    for (auto x = x0; x < nx/2; x += sx) {
+    for (auto x = x0; x < nrow/2; x += sx) {
         for (auto y = y0; y < ncol; y += sy) {
-            shift_axis0_core(x, y, nx, ncol, matrix);
+            shift_axis0_core(x, y, nrow, ncol, matrix);
         }
     }
 }
 #else
 
-void shift_axis0_h(int const nx, int const ncol, dcomplex* const __restrict__ matrix) {
+void shift_axis0_h(int const nrow, int const ncol, dcomplex* const __restrict__ matrix) {
 #pragma omp parallel for
-    for (auto x = 0; x < nx/2; ++x) {
+    for (auto x = 0; x < nrow/2; ++x) {
         for (auto y = 0; y < ncol; ++y) {
-            shift_axis0_core(x, y, nx, ncol, matrix);
+            shift_axis0_core(x, y, nrow, ncol, matrix);
         }
     }
 }
 #endif
 
-void galario_fftshift_axis0(int nx, int ncol, dcomplex* matrix) {
+void galario_fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
 #ifdef __CUDACC__
     dcomplex *matrix_d;
     size_t nbytes = sizeof(dcomplex)*nx*ncol;
     CCheck(cudaMalloc((void**)&matrix_d, nbytes));
     CCheck(cudaMemcpy(matrix_d, matrix, nbytes, cudaMemcpyHostToDevice));
 
-    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, matrix_d);
+    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nrow, ncol, matrix_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(matrix, matrix_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(matrix_d));
 #else
-    shift_axis0_h(nx, ncol, matrix);
+    shift_axis0_h(nrow, ncol, matrix);
 #endif
 }
 
-void _galario_fftshift_axis0(int nx, int ncol, void* matrix) {
-    galario_fftshift_axis0(nx, ncol, static_cast<dcomplex*>(matrix));
+void _galario_fftshift_axis0(int nrow, int ncol, void* matrix) {
+    galario_fftshift_axis0(nrow, ncol, static_cast<dcomplex*>(matrix));
 }
 
 /**
