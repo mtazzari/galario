@@ -102,7 +102,7 @@
 
 int galario_threads_per_block(int x)
 {
-    static int mynthreads = 32;
+    static int mynthreads = 16;
     if (x > 0)
         mynthreads = x;
     return mynthreads;
