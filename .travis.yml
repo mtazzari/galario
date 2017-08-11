@@ -29,7 +29,7 @@ before_install:
   - conda info -a
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION astropy cython nomkl numpy pytest sphinx
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION astropy cython nomkl numpy pytest sphinx pyfftw
   - source activate test-environment
 
   - mkdir build && cd build
