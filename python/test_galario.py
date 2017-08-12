@@ -478,8 +478,3 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
-
-
-# a test case for profiling. Avoid python calls as much as possible.
-def test_profile():
-    assert False
