@@ -482,27 +482,4 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
 # a test case for profiling. Avoid python calls as much as possible.
 def test_profile():
-    nsamples = 512
-    real_type = 'float64'
-    complex_type = 'complex128'
-
-    wle_m = par1.get('wle_m', 0.003)
-    x0_arcsec = par1.get('x0_arcsec', 0.4)
-    y0_arcsec = par1.get('y0_arcsec', 10.)
-
-    # generate the samples
-    maxuv_generator = 3.e3
-    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
-    x, _, w = generate_random_vis(nsamples, real_type)
-
-    # compute the matrix size and maxuv
-    size, minuv, maxuv = matrix_size(udat, vdat, force_nx=4096)
-    #print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
-    uv = pixel_coordinates(maxuv, size).astype(real_type)
-
-    # create model image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, dtype=real_type)
-    ref_complex = reference_image.copy()
-
-    chi2_cuda = g_double.chi2(ref_complex, x0_arcsec, y0_arcsec,
-                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
+    assert False
