@@ -18,6 +18,8 @@ import optparse
 p = optparse.OptionParser()
 p.add_option("--gpu", action="store_true", dest="USE_GPU", default=False,
              help="Use GPU version of galario")
+p.add_option("--gpu_id", action="store", dest="gpu_id", default=0, type=int,
+             help="Choose index of GPU if several are available.  Check `watch -n 0.1 nvidia-smi` to see which gpu is used during test execution")
 p.add_option("--timing", action="store_true", dest="TIMING", default=False,
              help="Time chi2()")
 p.add_option("--cycles", action="store", dest="cycles", default=5, type=int,
@@ -37,10 +39,7 @@ if options.USE_GPU:
 
         from galario import double_cuda as acc_lib
 
-        # use last gpu if available. Check `watch -n 0.1 nvidia-smi` to see which gpu is
-        # used during test execution.
-        ngpus = acc_lib.ngpus()
-        acc_lib.use_gpu(0) #max(0, ngpus - 1))
+        acc_lib.use_gpu(options.gpu_id)
 
         acc_lib.threads_per_block(options.tpb)
     else:
@@ -79,7 +78,7 @@ def setup_chi2(size, nsamples):
     x, _, w = generate_random_vis(nsamples, options.dtype)
 
     return ref_image, dRA, dDec, maxuv, udat, vdat, x.real.copy(), x.imag.copy(), w
-  
+
 
 if __name__ == '__main__':
 
@@ -124,5 +123,3 @@ if __name__ == '__main__':
         print(str_results)
         print(t_results)
         print("Log saved in {}".format(filename))
-
-
