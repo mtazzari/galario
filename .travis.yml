@@ -27,9 +27,10 @@ before_install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
+  - conda config --add channels conda-forge
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION astropy cython nomkl numpy pytest sphinx pyfftw
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION astropy cython nomkl numpy pyfftw pytest sphinx
   - source activate test-environment
 
   - mkdir build && cd build
@@ -42,7 +43,7 @@ script:
   - set -e
 
   # first unit tests
-  # - ctest -V --output-on-failure
+  - ctest -V --output-on-failure
 
   # TODO enable when galario is public on github
   # build and deploy docs only for one python version
