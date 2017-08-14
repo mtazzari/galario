@@ -26,10 +26,14 @@ p.add_option("--cycles", action="store", dest="cycles", default=5, type=int,
              help="Number of cycles in calls to test")
 p.add_option("--size", action="store", dest="size", default=4096, type=int,
              help="Square input image size")
-p.add_option("--tpb", action="store", dest="tpb", default=32, type=int,
+p.add_option("--tpb", action="store", dest="tpb", default=0, type=int,
              help="Threads per block on the GPU")
 p.add_option("--dtype", action="store", dest="dtype", default='float64',
              help="Data type of the input image")
+p.add_option("--output", action="store", dest="output", default="",
+             help="Name of output file")
+p.add_option("--output_header", action="store_true", dest="output_header", 
+             help="Only create output file and print header, then quit.")
 
 
 (options, args) = p.parse_args()
@@ -41,7 +45,8 @@ if options.USE_GPU:
 
         acc_lib.use_gpu(options.gpu_id)
 
-        acc_lib.threads_per_block(options.tpb)
+        if options.tpb:
+            acc_lib.threads_per_block(options.tpb)
     else:
         print("Option --gpu not valid. galario.HAVE_CUDA is {}. Terminating.".format(galario.HAVE_CUDA))
 
@@ -81,6 +86,11 @@ def setup_chi2(size, nsamples):
 
 
 if __name__ == '__main__':
+    str_headers = "\t".join(["size", "nsamples", "real", "OMP", "tpb", "Ttot", "Tavg", "Tstd", "Tmin"])
+    if options.output_header:
+        with open(options.output, 'w') as f:
+            f.write(str_headers + "\n")
+        exit(0)
 
     size = options.size
     nsamples = int(1e6)
@@ -101,23 +111,25 @@ if __name__ == '__main__':
         number = 1
         t = timeit.Timer('from __main__ import setup_chi2, input_chi2, acc_lib; acc_lib.chi2(*input_chi2)'.format(acc_lib))
 
-        str_headers = "\t".join(["size", "nsamples", "real", "OMP", "tpb", "Ttot", "Tavg", "Tstd", "Tmin"])
-
-        filename = "timings_"
-        if options.USE_GPU:
-            filename += "GPU"
+        if options.output:
+            filename = options.output
         else:
-            filename += "CPU_OMP_NUM_THREADS_{}".format(omp_num_threads)
-        filename += "_{}.txt".format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
+            filename = "timings_"
+            if options.USE_GPU:
+                filename += "GPU"
+            else:
+                filename += "CPU_OMP_NUM_THREADS_{}".format(omp_num_threads)
+                filename += "_{}.txt".format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
         t_results = t.repeat(cycles, number)
-        str_results = "{}\t{:e}\t{}\t{}\t{}\t{:e}\t{:e}\t{:e}\t{:e}".format(size, nsamples, options.dtype, omp_num_threads, options.tpb, np.sum(t_results),
-                                  np.average(t_results), np.std(t_results), np.min(t_results))
+        # drop 1st call: invovles lots of overhead
+        str_results = "{}\t{:e}\t{}\t{}\t{}\t{:e}\t{:e}\t{:e}\t{:e}".format(size, nsamples, options.dtype, omp_num_threads, options.tpb, np.sum(t_results[1:]),
+                                  np.average(t_results[1:]), np.std(t_results[1:]), np.min(t_results))
 
-        with open(filename, 'w') as f:
-            f.write(str_headers + "\n")
+        with open(filename, 'a') as f:
+            # f.write(str_headers + "\n")
             f.write(str_results + "\n")
-            f.write(" |--> timings: {}".format(t_results) + "\n")
+            f.write("# |--> timings: {}".format(t_results) + "\n")
 
         print(str_headers)
         print(str_results)
