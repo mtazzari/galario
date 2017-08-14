@@ -4,10 +4,12 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
 import numpy as np
-import timeit
 import os
-import textwrap
 import datetime
+import textwrap
+import timeit
+import optparse
+import sys
 
 from utils import generate_random_vis, create_reference_image, create_sampling_points
 import galario
@@ -16,31 +18,46 @@ import optparse
 p = optparse.OptionParser()
 p.add_option("--gpu", action="store_true", dest="USE_GPU", default=False,
              help="Use GPU version of galario")
+p.add_option("--gpu_id", action="store", dest="gpu_id", default=0, type=int,
+             help="Choose index of GPU if several are available.  Check `watch -n 0.1 nvidia-smi` to see which gpu is used during test execution")
+p.add_option("--timing", action="store_true", dest="TIMING", default=False,
+             help="Time chi2()")
+p.add_option("--cycles", action="store", dest="cycles", default=5, type=int,
+             help="Number of cycles in calls to test")
+p.add_option("--size", action="store", dest="size", default=4096, type=int,
+             help="Square input image size")
+p.add_option("--tpb", action="store", dest="tpb", default=0, type=int,
+             help="Threads per block on the GPU")
+p.add_option("--dtype", action="store", dest="dtype", default='float64',
+             help="Data type of the input image")
+p.add_option("--output", action="store", dest="output", default="",
+             help="Name of output file")
+p.add_option("--output_header", action="store_true", dest="output_header", 
+             help="Only create output file and print header, then quit.")
+
+
 (options, args) = p.parse_args()
 
 if options.USE_GPU:
-    if galario.HAVE_CUDA and options.USE_GPU:
+    if galario.HAVE_CUDA:
 
-        from galario import double_cuda as g_double
-        from galario import single_cuda as g_single
+        from galario import double_cuda as acc_lib
 
-        # use last gpu if available. Check `watch -n 0.1 nvidia-smi` to see which gpu is
-        # used during test execution.
-        ngpus = g_double.ngpus()
-        g_double.use_gpu(max(0, ngpus - 1))
+        acc_lib.use_gpu(options.gpu_id)
 
-        g_double.threads_per_block()
+        if options.tpb:
+            acc_lib.threads_per_block(options.tpb)
     else:
         print("Option --gpu not valid. galario.HAVE_CUDA is {}. Terminating.".format(galario.HAVE_CUDA))
 
 else:
-    from galario import double as g_double
-    from galario import single as g_single
+    from galario import double as acc_lib
 
 
+def setup_sample(size, nsamples):
 
-
-def setup_chi2(size, nsamples, real_type):
+    sys.stdout.write("Setup sample...")
+    sys.stdout.flush()
 
     # these number can be freely changed for this speed test
     dRA = -3.1
@@ -49,74 +66,72 @@ def setup_chi2(size, nsamples, real_type):
 
     # generate the samples
     maxuv = 3.e3
-    udat, vdat = create_sampling_points(nsamples, maxuv/2.2, dtype=real_type)
-    x, _, w = generate_random_vis(nsamples, real_type)
+    udat, vdat = create_sampling_points(nsamples, maxuv/2.2, dtype=options.dtype)
+    x, _, w = generate_random_vis(nsamples, options.dtype)
 
     # create model image (it happens to have 0 imaginary part)
-    ref_image = create_reference_image(size=size, kernel='gaussian', dtype=real_type)
+    ref_image = create_reference_image(size=size, kernel='gaussian', dtype=options.dtype)
 
-    return ref_image, dRA, dDec, maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w
+    print("done")
+
+    return ref_image, dRA, dDec, maxuv/size/wle_m, udat/wle_m, vdat/wle_m
+
+
+def setup_chi2(size, nsamples):
+
+    ref_image, dRA, dDec, maxuv, udat, vdat = setup_sample(size, nsamples)
+    x, _, w = generate_random_vis(nsamples, options.dtype)
+
+    return ref_image, dRA, dDec, maxuv, udat, vdat, x.real.copy(), x.imag.copy(), w
 
 
 if __name__ == '__main__':
+    str_headers = "\t".join(["size", "nsamples", "real", "OMP", "tpb", "Ttot", "Tavg", "Tstd", "Tmin"])
+    if options.output_header:
+        with open(options.output, 'w') as f:
+            f.write(str_headers + "\n")
+        exit(0)
 
+    size = options.size
+    nsamples = int(1e6)
 
-    # fetch environment
-    omp_num_threads = os.environ.get('OMP_NUM_THREADS', 1)
+    input_chi2 = setup_chi2(size, nsamples)
 
-    cycles = 5
-    number = 1
-    double_prec = True
+    if not options.TIMING:
+        input_sample = setup_sample(size, nsamples)
 
-    str_headers = "\t".join(["i", "size", "nsamples", "lib", "real", "Ttot", "Tavg", "Tstd", "Tmin"])
-    str_headers += "\n"
-    print(str_headers)
+        acc_lib.sample(*input_sample)
 
-    filename = "timings_"
+        acc_lib.chi2(*input_chi2)
 
-    if options.USE_GPU:
-        filename += "GPU"
     else:
-        filename += "CPU_OMP_NUM_THREADS_{}".format(omp_num_threads)
+        omp_num_threads = os.environ.get('OMP_NUM_THREADS', 1)
 
-    filename += "_{}.txt".format(datetime.datetime.now().isoformat())
+        cycles = options.cycles
+        number = 1
+        t = timeit.Timer('from __main__ import setup_chi2, input_chi2, acc_lib; acc_lib.chi2(*input_chi2)'.format(acc_lib))
 
-    with open(filename, 'w') as f:
-        f.write(str_headers)
+        if options.output:
+            filename = options.output
+        else:
+            filename = "timings_"
+            if options.USE_GPU:
+                filename += "GPU"
+            else:
+                filename += "CPU_OMP_NUM_THREADS_{}".format(omp_num_threads)
+                filename += "_{}.txt".format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
-    # modes: table with basic parameters that we want to change for testing
-    #        each entry: [name of the library, real_type, threads_per_block]
-    modes = [["g_single", "float32", 32],
-             ["g_double", "float64", 32]]
+        t_results = t.repeat(cycles, number)
+        # drop 1st call: invovles lots of overhead
+        str_results = "{}\t{:e}\t{}\t{}\t{}\t{:e}\t{:e}\t{:e}\t{:e}".format(size, nsamples, options.dtype, omp_num_threads, options.tpb, np.sum(t_results[1:]),
+                                  np.average(t_results[1:]), np.std(t_results[1:]), np.min(t_results))
 
-    # NOTE: the option to change threads per block programmatically has to be implemented.
+        with open(filename, 'a') as f:
+            # f.write(str_headers + "\n")
+            f.write(str_results + "\n")
+            f.write("# |--> timings: {}".format(t_results) + "\n")
 
-    i_tests = 0
-
-    for mode in modes:
-        acc_lib, real_type, threads_per_block = mode
-
-        for size in [256, 512, 1024, 2048, 4096, 8192, 16384]:
-            # we may want to switch off this loop over nsamples at the beginning
-            for nsamples in [1e3, 1e6]:
-
-                i_tests += 1
-                t = timeit.Timer('{}.chi2(*x)'.format(acc_lib),
-                                 setup=textwrap.dedent("""
-                                 from __main__ import setup_chi2, {3};
-                                 x = setup_chi2(int({0}), int({1}), "{2}")
-                                 """
-                                 .format(
-                                     size, nsamples, real_type, acc_lib)))
-
-                # call timeit `cycles` times. timeit returns sum of execution
-                t_results = t.repeat(cycles, number)
-                str_results = "{}\t{}\t{}\t{}\t{}\t{:e}\t{:e}\t{:e}\t{:e}".format(i_tests, size, nsamples, acc_lib, real_type, np.sum(t_results),
-                                          np.average(t_results), np.std(t_results), np.min(t_results))
-
-                with open(filename, 'a') as f:
-                    f.write(str_results + "\n")
-
-                print(str_results)
-                # these detailed timings are not stored in the log
-                print(" |--> timings: {}".format(t_results))
+        print(str_headers)
+        print(str_results)
+        print(t_results)
+        print("Log saved in {}".format(filename))
