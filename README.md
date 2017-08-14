@@ -21,7 +21,7 @@ Before playing with the `cmake` options, it's best to remove the cache
 
 ### C++ compiler
 
-    cmake -DCMAKE_CXX_COMPILER=$GCC_BASE/bin/gcc ..
+    cmake -DCMAKE_CXX_COMPILER=$GCC_BASE/bin/g++ ..
 
 ### optimization
 
@@ -108,6 +108,10 @@ For multiple directories, use a `;` between directories
 In case the directory with the header files is not inferred correctly,
 
     cmake -DCMAKE_CXX_FLAGS="-I${FFTW_HOME}/include" ..
+
+In case the openmp libraries are not in `${FFTW_HOME}/lib`
+
+    cmake -DCMAKE_LIBRARY_PATH="${FFTW_OPENMP_LIBDIR}" ..
 
 ### cuda
 

@@ -109,5 +109,5 @@ add_executable(galario_test_cpp galario_test.cpp)
 add_test(cpp_compile_test galario_test_cpp)
 
 foreach(t IN ITEMS galario_test_c galario_test_cpp)
-target_link_libraries(${t} galario)
+  target_link_libraries(${t} galario ${FFTW3_LIBRARIES})
 endforeach()
