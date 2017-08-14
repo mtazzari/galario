@@ -32,7 +32,7 @@ p.add_option("--dtype", action="store", dest="dtype", default='float64',
              help="Data type of the input image")
 p.add_option("--output", action="store", dest="output", default="",
              help="Name of output file")
-p.add_option("--output_header", action="store_true", dest="output_header", 
+p.add_option("--output_header", action="store_true", dest="output_header",
              help="Only create output file and print header, then quit.")
 
 
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
         cycles = options.cycles
         number = 1
-        t = timeit.Timer('from __main__ import setup_chi2, input_chi2, acc_lib; acc_lib.chi2(*input_chi2)'.format(acc_lib))
+        t = timeit.Timer('from __main__ import setup_chi2, input_chi2, acc_lib; acc_lib.chi2(*input_chi2)')
 
         if options.output:
             filename = options.output
