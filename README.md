@@ -28,7 +28,8 @@ Before playing with the `cmake` options, it's best to remove the cache
 See
     cmake --help-variable CMAKE_BUILD_TYPE
 
-The default is `Release`. To turn off optimization
+The default is `Release`. If you want debug symbols as well, use
+`RelWithDebInfo`. To turn off optimization
 
     cmake -DCMAKE_BUILD_TYPE=Debug
 
