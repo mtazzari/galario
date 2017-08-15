@@ -7,9 +7,10 @@ extern "C"
 {
 #endif /* __cplusplus */
     /* Main user functions */
-    void galario_sampleProfile(int nr, const dreal* f, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint);
+    void galario_sampleProfile(int nr, const dreal* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint);
     void galario_sample(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint);
     void galario_chi2(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2);
+    void galario_sweep(int nr, dreal* ints, dreal Rmin, dreal dR, int nrow, int ncol, dreal dxy, dreal inc, dcomplex* image);
 
     /* Interface for the experts */
     dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata);

@@ -32,8 +32,9 @@ cdef extern from "galario_py.h":
     void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, dreal duv, void* fint)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
-    void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint);
-    void _galario_sampleProfile(int nr, void* f, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
+    void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
+    void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nrow, int ncol, dreal dxy, dreal inc, void* image)
+    void _galario_sampleProfile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
     void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
 
 cdef extern from "galario.h":
@@ -172,7 +173,19 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
     return fint
 
 
-def sampleProfile(dreal[::1] f, Rmin, dR, dxy, nxy, dist, dRA, dDec, dreal[::1] u, dreal[::1] v):
+def get_image_size(dist, u, v, max_f=4., min_f=3.):
+    """ dist: cm;  u and v in lambda"""
+    uvdist = np.hypot(u, v)
+    max_uv = np.max(uvdist)*max_f
+    min_uv = np.min(uvdist)/min_f
+
+    nxy = 2**np.ceil(np.log2(max_uv/min_uv))
+    dxy = dist/max_uv
+
+    return dxy, nxy
+
+
+def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, dreal[::1] v,  dxy=None, nxy=None):
     """
     Computes the synthetic visibilities of a brightness profile.
 
@@ -182,18 +195,19 @@ def sampleProfile(dreal[::1] f, Rmin, dR, dxy, nxy, dist, dRA, dDec, dreal[::1] 
 
     Parameters
     ----------
-    f : array_like, float
-        Array containing the brightness radial profile of the model.
+    ints : array_like, float
+        Array containing the brightness intensity radial profile of the model.
         units: Jy/???.
     Rmin : float
-
+        units: cm
     dR : float
-
+        units: cm
     dxy : float
-
+        units: cm
     nxy : int
 
     dist : float
+        units: cm
 
     dRA : float
         Right Ascension offset by which the image has to be translated.
@@ -229,13 +243,28 @@ def sampleProfile(dreal[::1] f, Rmin, dR, dxy, nxy, dist, dRA, dDec, dreal[::1] 
         Im_V = fint.imag
 
     """
+    if not dxy and not nxy:
+        dxy, nxy = get_image_size(dist, u, v)
+    else:
+        # user must provide both of them
+        # do checks that dxy, nxy, dist satisfy Nyquist sampling given the u, v data points.
+        pass
+
     # _check_data(data)
-    # do checks that dxy, nxy, dist satisfy Nyquist sampling given the u, v data points.
     duv = uvcell_size(dxy, nxy, dist)
     fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sampleProfile(len(f), <void*>&f[0], Rmin, dR, dxy, nxy, dist, dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_sampleProfile(len(ints), <void*>&ints[0], Rmin, dR, dxy, nxy, dist, dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
+
+def sweep(dreal[::1] ints, Rmin, dR, nrow, ncol, dxy, inc):
+    """
+    sweep
+
+    """
+    image = np.empty((nrow, ncol), dtype=complex_dtype, order='C')
+    _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nrow, ncol, dxy, inc, <void*>np.PyArray_DATA(image))
+    return image.real
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
     """
