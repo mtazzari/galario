@@ -38,22 +38,22 @@ g_double.use_gpu(max(0, ngpus-1))
 g_double.threads_per_block()
 
 
-@pytest.mark.parametrize("Rmin, delta_R, nrad, nx, delta_x, inc, Dx, Dy, profile_mode, real_type",
+@pytest.mark.parametrize("Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, real_type",
                           [(0.1, 3.5, 500, 512, 8.2, 20., 0., 0., 'Gauss', 'float64'),
                            (2., 0.3, 1000, 512, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64')],
                           ids=["DP_Gauss", "DP_Cos-Gauss",])
-def test_intensity_sweep(Rmin, delta_R, nrad, nx, delta_x, inc, Dx, Dy, profile_mode, real_type):
+def test_intensity_sweep(Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, real_type):
 
     # compute radial profile
-    ints = radial_profile(Rmin, delta_R, nrad, profile_mode, dtype=real_type)
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type)
 
     nrow = nx
     ncol = nx
-    image_ref = sweep_ref(Rmin, delta_R, ints, nrow, ncol, delta_x, inc, Dx, Dy, real_type)
+    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, real_type)
 
-    image_g_sweep_prototype = g_sweep_prototype(Rmin, delta_R, ints, nrow, ncol, delta_x, inc, dtype_image=real_type)
+    image_g_sweep_prototype = g_sweep_prototype(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
-    image_g_sweep_prototype_pad = g_sweep_prototype(Rmin, delta_R, ints, nrow, ncol+1, delta_x, inc, dtype_image=real_type)
+    image_g_sweep_prototype_pad = g_sweep_prototype(ints, Rmin, dR, nrow, ncol + 1, dxy, inc, dtype_image=real_type)
 
     # plot cuts - benchmark
     # import matplotlib.pyplot as plt

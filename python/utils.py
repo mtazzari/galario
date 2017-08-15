@@ -30,12 +30,12 @@ def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64'):
     return ints
 
 
-def g_sweep_prototype(Rmin, delta_R, ints, nrow, ncol, dxy, inc, dtype_image='float64'):
+def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     """ Prototype of the sweep function for galario. """
     assert Rmin <= dxy, "Rmin must be smaller or equal than dxy"
     image = np.zeros((nrow, ncol), dtype=dtype_image)
 
-    nrad = len(ints)
+    nrad = len(I)
     irow_center = int(nrow / 2)
     icol_center = int(ncol / 2)
 
@@ -51,27 +51,27 @@ def g_sweep_prototype(Rmin, delta_R, ints, nrow, ncol, dxy, inc, dtype_image='fl
             rr = np.sqrt((x/inc_cos)**2. + (y)**2.)
 
             # interpolate 1D
-            iR = np.int(np.floor((rr-Rmin)/delta_R))
+            iR = np.int(np.floor((rr-Rmin) / dR))
             if iR >= nrad-1:
                 image[irow, jcol] = 0.
             else:
-                image[irow, jcol] = ints[iR] + (rr-iR*delta_R-Rmin)*(ints[iR+1]-ints[iR])/delta_R
+                image[irow, jcol] = I[iR] + (rr - iR * dR - Rmin) * (I[iR + 1] - I[iR]) / dR
 
     # central pixel
     if Rmin != 0.:
-        image[irow_center, icol_center] = ints[0] + Rmin*(ints[0]-ints[1])/delta_R
+        image[irow_center, icol_center] = I[0] + Rmin * (I[0] - I[1]) / dR
 
     return image
 
 
-def sweep_ref(Rmin, delta_R, ints, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='float64'):
+def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='float64'):
     """
     Compute the intensity map (i.e. the image) given the radial profile I(R)=ints.
     We assume an axisymmetric profile.
 
     Parameters
     ----------
-    ints: 1D float array
+    I: 1D float array
         Intensity radial profile I(R).
     gridrad: array
         Radial grid
@@ -92,8 +92,8 @@ def sweep_ref(Rmin, delta_R, ints, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='fl
     inc = inc/180*np.pi
     inc_cos = np.cos(inc)
 
-    nrad = len(ints)
-    gridrad = np.linspace(Rmin, Rmin + delta_R * (nrad - 1), nrad)
+    nrad = len(I)
+    gridrad = np.linspace(Rmin, Rmin + dR * (nrad - 1), nrad)
 
     # create the mesh grid
     x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol)) * dxy * ncol
@@ -106,7 +106,7 @@ def sweep_ref(Rmin, delta_R, ints, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='fl
                            (y - Dy * dxy))
     x_meshgrid = np.sqrt(xxx ** 2. + yyy ** 2.)
 
-    f = interp1d(gridrad, ints, kind='linear', fill_value='extrapolate',
+    f = interp1d(gridrad, I, kind='linear', fill_value='extrapolate',
                  bounds_error=False)  # assume_sorted=True)
     intensmap = f(x_meshgrid)
 
