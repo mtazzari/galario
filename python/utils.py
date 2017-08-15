@@ -4,14 +4,116 @@
 from __future__ import (division, print_function, absolute_import, unicode_literals)
 
 import numpy as np
+from scipy.interpolate import interp1d
 
-__all__ = ["create_reference_image", "create_sampling_points", "uv_idx",
+__all__ = ["radial_profile", "g_sweep_prototype", "sweep_ref", "create_reference_image", "create_sampling_points", "uv_idx",
            "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
            "matrix_size", "Fourier_shift_static",
            "Fourier_shift_array", "generate_random_vis",
            "sec2rad"]
 
 sec2rad = np.pi/180./3600.  # from arcsec to radians
+jy = 1.e+23                 # flux density  1 Jy = 1.0e-23 erg s cm2 Hz
+
+
+def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64'):
+    """ Compute a radial brightness profile. """
+    gridrad = np.linspace(Rmin, Rmin + delta_R * (nrad - 1), nrad).astype(dtype)
+
+    if mode == 'Gauss':
+        # a simple Gaussian
+        ints = np.exp(-(gridrad/delta_R/80)**2)
+    elif mode == 'Cos-Gauss':
+        # a cos-tapered Gaussian
+        ints = np.cos(2.*np.pi*gridrad/(50.*delta_R))**2. * np.exp(-(gridrad/delta_R/80)**2)
+
+    return ints
+
+
+def g_sweep_prototype(Rmin, delta_R, ints, nrow, ncol, dxy, inc, dtype_image='float64'):
+    """ Prototype of the sweep function for galario. """
+    assert Rmin <= dxy, "Rmin must be smaller or equal than dxy"
+    image = np.zeros((nrow, ncol), dtype=dtype_image)
+
+    nrad = len(ints)
+    irow_center = int(nrow / 2)
+    icol_center = int(ncol / 2)
+
+    inc_cos = np.cos(inc/180.*np.pi)
+
+    # radial extent in number of image pixels covered by the profile
+    # rmax = (Rmin+nrad*delta_R)/dxy
+
+    for irow in range(nrow):
+        for jcol in range(ncol):
+            x = (icol_center - jcol) * dxy
+            y = (irow_center - irow) * dxy
+            rr = np.sqrt((x/inc_cos)**2. + (y)**2.)
+
+            # interpolate 1D
+            iR = np.int(np.floor((rr-Rmin)/delta_R))
+            if iR >= nrad-1:
+                image[irow, jcol] = 0.
+            else:
+                image[irow, jcol] = ints[iR] + (rr-iR*delta_R-Rmin)*(ints[iR+1]-ints[iR])/delta_R
+
+    # central pixel
+    if Rmin != 0.:
+        image[irow_center, icol_center] = ints[0] + Rmin*(ints[0]-ints[1])/delta_R
+
+    return image
+
+
+def sweep_ref(Rmin, delta_R, ints, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='float64'):
+    """
+    Compute the intensity map (i.e. the image) given the radial profile I(R)=ints.
+    We assume an axisymmetric profile.
+
+    Parameters
+    ----------
+    ints: 1D float array
+        Intensity radial profile I(R).
+    gridrad: array
+        Radial grid
+    inc: float
+        Inclination, degree
+    Returns
+    -------
+    intensmap: 2D float array
+        Image of the disk, i.e. the intensity map.
+
+    # Note
+    # ----
+    # iCPOR = index of the Central Pixel Outer Radius
+    # It is needed to compute how many cells of the radial grid gridad fall inside the Central Pixel.
+    # It is needed, more generally, to compute the flux of the central pixel.
+
+    """
+    inc = inc/180*np.pi
+    inc_cos = np.cos(inc)
+
+    nrad = len(ints)
+    gridrad = np.linspace(Rmin, Rmin + delta_R * (nrad - 1), nrad)
+
+    # create the mesh grid
+    x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol)) * dxy * ncol
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow)) * dxy * nrow
+
+    # we shrink the x axis, since PA is the angle East of North of the
+    # the plane of the disk (orthogonal to the angular momentum axis)
+    # PA=0 is a disk with vertical orbital node (aligned along North-South)
+    xxx, yyy = np.meshgrid((x - Dx * dxy) / inc_cos,
+                           (y - Dy * dxy))
+    x_meshgrid = np.sqrt(xxx ** 2. + yyy ** 2.)
+
+    f = interp1d(gridrad, ints, kind='linear', fill_value='extrapolate',
+                 bounds_error=False)  # assume_sorted=True)
+    intensmap = f(x_meshgrid)
+
+    # convert to Jansky
+    # intensmap *= self.a_to_jy
+
+    return intensmap.astype(dtype_image)
 
 
 def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype='float64',
