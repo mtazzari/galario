@@ -11,6 +11,7 @@
 #include <cassert>
 #include <cstring>
 #include <cmath>
+#include <iostream>
 
 #ifdef __CUDACC__
     #include <cuda_runtime_api.h>
@@ -38,7 +39,7 @@
     #ifndef NDEBUG
         if(CUBLAS_STATUS_SUCCESS != err) {
            fprintf(stderr, "[ERROR] Cublas call %s: %d failed with code %d\n", file, line, err);
-            exit(43);
+           exit(43);
         }
     #endif
     }
@@ -88,10 +89,31 @@
     #ifndef NDEBUG
         if(status == 0) {
             fprintf(stderr, "[ERROR] FFTW call %s: %d\n", file, line);
-            exit(44);
+            exit(45);
         }
     #endif // NDEBUG
     }
+
+    #if defined(_OPENMP) && defined(GALARIO_TIMING)
+
+    inline void print_timing(const double start, const double end, const char* const msg) {
+        std::cout << msg << ": " << end-start << " s" <<  std::endl;
+    }
+
+    #define OPENMPTIME(body, msg)                   \
+        do {                                        \
+            const auto start = omp_get_wtime();     \
+            body ;                                  \
+            const auto end = omp_get_wtime();       \
+            print_timing(start, end, msg);          \
+        } while (false)
+
+    #else
+
+    inline void print_timing(const double start, const double end, const char* const msg) {}
+    #define OPENMPTIME(body, msg) body
+
+    #endif // _OPENMP && GALARIO_TIMING
 
     #define CMPLXSUB(a, b) ((a) - (b))
     #define CMPLXADD(a, b) ((a) + (b))
@@ -757,7 +779,7 @@ void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dD
      } else {
         const dreal cos_PA = cos(PA);
         const dreal sin_PA = sin(PA);
-        
+
         auto const nthreads = tpb * tpb;
         uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
         uv_rotate_core(cos_PA, sin_PA, dRA, dDec, *dRArot, *dDecrot);
@@ -991,7 +1013,7 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
      } else {
         const dreal cos_PA = cos(PA);
         const dreal sin_PA = sin(PA);
-        
+
         uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
         uv_rotate_core(cos_PA, sin_PA, dRA, dDec, dRArot, dDecrot);
      }
@@ -1052,24 +1074,31 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     dreal dDecrot;
     uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
 
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    const auto start_copy = omp_get_wtime();
+#endif
     auto data = galario_copy_input(nx, ny, realdata);
+    print_timing(start_copy, omp_get_wtime(), "copy input");
+
     int const ncol = ny/2+1;
 
-    shift_h(nx, ny, data);
+    OPENMPTIME(shift_h(nx, ny, data), "1st shift");
 
-    fft_h(nx, ny, data);
+    OPENMPTIME(fft_h(nx, ny, data), "FFT");
 
-    shift_axis0_h(nx, ncol, data);
+    OPENMPTIME(shift_axis0_h(nx, ncol, data), "2nd shift");
 
     // interpolate
-    interpolate_h(nx, ncol, data, nd, urot, vrot, duv, fint);
+    OPENMPTIME(interpolate_h(nx, ncol, data, nd, urot, vrot, duv, fint), "interpolate");
 
     // apply phase to the sampled points
-    apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint);
+    OPENMPTIME(apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint), "phase_sampled");
 
     galario_free(data);
     galario_free(urot);
     galario_free(vrot);
+
+    print_timing(start_copy, omp_get_wtime(), "sample");
 #endif
 }
 
