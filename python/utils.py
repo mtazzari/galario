@@ -42,20 +42,21 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     inc_cos = np.cos(inc/180.*np.pi)
 
     # radial extent in number of image pixels covered by the profile
-    # rmax = (Rmin+nrad*delta_R)/dxy
-
-    for irow in range(nrow):
-        for jcol in range(ncol):
-            x = (icol_center - jcol) * dxy
-            y = (irow_center - irow) * dxy
+    rmax = np.int(np.ceil((Rmin+nrad*dR)/dxy))
+    row_offset = irow_center-rmax
+    col_offset = icol_center-rmax
+    for irow in range(rmax*2):
+        for jcol in range(rmax*2):
+            x = (rmax - jcol) * dxy
+            y = (rmax - irow) * dxy
             rr = np.sqrt((x/inc_cos)**2. + (y)**2.)
 
             # interpolate 1D
             iR = np.int(np.floor((rr-Rmin) / dR))
             if iR >= nrad-1:
-                image[irow, jcol] = 0.
+                image[irow+row_offset, jcol+col_offset] = 0.
             else:
-                image[irow, jcol] = I[iR] + (rr - iR * dR - Rmin) * (I[iR + 1] - I[iR]) / dR
+                image[irow+row_offset, jcol+col_offset] = I[iR] + (rr - iR * dR - Rmin) * (I[iR + 1] - I[iR]) / dR
 
     # central pixel
     if Rmin != 0.:

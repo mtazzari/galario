@@ -264,6 +264,7 @@ def sweep(dreal[::1] ints, Rmin, dR, nrow, ncol, dxy, inc):
     """
     image = np.empty((nrow, ncol), dtype=complex_dtype, order='C')
     _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nrow, ncol, dxy, inc, <void*>np.PyArray_DATA(image))
+
     return image.real
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
