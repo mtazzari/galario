@@ -127,6 +127,12 @@ To force searching for cuda, for example on the mac, do
 
     cmake -DGALARIO_FORCE_CUDA=1 ..
 
+### timing
+
+For testing purposes, the time in seconds taken by selected functions called from `galario_sample` is printed to `stdout`. This features is off by default and activated by
+
+    cmake -DGALARIO_TIMING=1 ..
+
 installation
 ------------
 
