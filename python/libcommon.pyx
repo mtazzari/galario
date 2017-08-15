@@ -33,6 +33,7 @@ cdef extern from "galario_py.h":
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
     void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint);
+    void _galario_sampleProfile(int nr, void* f, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
     void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
 
 cdef extern from "galario.h":
@@ -171,6 +172,71 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
     return fint
 
 
+def sampleProfile(dreal[::1] f, Rmin, dR, dxy, nxy, dist, dRA, dDec, dreal[::1] u, dreal[::1] v):
+    """
+    Computes the synthetic visibilities of a brightness profile.
+
+    Typical call signature::
+
+        sampleProfile(f, Rmin, dR, dxy, nxy, dist, dRA, dDec, u, v)
+
+    Parameters
+    ----------
+    f : array_like, float
+        Array containing the brightness radial profile of the model.
+        units: Jy/???.
+    Rmin : float
+
+    dR : float
+
+    dxy : float
+
+    nxy : int
+
+    dist : float
+
+    dRA : float
+        Right Ascension offset by which the image has to be translated.
+        units: arcseconds
+    dDec : float
+        Declination offset by which the image has to be translated.
+        units: arcseconds
+    u: array_like, float
+        u coordinate of the visibility points where the FT has to be sampled.
+        (units: observing wavelength).
+    v: array_like, float
+        u coordinate of the visibility points where the FT has to be sampled.
+        (units: observing wavelength).
+
+    Returns
+    -------
+    fint: array_like, complex
+        Sampled values of the translated Fourier transform of data.
+
+    Example
+    -------
+    Typical usage::
+
+        from galario import sample, uvcell_size
+
+        wle = 0.88e-3  # observing wavelength (m)
+        nx = image.shape[0]  # size of the square matrix containing the image.
+        dx = 1.49e14  # cm
+        dist = 3.1e20  # cm
+        duv = uvcell_size(dist, dx, nx)
+        fint = sample(image, dRA, dDec, duv, u/wle, v/wle)
+        Re_V = fint.real
+        Im_V = fint.imag
+
+    """
+    # _check_data(data)
+    # do checks that dxy, nxy, dist satisfy Nyquist sampling given the u, v data points.
+    duv = uvcell_size(dxy, nxy, dist)
+    fint = np.zeros(len(u), dtype=complex_dtype)
+    _galario_sampleProfile(len(f), <void*>&f[0], Rmin, dR, dxy, nxy, dist, dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+
+    return fint
+
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
     """
     Apply phase to sampled visibility points as to translate the image in the real
@@ -211,7 +277,6 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
     _galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(fint_out))
 
     return fint_out
-
 
 
 # require contiguous arrays with stride=1 in buffer[::1]

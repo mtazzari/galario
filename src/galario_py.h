@@ -7,6 +7,7 @@
  */
 
 /* Main user functions */
+void _galario_sampleProfile(int nr, void* f, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint);
 void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint);
 void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2);
 
