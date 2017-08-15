@@ -213,47 +213,6 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
     return fint_out
 
 
-def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
-    """
-    Apply phase to sampled visibility points as to translate the image in the real
-    space by an offset dRA along Right Ascension (R.A.) and dDec along Declination.
-    R.A. increases towards left (East), thus dRA>0 translates the image towards East.
-
-    Parameters
-    ----------
-    dRA : float
-        Right Ascension offset.
-        units: arcseconds
-    dDec : float
-        Declination offset.
-        units: arcseconds
-    u : array_like, float
-        u-coordinates of visibility points.
-        units: observing wavelength
-    v : array_like, float
-        v-coordinates of visibility points.
-        units: observing wavelength
-    fint : array_like, complex
-        complex visibilities, of form Real(Vis) + i*Imag(Vis).
-        units: Jy.
-
-    Returns
-    -------
-    fint_out : array_like, complex
-        shifted complex visibilities
-        units: arbitrary, same as fint
-
-    TODO change `fint` name into `vis`
-
-    """
-    dRA *= sec2rad
-    dDec *= sec2rad
-
-    fint_out = np.copy(fint, order='C')
-    _galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(fint_out))
-
-    return fint_out
-
 
 # require contiguous arrays with stride=1 in buffer[::1]
 def fft2d(dreal[:,::1] data):
