@@ -673,6 +673,64 @@ void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
                                 static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
+
+/**
+ * return result in `fint`
+ */
+void galario_sampleProfile(int nr, const dreal* f, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA,
+                            dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
+    // Initialization for uv_idx and interpolate
+    int nx = nxy;
+    int ny = nxy;
+    assert(nx >= 2);
+
+#if 0 //def __CUDACC__
+    // TODO: implement GPU part
+    dcomplex *fint_d;
+    int nbytes_fint = sizeof(dcomplex) * nd;
+    CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+
+    // do the actual computation
+    sample_d(nx, ny, realdata, dRA, dDec, nd, duv, u, v, fint_d);
+
+    // retrieve interpolated values
+    CCheck(cudaDeviceSynchronize());
+    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
+
+    CCheck(cudaFree(fint_d));
+#else
+    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec_to_rad;
+    dDec *= arcsec_to_rad;
+
+    // TODO: fix this buffer creation
+    auto data = galario_copy_input(nx, ny, f);
+    int const ncol = ny/2+1;
+
+    shift_h(nx, ny, data);
+
+    fft_h(nx, ny, data);
+
+    shift_axis0_h(nx, ncol, data);
+
+    // interpolate
+    interpolate_h(nx, ncol, data, nd, u, v, duv, fint);
+
+    // apply phase to the sampled points
+    apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
+
+    galario_free(data);
+#endif
+}
+
+
+void _galario_sampleProfile(int nr, void* f, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint) {
+    galario_sampleProfile(nr, static_cast<dreal*>(f), Rmin, dR, dxy, nxy, dist, dRA, dDec, duv, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+}
+
+
+
+
 #ifdef __CUDACC__
 inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, int nd, dreal duv, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
@@ -731,6 +789,7 @@ inline void sample_d(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDe
 }
 
 #endif
+
 
 /**
  * return result in `fint`
