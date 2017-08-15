@@ -682,18 +682,19 @@ __host__ __device__
 inline void sweep_core(int const i, int const j, int const nr, dreal* const ints, dreal const Rmin, dreal const dR, int const nrow, int const ncol,
                        dreal const dxy, dreal const cos_inc, dcomplex* const __restrict__ image) {
 
-    auto const base = i*ncol + j;
+    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
 
-    int const icol_center = ncol / 2;
-    int const irow_center = nrow / 2;
-
-    dreal const x = (icol_center - j) * dxy;
-    dreal const y = (irow_center - i) * dxy;
+    dreal const x = (rmax - j) * dxy;
+    dreal const y = (rmax - i) * dxy;
 
     dreal const r = sqrt(pow(x/cos_inc, 2.) + pow(y, 2.));
 
     // interpolate 1D
     int const iR = floor((r-Rmin) / dR);
+
+    int const row_offset = nrow / 2 - rmax;
+    int const col_offset = ncol / 2 - rmax;
+    auto const base = (i+row_offset)*ncol + j+col_offset;
 
     if (iR >= nr-1) {
         image[base] = {0., 0.};
@@ -729,10 +730,11 @@ void sweep_h(int const nr, dreal* const ints, dreal const Rmin, dreal const dR, 
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
+    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
 
 #pragma omp parallel for
-    for (auto i = 0; i < nrow; ++i) {
-        for (auto j = 0; j < ncol; ++j) {
+    for (auto i = 0; i < 2*rmax; ++i) {
+        for (auto j = 0; j < 2*rmax; ++j) {
             sweep_core(i, j, nr, ints, Rmin, dR, nrow, ncol, dxy, cos_inc, image);
         }
     }
