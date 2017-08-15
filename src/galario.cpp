@@ -54,6 +54,56 @@
     #endif
     }
 
+    #ifdef NDEBUG
+        #define CUDATIME(body, msg) body
+    #else
+        struct GpuTimer
+        {
+            cudaEvent_t start;
+            cudaEvent_t stop;
+
+            GpuTimer()
+            {
+                cudaEventCreate(&start);
+                cudaEventCreate(&stop);
+            }
+
+            ~GpuTimer()
+            {
+                cudaEventDestroy(start);
+                cudaEventDestroy(stop);
+            }
+
+            void Start()
+            {
+                cudaEventRecord(start, 0);
+            }
+
+            void Stop()
+            {
+                cudaEventRecord(stop, 0);
+            }
+
+            float Elapsed(const std::string& msg)
+            {
+                float elapsed;
+                cudaEventSynchronize(stop);
+                cudaEventElapsedTime(&elapsed, start, stop);
+                std::cout << msg << ": " << elapsed << std::endl;
+                return elapsed;
+            }
+        };
+
+        #define CUDATIME(body, msg)                         \
+            do {               \
+                GpuTimer timer(); \
+                timer.Start();
+                body \
+                timer.Stop(); \
+                timer.Elapsed(msg);   \
+        } while (false)
+    #endif // NDEBUG
+
     #ifdef DOUBLE_PRECISION
         #define CUFFTEXEC cufftExecD2Z
         #define CUFFTTYPE CUFFT_D2Z
