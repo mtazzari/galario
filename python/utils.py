@@ -89,7 +89,7 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='float64'):
     # It is needed, more generally, to compute the flux of the central pixel.
 
     """
-    inc = inc/180*np.pi
+    inc = inc/180.*np.pi
     inc_cos = np.cos(inc)
 
     nrad = len(I)
@@ -106,9 +106,13 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='float64'):
                            (y - Dy * dxy))
     x_meshgrid = np.sqrt(xxx ** 2. + yyy ** 2.)
 
-    f = interp1d(gridrad, I, kind='linear', fill_value='extrapolate',
-                 bounds_error=False)  # assume_sorted=True)
+    f = interp1d(gridrad, I, kind='linear', fill_value=0.,
+                 bounds_error=False, assume_sorted=True)
     intensmap = f(x_meshgrid)
+
+    f_center = interp1d(gridrad, I, kind='linear', fill_value='extrapolate',
+                 bounds_error=False, assume_sorted=True)
+    intensmap[int(nrow/2), int(ncol/2)] = f_center(0.)
 
     # convert to Jansky
     # intensmap *= self.a_to_jy

@@ -39,9 +39,9 @@ g_double.threads_per_block()
 
 
 @pytest.mark.parametrize("Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, real_type",
-                          [(0.1, 3.5, 500, 512, 8.2, 20., 0., 0., 'Gauss', 'float64'),
-                           (2., 0.3, 1000, 512, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64')],
-                          ids=["DP_Gauss", "DP_Cos-Gauss",])
+                          [(0.1, 3.5, 500, 1024, 8.2, 20., 0., 0., 'Gauss', 'float64'),
+                           (2., 0.3, 1000, 1024, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64')],
+                          ids=["DP_Gauss", "DP_Cos-Gauss"])
 def test_intensity_sweep(Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, real_type):
 
     # compute radial profile
@@ -49,37 +49,36 @@ def test_intensity_sweep(Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, rea
 
     nrow = nx
     ncol = nx
+
     image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, real_type)
 
     image_g_sweep_prototype = g_sweep_prototype(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
-
     image_g_sweep_prototype_pad = g_sweep_prototype(ints, Rmin, dR, nrow, ncol + 1, dxy, inc, dtype_image=real_type)
 
+    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nrow, ncol, dxy, inc/180.*np.pi)
+    image_sweep_galario_pad = g_double.sweep(ints, Rmin, dR, nrow, ncol + 1, dxy, inc/180.*np.pi)
+
     # plot cuts - benchmark
-    # import matplotlib.pyplot as plt
-    # plt.figure()
-    # for line_no in [511, 512, 513]:
-    #     plt.plot(intensity_ref[line_no, 508:516], '.-', label=line_no)
-    #     plt.plot(intensity_sweep_galario[line_no, 508:516], '.--', ms=3, lw=0.3, label=line_no)
-    #
-    # plt.legend()
-    # plt.savefig("./profile_intensity_ref.pdf")
-    # plt.clf()
+    import matplotlib.pyplot as plt
+    plt.figure()
+    for line_no in [511, 512, 513]:
+        # plt.plot(image_ref[line_no, 508:516], '.-', label=line_no)
+        # plt.plot(image_g_sweep_prototype[line_no, 508:516], '.--', ms=3, lw=0.3, label=line_no)
+        plt.plot(image_ref[line_no, 500:540]-image_g_sweep_prototype[line_no, 500:540], '.--', ms=3, lw=0.3, label=line_no)
+    plt.legend()
+    plt.savefig("./profile_intensity_ref.pdf")
+    plt.clf()
 
-    peak_idx_ref = np.unravel_index(np.argmax(image_ref), image_ref.shape)
-    print("Peak {} located in {}".format(image_ref[peak_idx_ref], peak_idx_ref))
-
-    peak_idx_galario = np.unravel_index(np.argmax(image_g_sweep_prototype), image_g_sweep_prototype.shape)
-    print("Peak {} located in {}".format(image_g_sweep_prototype[peak_idx_galario], peak_idx_galario))
-
-    peak_idx_galario_pad = np.unravel_index(np.argmax(image_g_sweep_prototype_pad), image_g_sweep_prototype_pad.shape)
-    print("Peak {} located in {}".format(image_g_sweep_prototype_pad[peak_idx_galario_pad], peak_idx_galario_pad))
-
-    # checks that the prototype of galario_sweep gives same results as the reference interpolation
+    # checks that the galario sweep prototype gives same results as the reference interpolation
     np.testing.assert_allclose(image_ref, image_g_sweep_prototype, rtol=1.e-14, atol=1.e-14)
 
-    # checks that galario_sweep works on padded matrices
+    # checks that the galario sweep prototype works on padded matrices
     np.testing.assert_allclose(image_g_sweep_prototype, image_g_sweep_prototype_pad[:, :-1], rtol=1.e-14, atol=1.e-14)
+
+    # checks that galario sweep works
+    np.testing.assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
+    np.testing.assert_allclose(image_g_sweep_prototype_pad, image_sweep_galario_pad, rtol=1.e-13, atol=1.e-12)
+
 
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
