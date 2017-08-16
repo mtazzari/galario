@@ -680,7 +680,7 @@ void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
 __host__ __device__
 #endif
 inline void sweep_core(int const i, int const j, int const nr, const dreal* const ints,
-                       dreal const Rmin, dreal const dR, int const nx, int const ny, int const rowsize,
+                       dreal const Rmin, dreal const dR, int const nxy, int const rowsize,
                        dreal const dxy, dreal const cos_inc, dreal* const __restrict__ image) {
 
     int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
@@ -693,8 +693,8 @@ inline void sweep_core(int const i, int const j, int const nr, const dreal* cons
     // interpolate 1D
     int const iR = floor((r-Rmin) / dR);
 
-    int const row_offset = nx / 2 - rmax;
-    int const col_offset = ny / 2 - rmax;
+    int const row_offset = nxy / 2 - rmax;
+    int const col_offset = nxy / 2 - rmax;
     auto const base = (i+row_offset)*rowsize + j+col_offset;
 
     if (iR >= nr-1) {
@@ -725,28 +725,29 @@ __global__ void sweep_d(int const nrow, int const ncol, dcomplex* const __restri
 }
 #else
 
-void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nx, int const ny,
+void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
     int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
 
     auto real_image = reinterpret_cast<dreal*>(image);
-    auto const rowsize = 2*(ny/2+1);
+    auto const rowsize = 2*(nxy/2+1);
 
 #pragma omp parallel for
     for (auto i = 0; i < 2*rmax; ++i) {
         for (auto j = 0; j < 2*rmax; ++j) {
-            sweep_core(i, j, nr, ints, Rmin, dR, nx, ny, rowsize, dxy, cos_inc, real_image);
+            sweep_core(i, j, nr, ints, Rmin, dR, nxy, rowsize, dxy, cos_inc, real_image);
         }
     }
 
     // central pixel
-    if (Rmin != 0.) image[nx/2*rowsize+ny/2] = {ints[0] + Rmin * (ints[0] - ints[1]) / dR, 0.};
+    if (Rmin != 0.)
+        real_image[nxy/2*rowsize+nxy/2] = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
 }
 #endif
 
-void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nx, int ny, dreal dxy, dreal inc, dcomplex* image) {
+void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image) {
 #ifdef __CUDACC__
     // TODO implement this
     dcomplex *matrix_d;
@@ -760,12 +761,12 @@ void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nx
     CCheck(cudaMemcpy(matrix, matrix_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(matrix_d));
 #else
-    sweep_h(nr, ints, Rmin, dR, nx, ny, dxy, inc, image);
+    sweep_h(nr, ints, Rmin, dR, nxy, dxy, inc, image);
 #endif
 }
 
-void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nx, int ny, dreal dxy, dreal inc, void* image) {
-    galario_sweep(nr, static_cast<dreal*>(ints), Rmin, dR, nx, ny, dxy, inc, static_cast<dcomplex*>(image));
+void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image) {
+    galario_sweep(nr, static_cast<dreal*>(ints), Rmin, dR, nxy, dxy, inc, static_cast<dcomplex*>(image));
 }
 
 
@@ -777,9 +778,7 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
     assert(nxy >= 2);
 
     // Initialization for uv_idx and interpolate
-    auto const nx = nxy;
-    auto const ny = nxy;
-    int const ncol = ny/2+1;
+    int const ncol = nxy/2+1;
 #if 0 //def __CUDACC__
 //    auto buffer = static_cast<dcomplex*>(malloc(sizeof(dcomplex)*nx*ncol));
 
@@ -804,20 +803,20 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
     // TODO: fix this buffer creation
 
     // fftw_alloc for aligned memory to use SIMD acceleration
-    auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*ncol));
+    auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
 
 //    auto data = galario_copy_input(nx, ny, ints);
 
-    sweep_h(nr, ints, Rmin, dR, nx, ny, dxy, inc, data);
+    sweep_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
 
-    shift_h(nx, ny, data);
+    shift_h(nxy, nxy, data);
 
-    fft_h(nx, ny, data);
+    fft_h(nxy, nxy, data);
 
-    shift_axis0_h(nx, ncol, data);
+    shift_axis0_h(nxy, ncol, data);
 
     // interpolate
-    interpolate_h(nx, ncol, data, nd, u, v, duv, fint);
+    interpolate_h(nxy, ncol, data, nd, u, v, duv, fint);
 
     // apply phase to the sampled points
     apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);

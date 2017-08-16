@@ -33,7 +33,7 @@ cdef extern from "galario_py.h":
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
     void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
-    void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nrow, int ncol, dreal dxy, dreal inc, void* image)
+    void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image)
     void _galario_sampleProfile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
     void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
 
@@ -257,15 +257,15 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
 
     return fint
 
-def sweep(dreal[::1] ints, Rmin, dR, nx, ny, dxy, inc):
+def sweep(dreal[::1] ints, Rmin, dR, nxy, dxy, inc):
     """
     sweep
 
-    Remove last column(s) for a (nx, ny) image
+    Remove last column(s) for a (nx, nxy) image
 
     """
-    image = np.empty((nx, ny//2+1), dtype=complex_dtype, order='C')
-    _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nx, ny, dxy, inc, <void*>np.PyArray_DATA(image))
+    image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
+    _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
 
     # skip last two padding columns
     return image.view(dtype=real_dtype)[:, :-2]
