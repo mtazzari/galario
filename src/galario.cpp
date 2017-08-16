@@ -800,12 +800,8 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
     dRA *= arcsec_to_rad;
     dDec *= arcsec_to_rad;
 
-    // TODO: fix this buffer creation
-
     // fftw_alloc for aligned memory to use SIMD acceleration
     auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
-
-//    auto data = galario_copy_input(nx, ny, ints);
 
     sweep_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
 
@@ -830,8 +826,6 @@ void _galario_sampleProfile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy,
     galario_sampleProfile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd,
                           static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dcomplex *>(fint));
 }
-
-
 
 
 #ifdef __CUDACC__
