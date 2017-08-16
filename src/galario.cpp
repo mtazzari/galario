@@ -679,8 +679,9 @@ void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
 #ifdef __CUDACC__
 __host__ __device__
 #endif
-inline void sweep_core(int const i, int const j, int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nrow, int const ncol,
-                       dreal const dxy, dreal const cos_inc, dcomplex* const __restrict__ image) {
+inline void sweep_core(int const i, int const j, int const nr, const dreal* const ints,
+                       dreal const Rmin, dreal const dR, int const nx, int const ny, int const rowsize,
+                       dreal const dxy, dreal const cos_inc, dreal* const __restrict__ image) {
 
     int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
 
@@ -692,17 +693,15 @@ inline void sweep_core(int const i, int const j, int const nr, const dreal* cons
     // interpolate 1D
     int const iR = floor((r-Rmin) / dR);
 
-    int const row_offset = nrow / 2 - rmax;
-    int const col_offset = ncol / 2 - rmax;
-    auto const base = (i+row_offset)*ncol + j+col_offset;
+    int const row_offset = nx / 2 - rmax;
+    int const col_offset = ny / 2 - rmax;
+    auto const base = (i+row_offset)*rowsize + j+col_offset;
 
     if (iR >= nr-1) {
-        image[base] = {0., 0.};
+        image[base] = 0.0;
     } else {
-        image[base] = {ints[iR] + (r - iR * dR - Rmin) * (ints[iR + 1] - ints[iR]) / dR, 0.};
+        image[base] = ints[iR] + (r - iR * dR - Rmin) * (ints[iR + 1] - ints[iR]) / dR;
     }
-
-
 }
 
 /**
@@ -726,44 +725,47 @@ __global__ void sweep_d(int const nrow, int const ncol, dcomplex* const __restri
 }
 #else
 
-void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nrow, int const ncol,
+void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nx, int const ny,
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
     int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
 
+    auto real_image = reinterpret_cast<dreal*>(image);
+    auto const rowsize = 2*(ny/2+1);
+
 #pragma omp parallel for
     for (auto i = 0; i < 2*rmax; ++i) {
         for (auto j = 0; j < 2*rmax; ++j) {
-            sweep_core(i, j, nr, ints, Rmin, dR, nrow, ncol, dxy, cos_inc, image);
+            sweep_core(i, j, nr, ints, Rmin, dR, nx, ny, rowsize, dxy, cos_inc, real_image);
         }
     }
 
     // central pixel
-    if (Rmin != 0.) image[nrow/2*ncol+ncol/2] = {ints[0] + Rmin * (ints[0] - ints[1]) / dR, 0.};
+    if (Rmin != 0.) image[nx/2*rowsize+ny/2] = {ints[0] + Rmin * (ints[0] - ints[1]) / dR, 0.};
 }
 #endif
 
-void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nrow, int ncol, dreal dxy, dreal inc, dcomplex* image) {
+void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nx, int ny, dreal dxy, dreal inc, dcomplex* image) {
 #ifdef __CUDACC__
     // TODO implement this
     dcomplex *matrix_d;
-    size_t nbytes = sizeof(dcomplex)*nrow*ncol;
+    size_t nbytes = sizeof(dcomplex)*nx*ny;
     CCheck(cudaMalloc((void**)&matrix_d, nbytes));
     CCheck(cudaMemcpy(matrix_d, matrix, nbytes, cudaMemcpyHostToDevice));
 
-    sweep_d<<<dim3(nrow/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nrow, ncol, matrix_d);
+    sweep_d<<<dim3(nx/2/tpb+1, ny/tpb+1), dim3(tpb, tpb)>>>(nx, ny, matrix_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(matrix, matrix_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(matrix_d));
 #else
-    sweep_h(nr, ints, Rmin, dR, nrow, ncol, dxy, inc, image);
+    sweep_h(nr, ints, Rmin, dR, nx, ny, dxy, inc, image);
 #endif
 }
 
-void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nrow, int ncol, dreal dxy, dreal inc, void* image) {
-    galario_sweep(nr, static_cast<dreal*>(ints), Rmin, dR, nrow, ncol, dxy, inc, static_cast<dcomplex*>(image));
+void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nx, int ny, dreal dxy, dreal inc, void* image) {
+    galario_sweep(nr, static_cast<dreal*>(ints), Rmin, dR, nx, ny, dxy, inc, static_cast<dcomplex*>(image));
 }
 
 
@@ -772,11 +774,12 @@ void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nrow, int ncol
  */
 void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
                            dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
-    // Initialization for uv_idx and interpolate
-    int nx = nxy;
-    int ny = nxy;
-    assert(nx >= 2);
+    assert(nxy >= 2);
 
+    // Initialization for uv_idx and interpolate
+    auto const nx = nxy;
+    auto const ny = nxy;
+    int const ncol = ny/2+1;
 #if 0 //def __CUDACC__
 //    auto buffer = static_cast<dcomplex*>(malloc(sizeof(dcomplex)*nx*ncol));
 
@@ -801,12 +804,11 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
     // TODO: fix this buffer creation
 
     // fftw_alloc for aligned memory to use SIMD acceleration
-    auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*(ny+1));
+    auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nx*ncol));
 
 //    auto data = galario_copy_input(nx, ny, ints);
 
     sweep_h(nr, ints, Rmin, dR, nx, ny, dxy, inc, data);
-    int const ncol = ny/2+1;
 
     shift_h(nx, ny, data);
 
