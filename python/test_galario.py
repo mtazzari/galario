@@ -38,27 +38,23 @@ g_double.use_gpu(max(0, ngpus-1))
 g_double.threads_per_block()
 
 
-@pytest.mark.parametrize("Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, real_type",
+@pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
                           [(0.1, 3.5, 500, 4096, 8.2, 20., 0., 0., 'Gauss', 'float64'),
                            (2., 0.3, 1000, 4096, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64')],
                           ids=["DP_Gauss", "DP_Cos-Gauss"])
-def test_intensity_sweep(Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, real_type):
+def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type):
 
     # compute radial profile
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type)
 
-    nrow = nx
-    ncol = nx
+    nrow = nxy
+    ncol = nxy
 
-    # TODO failure: nonzero element in [0, 3584]
-    # image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, real_type)
+    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, real_type)
 
     image_g_sweep_prototype = g_sweep_prototype(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
-    image_g_sweep_prototype_pad = g_sweep_prototype(ints, Rmin, dR, nrow, ncol + 1, dxy, inc, dtype_image=real_type)
-
-    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nrow, ncol, dxy, inc/180.*np.pi)
-    image_sweep_galario_pad = g_double.sweep(ints, Rmin, dR, nrow, ncol + 1, dxy, inc/180.*np.pi)
+    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
 
     # plot cuts - benchmark
     # import matplotlib.pyplot as plt
@@ -73,22 +69,10 @@ def test_intensity_sweep(Rmin, dR, nrad, nx, dxy, inc, Dx, Dy, profile_mode, rea
     # plt.clf()
 
     # checks that the galario sweep prototype gives same results as the reference interpolation
-    # print(np.where(image_ref - image_g_sweep_prototype > 1e-8))
-    # print(np.unravel_index(3584, image_ref.shape))
-    # print("%.16f %.16f" % (image_ref[0, 0], image_ref[0, 3584]))
-    # print("%.16f %.16f" % (image_g_sweep_prototype[0, 0], image_g_sweep_prototype[0, 3584]))
-    # np.testing.assert_allclose(image_ref, image_g_sweep_prototype, rtol=1.e-8, atol=1.e-8)
-
-    # checks that the galario sweep prototype works on padded matrices
-    # np.testing.assert_allclose(image_g_sweep_prototype, image_g_sweep_prototype_pad[:, :-1], rtol=1.e-14, atol=1.e-14)
+    np.testing.assert_allclose(image_ref, image_g_sweep_prototype, rtol=1.e-13, atol=1.e-12)
 
     # checks that galario sweep works
-    print(np.where(image_sweep_galario - image_g_sweep_prototype > 1e-8))
-    print("%.16f %.16f" % (image_sweep_galario[0, 0], image_sweep_galario[0, 3584]))
-    print("%.16f %.16f" % (image_g_sweep_prototype[0, 0], image_g_sweep_prototype[0, 3584]))
-
     np.testing.assert_allclose(image_g_sweep_prototype, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
-    # np.testing.assert_allclose(image_g_sweep_prototype_pad, image_sweep_galario_pad, rtol=1.e-13, atol=1.e-12)
 
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
