@@ -174,18 +174,18 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
 
 
 def get_image_size(dist, u, v, max_f=4., min_f=3.):
-    """ dist: cm;  u and v in lambda"""
+    """ dist: cm;  u and v in lambda. Returns dxy: same units as dist"""
     uvdist = np.hypot(u, v)
     max_uv = np.max(uvdist)*max_f
     min_uv = np.min(uvdist)/min_f
 
-    nxy = 2**np.ceil(np.log2(max_uv/min_uv))
+    nxy = int(2**np.ceil(np.log2(max_uv/min_uv)))
     dxy = dist/max_uv
 
-    return dxy, nxy
+    return nxy, dxy
 
 
-def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, dreal[::1] v, inc=0., dxy=None, nxy=None):
+def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, dreal[::1] v, inc=0., dxy=None, nxy=None, duv=None):
     """
     Computes the synthetic visibilities of a brightness profile.
 
@@ -243,15 +243,18 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
         Im_V = fint.imag
 
     """
-    if not dxy and not nxy:
-        dxy, nxy = get_image_size(dist, u, v)
-    else:
-        # user must provide both of them
-        # do checks that dxy, nxy, dist satisfy Nyquist sampling given the u, v data points.
-        pass
+    # TODO @Marco think better the input parameters, which are optional or not
+    # if not dxy and not nxy:
+    #     nxy, dxy = get_image_size(dist, u, v)
+    # else:
+    #     # user must provide both of them
+    #     # do checks that dxy, nxy, dist satisfy Nyquist sampling given the u, v data points.
+    #     pass
 
-    # _check_data(data)
-    duv = uvcell_size(dxy, nxy, dist)
+    # if not duv:
+    #     # _check_data(data)
+    #     duv = uvcell_size(dxy, nxy, dist)
+
     fint = np.zeros(len(u), dtype=complex_dtype)
     _galario_sampleProfile(len(ints), <void*>&ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
@@ -268,7 +271,9 @@ def sweep(dreal[::1] ints, Rmin, dR, nxy, dxy, inc):
     _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
 
     # skip last two padding columns
-    return image.view(dtype=real_dtype)[:, :-2]
+    # TODO @Fred: image.view(dtype=real_dtype)[:, :-2] is *not* C-Continuous.
+    # ensuring the output of sweep is C-contiguous allowes users to use it in sampleImage()
+    return  image.view(dtype=real_dtype)[:, :-2]
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
     """
