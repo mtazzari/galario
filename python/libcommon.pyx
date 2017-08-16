@@ -1,6 +1,6 @@
 cimport numpy as np
 import numpy as np
-from cpython cimport Py_INCREF
+from cpython cimport PyObject, Py_INCREF
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
@@ -63,7 +63,10 @@ cdef extern from "fftw3.h":
 
 
 cdef class ArrayWrapper:
-    """Wrap an array created by `fftw_alloc`"""
+    """Wrap an array allocated in C that has to be deleted by `galario_free`.
+
+    See https://gist.github.com/GaelVaroquaux/1249305#file-cython_wrapper-pyx for a discussion
+    """
     cdef void* data_ptr
     cdef int nx, ny
 
@@ -85,22 +88,24 @@ cdef class ArrayWrapper:
 
     cdef as_ndarray(self, int nx, int ny, void* data_ptr):
         """Create an `ndarray` that doesn't own the memory, we do."""
-        self.set_data(nx, ny, data_ptr)
         cdef np.npy_intp shape[2]
+        cdef np.ndarray ndarray
+
+        self.set_data(nx, ny, data_ptr)
+
         shape[:] = (self.nx, int(self.ny/2)+1)
 
         # Create a 2D array, of length `nx*ny/2+1`
         ndarray = np.PyArray_SimpleNewFromData(2, shape, complex_typenum, self.data_ptr)
+        ndarray.base = <PyObject*> self
 
         # without this, data would be cleaned up right away
-        # TODO If nobody calls Py_DECREF, will the memory ever be deallocated?
         Py_INCREF(self)
         return ndarray
 
     def __dealloc__(self):
         """ Frees the array. This is called by Python when all the
         references to the object are gone. """
-        print("Deallocating array")
         galario_free(self.data_ptr)
 
 
@@ -394,7 +399,6 @@ def fft2d(dreal[:,::1] image):
 
     _galario_fft2d(nx, ny, res)
 
-    # Use a custom delete function to free the array http://gael-varo1quaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-image-copies.html
     return ArrayWrapper().as_ndarray(nx, ny, res)
 
 
@@ -404,7 +408,6 @@ def fftshift(dreal[:,::1] image):
     cdef void* res = _galario_copy_input(nx, ny, <void*>&image[0,0])
 
     _galario_fftshift(nx, ny, res)
-
     return ArrayWrapper().as_ndarray(nx, ny, res)
 
 
