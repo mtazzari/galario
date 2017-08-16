@@ -257,15 +257,18 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
 
     return fint
 
-def sweep(dreal[::1] ints, Rmin, dR, nrow, ncol, dxy, inc):
+def sweep(dreal[::1] ints, Rmin, dR, nx, ny, dxy, inc):
     """
     sweep
 
-    """
-    image = np.empty((nrow, ncol), dtype=complex_dtype, order='C')
-    _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nrow, ncol, dxy, inc, <void*>np.PyArray_DATA(image))
+    Remove last column(s) for a (nx, ny) image
 
-    return image.real
+    """
+    image = np.empty((nx, ny//2+1), dtype=complex_dtype, order='C')
+    _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nx, ny, dxy, inc, <void*>np.PyArray_DATA(image))
+
+    # skip last two padding columns
+    return image.view(dtype=real_dtype)[:, :-2]
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
     """
