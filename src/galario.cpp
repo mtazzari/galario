@@ -675,6 +675,7 @@ void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
 
 /**
  * Sweep.
+ * TODO avoid rmax 3 definitions. pass rmax (perhaps also base as argument of sweep_core.
  **/
 #ifdef __CUDACC__
 __host__ __device__
@@ -683,7 +684,7 @@ inline void sweep_core(int const i, int const j, int const nr, const dreal* cons
                        dreal const Rmin, dreal const dR, int const nxy, int const rowsize,
                        dreal const dxy, dreal const cos_inc, dreal* const __restrict__ image) {
 
-    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
+    int const rmax = fmin((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     dreal const x = (rmax - j) * dxy;
     dreal const y = (rmax - i) * dxy;
@@ -713,7 +714,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
                         dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
-    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
+    int const rmax = fmin((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto real_image = reinterpret_cast<dreal*>(image);
     auto const rowsize = 2*(nxy/2+1);
@@ -742,7 +743,7 @@ void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal cons
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
-    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
+    int const rmax = fmin((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto real_image = reinterpret_cast<dreal*>(image);
     auto const rowsize = 2*(nxy/2+1);
@@ -903,6 +904,7 @@ void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du
 
 /**
  * return result in `fint`
+ *
  */
 void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
                            dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
@@ -938,7 +940,11 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
     // fftw_alloc for aligned memory to use SIMD acceleration
     auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
 
+    // ensures data is initialized with zeroes (sweep only modifies the inner part)
+    auto const nbytes = sizeof(dcomplex)*nxy*ncol;
+    memset(data, 0, nbytes);
     sweep_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
+    // IMPORTANT TODO: @Marco multiply the sweeped image by a_to_jy = (dxy/dist) ** 2. * jy
 
     shift_h(nxy, nxy, data);
 

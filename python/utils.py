@@ -16,13 +16,13 @@ sec2rad = np.pi/180./3600.  # from arcsec to radians
 jy = 1.e+23                 # flux density  1 Jy = 1.0e-23 erg s cm2 Hz
 
 
-def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64'):
+def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_width=100):
     """ Compute a radial brightness profile. """
     gridrad = np.linspace(Rmin, Rmin + delta_R * (nrad - 1), nrad).astype(dtype)
 
     if mode == 'Gauss':
         # a simple Gaussian
-        ints = np.exp(-(gridrad/delta_R/80)**2)
+        ints = np.exp(-(gridrad/delta_R/gauss_width)**2)
     elif mode == 'Cos-Gauss':
         # a cos-tapered Gaussian
         ints = np.cos(2.*np.pi*gridrad/(50.*delta_R))**2. * np.exp(-(gridrad/delta_R/80)**2)
@@ -38,11 +38,10 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     nrad = len(I)
     irow_center = int(nrow / 2)
     icol_center = int(ncol / 2)
-
     inc_cos = np.cos(inc/180.*np.pi)
 
     # radial extent in number of image pixels covered by the profile
-    rmax = np.int(np.ceil((Rmin+nrad*dR)/dxy))
+    rmax = min(np.int(np.ceil((Rmin+nrad*dR)/dxy)), irow_center)
     row_offset = irow_center-rmax
     col_offset = icol_center-rmax
     for irow in range(rmax*2):
@@ -149,12 +148,19 @@ def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype
 
 
 def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
+    # TODO make this generator smarter
     assert isinstance(nsamples, int)
 
+    minuv = maxuv/3000.  # change to 10000 to have nxy=4096
     np.random.seed(42)
     # columns are non contiguous arrays => copy
-    x = np.random.uniform(low=-maxuv, high=maxuv, size=(nsamples, 2))
-    return x[:, 0].astype(dtype), x[:, 1].astype(dtype)
+    uvdist = np.random.uniform(low=minuv, high=maxuv, size=nsamples)
+    phi = np.random.uniform(low=0., high=2.*np.pi, size=nsamples)
+
+    u = uvdist * np.cos(phi)
+    v = uvdist * np.sin(phi)
+
+    return u.astype(dtype), v.astype(dtype)
 
 
 def uv_idx(udat, vdat, du, half_size):
