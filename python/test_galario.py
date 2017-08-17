@@ -9,6 +9,7 @@ import pytest
 import pyfftw
 
 from utils import *
+from utils import au, pc, jy
 
 import galario
 
