@@ -201,17 +201,17 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 
     uneg = udat < 0.
     upos = udat > 0.
-    np.testing.assert_allclose(fint_old.real, fint.real, rtol, atol)
-    np.testing.assert_allclose(fint_old[upos].real, fint[upos].real, rtol, atol)
-    np.testing.assert_allclose(fint_old[uneg].real, fint[uneg].real, rtol, atol)
+    assert_allclose(fint_old.real, fint.real, rtol, atol)
+    assert_allclose(fint_old[upos].real, fint[upos].real, rtol, atol)
+    assert_allclose(fint_old[uneg].real, fint[uneg].real, rtol, atol)
 
-    np.testing.assert_allclose(fint_old.imag, fint.imag, rtol, atol)
+    assert_allclose(fint_old.imag, fint.imag, rtol, atol)
 
-    np.testing.assert_allclose(fint_old_shifted.real, fint_shifted.real, rtol, atol)
-    np.testing.assert_allclose(fint_old_shifted.imag, fint_shifted.imag, rtol, atol)
+    assert_allclose(fint_old_shifted.real, fint_shifted.real, rtol, atol)
+    assert_allclose(fint_old_shifted.imag, fint_shifted.imag, rtol, atol)
 
-    np.testing.assert_allclose(fint_galario.real, fint_old_shifted.real, rtol, atol)
-    np.testing.assert_allclose(fint_galario.imag, fint_old_shifted.imag, rtol, atol)
+    assert_allclose(fint_galario.real, fint_old_shifted.real, rtol, atol)
+    assert_allclose(fint_galario.imag, fint_old_shifted.imag, rtol, atol)
 
 
 ########################################################
@@ -254,8 +254,8 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
                                      udat.astype(real_type),
                                      vdat.astype(real_type), du)
 
-    np.testing.assert_allclose(ReInt, complexInt.real, rtol, atol)
-    np.testing.assert_allclose(ImInt, complexInt.imag, rtol, atol)
+    assert_allclose(ReInt, complexInt.real, rtol, atol)
+    assert_allclose(ImInt, complexInt.imag, rtol, atol)
 
 
 @pytest.mark.parametrize("size, real_type, rtol, atol, acc_lib",
@@ -276,8 +276,8 @@ def test_FFT(size, real_type, rtol, atol, acc_lib):
 
     # some real parts can be very close to zero, so we need atol > 0!
     # only get the 0-th and the first half of columns to compare to compact FFTW output
-    np.testing.assert_allclose(unique_part(ft).real, acc_res.real, rtol, atol)
-    np.testing.assert_allclose(unique_part(ft).imag, acc_res.imag, rtol, atol)
+    assert_allclose(unique_part(ft).real, acc_res.real, rtol, atol)
+    assert_allclose(unique_part(ft).imag, acc_res.imag, rtol, atol)
 
 
 @pytest.mark.parametrize("size, real_type, tol, acc_lib",
@@ -298,7 +298,7 @@ def test_shift_axes01(size, real_type, tol, acc_lib):
     # interpret complex array as real and skip last two columns
     real_view = acc_shift_real.view(dtype=real_type)[:, :-2]
 
-    np.testing.assert_allclose(npshifted, real_view, rtol=tol)
+    assert_allclose(npshifted, real_view, rtol=tol)
 
 
 @pytest.mark.parametrize("size, complex_type, tol, acc_lib",
@@ -316,7 +316,7 @@ def test_shift_axis0(size, complex_type, tol, acc_lib):
 
     ref_complex = reference_image.copy()
     acc_lib.fftshift_axis0(ref_complex)
-    np.testing.assert_allclose(npshifted, ref_complex, rtol=tol)
+    assert_allclose(npshifted, ref_complex, rtol=tol)
 
 
 @pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
@@ -344,14 +344,12 @@ def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars)
     fint.real = np.random.random(nsamples) * 10.
     fint.imag = np.random.random(nsamples) * 30.
 
-    fint_numpy = Fourier_shift_array(udat, vdat, fint.copy(), x0_arcsec, y0_arcsec)
+    fint_numpy = apply_phase_array(udat, vdat, fint.copy(), x0_arcsec, y0_arcsec)
 
     fint_shifted = acc_lib.apply_phase_sampled(x0_arcsec, y0_arcsec, udat, vdat, fint)
 
-    np.testing.assert_allclose(fint_numpy.real, fint_shifted.real, rtol, atol)
-    np.testing.assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
-
-
+    assert_allclose(fint_numpy.real, fint_shifted.real, rtol, atol)
+    assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
 
 
 
@@ -370,7 +368,7 @@ def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
     # print("Absolute diff: {0}".format(chi2_loc-chi2_ref))
     # print("Relative diff: {0}".format((chi2_loc-chi2_ref)*2./(chi2_loc+chi2_ref)))
 
-    np.testing.assert_allclose(chi2_ref, chi2_loc, rtol=tol)
+    assert_allclose(chi2_ref, chi2_loc, rtol=tol)
 
 
 # huge inaccuracy in single precision for larger images
@@ -407,7 +405,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     real_view = acc_shift_real.view(dtype=real_type)[:, :-2]
 
     # shifting the values should make no difference, so ask for high precision
-    np.testing.assert_allclose(py_shift_real, real_view, rtol=1e-15, atol=1e-15)
+    assert_allclose(py_shift_real, real_view, rtol=1e-15, atol=1e-15)
 
     ###
     # FFT
@@ -417,16 +415,16 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # use the real input!
     acc_fft = acc_lib.fft2d(py_shift_real)
 
-    np.testing.assert_allclose(unique_part(py_fft).real, acc_fft.real, rtol, atol)
-    np.testing.assert_allclose(unique_part(py_fft).imag, acc_fft.imag, rtol, atol)
+    assert_allclose(unique_part(py_fft).real, acc_fft.real, rtol, atol)
+    assert_allclose(unique_part(py_fft).imag, acc_fft.imag, rtol, atol)
 
     ###
     # shift complex
     ###
     py_shift_cmplx = np.fft.fftshift(py_fft, axes=0)
     acc_lib.fftshift_axis0(acc_fft)
-    np.testing.assert_allclose(unique_part(py_shift_cmplx).real, acc_fft.real, rtol, atol)
-    np.testing.assert_allclose(unique_part(py_shift_cmplx).imag, acc_fft.imag, rtol, atol)
+    assert_allclose(unique_part(py_shift_cmplx).real, acc_fft.real, rtol, atol)
+    assert_allclose(unique_part(py_shift_cmplx).imag, acc_fft.imag, rtol, atol)
 
     ###
     # phase
@@ -437,14 +435,14 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt
     fint_acc = fint.copy()
-    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
+    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
     fint_acc_shifted = acc_lib.apply_phase_sampled(x0_arcsec, y0_arcsec, udat/wle_m, vdat/wle_m, fint_acc)
 
 
     # lose some absolute precision here  --> not anymore. Really? check by decreasing rtol, atol
     # atol *= 2
-    np.testing.assert_allclose(fint_shifted.real, fint_acc_shifted.real, rtol, atol)
-    np.testing.assert_allclose(fint_shifted.imag, fint_acc_shifted.imag, rtol, atol)
+    assert_allclose(fint_shifted.real, fint_acc_shifted.real, rtol, atol)
+    assert_allclose(fint_shifted.imag, fint_acc_shifted.imag, rtol, atol)
     # but continue with previous tolerance
     # atol /= 2
 
@@ -462,8 +460,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
                                      vdat.astype(real_type)/wle_m,
                                      du)
 
-    np.testing.assert_allclose(ReInt, complexInt.real, rtol, atol)
-    np.testing.assert_allclose(ImInt, complexInt.imag, rtol, atol)
+    assert_allclose(ReInt, complexInt.real, rtol, atol)
+    assert_allclose(ImInt, complexInt.imag, rtol, atol)
 
     ###
     # now all steps in one function
@@ -474,56 +472,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # # a lot of precision lost. Why? --> not anymore
     # # rtol = 1
     # # atol = 0.5
-    # np.testing.assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
-    # np.testing.assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
-
-
-# single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
-@pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-                         [(1000, 'float32', 'complex64',  1e-3,  1e-4, g_single, par1),
-                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par1),
-                          (1000, 'float32', 'complex64',  1e-3,  1e-3, g_single, par2), ## large x0, y0 induce larger errors
-                          (1000, 'float64', 'complex128', 1e-12, 1e-10, g_double, par2),
-                          (1000, 'float32', 'complex64',  1e-3,  1e-4, g_single, par3),
-                          (1000, 'float64', 'complex128', 1e-12, 1e-11, g_double, par3)],
-                         ids=["SP_par1", "DP_par1",
-                              "SP_par2", "DP_par2",
-                              "SP_par3", "DP_par3"])
-def test_sample(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
-    # go for fairly low precision when we add up many large numbers, we loose precision
-    # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
-
-    wle_m = pars.get('wle_m', 0.003)
-    x0_arcsec = pars.get('x0_arcsec', 0.4)
-    y0_arcsec = pars.get('y0_arcsec', 10.)
-
-    # generate the samples
-    maxuv_generator = 3.e3
-    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
-
-    # compute the matrix size and maxuv
-    size, minuv, maxuv = matrix_size(udat, vdat)
-
-    # create model image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size=size, dtype=complex_type)
-    ref_real = reference_image.real.copy()
-
-    # CPU version
-    cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image)))
-    du = maxuv/size/wle_m
-
-    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
-    ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
-    ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
-    fint = ReInt + 1j*ImInt
-    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
-
-    # GPU
-    sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
-                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m)
-
-    np.testing.assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
-    np.testing.assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
+    # assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
+    # assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
 
 
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
