@@ -9,9 +9,9 @@ import pytest
 import pyfftw
 
 from utils import *
-from utils import au, pc, jy
 
 import galario
+from galario import au, pc, CGS_to_Jy
 
 if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
     from galario import double_cuda as g_double

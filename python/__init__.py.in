@@ -8,3 +8,5 @@ if HAVE_CUDA:
 
 from . import single
 from . import double
+
+from .double import arcsec, au, CGS_to_Jy, pc

@@ -851,9 +851,9 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
 
     // TODO turn into a function. Don't duplicate
-    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec_to_rad;
-    dDec *= arcsec_to_rad;
+    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec;
+    dDec *= arcsec;
     int const ncol = ny/2+1;
 
     // ################################
@@ -907,9 +907,9 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(data_d));
 #else
-    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec_to_rad;
-    dDec *= arcsec_to_rad;
+    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec;
+    dDec *= arcsec;
 
     auto data = galario_copy_input(nx, ny, realdata);
     int const ncol = ny/2+1;
@@ -963,9 +963,9 @@ void galario_sample_profile(int nr, const dreal* const ints, dreal Rmin, dreal d
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(image_d));
 #else
-    const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec_to_rad;
-    dDec *= arcsec_to_rad;
+    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec;
+    dDec *= arcsec;
 
     int const ncol = nxy/2+1;
 
@@ -974,7 +974,7 @@ void galario_sample_profile(int nr, const dreal* const ints, dreal Rmin, dreal d
 
     // ensures data is initialized with zeroes
     create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
-    // IMPORTANT TODO: @Marco multiply the sweeped image by a_to_jy = (dxy/dist) ** 2. * jy
+    // IMPORTANT TODO: @Marco multiply the sweeped image by a_to_jy = (dxy/dist) ** 2. * CGS_to_Jy
 
     shift_h(nxy, nxy, data);
 

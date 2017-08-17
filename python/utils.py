@@ -6,16 +6,14 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 from scipy.interpolate import interp1d
 
+from galario import arcsec, CGS_to_Jy, pc, au
+
 __all__ = ["radial_profile", "g_sweep_prototype", "sweep_ref", "create_reference_image", "create_sampling_points", "uv_idx",
            "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
            "matrix_size", "Fourier_shift_static",
            "apply_phase_array", "generate_random_vis",
-           "sec2rad", "unique_part", "assert_allclose"]
+           "unique_part", "assert_allclose"]
 
-sec2rad = np.pi/180./3600.  # from arcsec to radians
-jy = 1.e+23                 # flux density  1 Jy = 1.0e-23 erg s cm2 Hz
-pc = 3.1e18  # cm
-au = 1.49e13  # cm
 
 
 def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_width=100):
@@ -254,7 +252,7 @@ def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
     nx = ft_centered.shape[0]
     # convert x0, y0 from arcsec to pixel
 
-    sec2pixel = sec2rad/wle
+    sec2pixel = arcsec/wle
     x0 *= sec2pixel
     y0 *= sec2pixel
 
@@ -297,8 +295,8 @@ def apply_phase_array(u, v, fint, x0, y0):
 
     """
     # convert x0, y0 from arcsec to cm
-    x0 *= sec2rad
-    y0 *= sec2rad
+    x0 *= arcsec
+    y0 *= arcsec
 
     x0 *= 2.*np.pi
     y0 *= 2.*np.pi
