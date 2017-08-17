@@ -73,7 +73,13 @@
         #define CMPLXCONJ cuConjf
         #define CUBLASNRM2 cublasScnrm2
     #endif  // DOUBLE_PRECISION
-#else
+#else // CPU
+    // general min function already available in cuda
+    // math_functions.hpp. Need `using` so the right implementation of
+    // `min` is chosen for the kernels that are both on gpu and cpu
+    #include <algorithm>
+    using std::min;
+
     #include <fftw3.h>
     #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
 
@@ -684,7 +690,7 @@ inline void sweep_core(int const i, int const j, int const nr, const dreal* cons
                        dreal const Rmin, dreal const dR, int const nxy, int const rowsize,
                        dreal const dxy, dreal const cos_inc, dreal* const __restrict__ image) {
 
-    int const rmax = fmin((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
+    int const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     dreal const x = (rmax - j) * dxy;
     dreal const y = (rmax - i) * dxy;
@@ -714,7 +720,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
                         dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
-    int const rmax = fmin((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
+    int const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto real_image = reinterpret_cast<dreal*>(image);
     auto const rowsize = 2*(nxy/2+1);
