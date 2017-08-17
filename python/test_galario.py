@@ -185,7 +185,7 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     ReInt_old = int_bilin_MT(fft_c2c_shifted.real, uroti_old, vroti_old)
     ImInt_old = int_bilin_MT(fft_c2c_shifted.imag, uroti_old, vroti_old)
     fint_old = ReInt_old + 1j*ImInt_old
-    fint_old_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint_old, x0_arcsec, y0_arcsec)
+    fint_old_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint_old, x0_arcsec, y0_arcsec)
 
     # R2C
     uroti_new, vroti_new = uv_idx_r2c(udat/wle_m, vdat/wle_m, du, size/2.)
@@ -194,7 +194,7 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     uneg = udat < 0.
     ImInt[uneg] *= -1.
     fint = ReInt + 1j*ImInt
-    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
+    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
 
     # galario (C2C)
     fint_galario = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
@@ -519,7 +519,7 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt
-    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
+    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
 
     chi2_ref = np.sum(((fint_shifted.real - x.real)**2. + (fint_shifted.imag - x.imag)**2.) * w)
 
