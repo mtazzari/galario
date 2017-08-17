@@ -711,10 +711,14 @@ inline void sweep_core(int const i, int const j, int const nr, const dreal* cons
     }
 }
 
-/**
- * grid stride loop
- */
 #ifdef __CUDACC__
+
+__global__ void central_pixel_d(const int nxy, dcomplex* const __restrict__ image, const dreal value) {
+    auto real_image = reinterpret_cast<dreal*>(image);
+    auto const rowsize = 2*(nxy/2+1);
+    real_image[nxy/2*rowsize+nxy/2] = value;
+}
+
 __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR,
                         int const nxy, dreal const dxy, dreal const inc,
                         dcomplex* const __restrict__ image) {
@@ -739,10 +743,35 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
         }
     }
 
-    // central pixel updated only by 1st thread
-    if (Rmin != 0.0 && x0 == 0 && y0 == 0)
-        real_image[nxy/2*rowsize+nxy/2] = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
 }
+// TODO Think of a good naming scheme for `sweep`, a host function that does stuff on the device
+
+/**
+ * Allocate memory on device for `ints` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
+ */
+void sweep(int nr, const dreal* const ints, dreal** addr_ints_d, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
+    auto const ncol = nxy/2+1;
+    auto const nbytes = sizeof(dcomplex)*nxy*ncol;
+
+    // start with a zero image
+    CCheck(cudaMalloc((void**)addr_image_d, nbytes));
+    CCheck(cudaMemset(*addr_image_d, 0, nbytes));
+
+    // transfer intensities
+    auto const nbytes_ints = sizeof(dreal)*nr;
+    CCheck(cudaMalloc((void**)addr_ints_d, nbytes_ints));
+    CCheck(cudaMemcpy(*addr_ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
+
+    // most of the image will stay 0, we only need the kernel on a few pixels near the center
+    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
+    auto const nblocks = (2*rmax) / tpb + 1;
+    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, *addr_ints_d, Rmin, dR, nxy, dxy, inc, *addr_image_d);
+
+    // central pixel needs special treatment
+    auto const value = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
+    central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
+}
+
 #else
 
 void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
@@ -770,19 +799,11 @@ void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal cons
 void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image) {
     auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
 #ifdef __CUDACC__
-    dcomplex *image_d;
-    CCheck(cudaMalloc((void**)&image_d, nbytes));
-    CCheck(cudaMemset(image_d, 0, nbytes));
-
-    auto const nbytes_ints = sizeof(dreal)*nr;
+    // arrays allocated inside sweep
     dreal* ints_d;
-    CCheck(cudaMalloc((void**)&ints_d, nbytes_ints));
-    CCheck(cudaMemcpy(ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
+    dcomplex *image_d;
 
-    // most of the image will stay 0, we only need the kernel on a few pixels in the center
-    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
-    auto const nblocks = (2*rmax) / tpb + 1;
-    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, nxy, dxy, inc, image_d);
+    sweep(nr, ints, &ints_d, Rmin, dR, nxy, dxy, inc, &image_d);
 
     CCheck(cudaDeviceSynchronize());
     CCheck(cudaMemcpy(image, image_d, nbytes, cudaMemcpyDeviceToHost));
