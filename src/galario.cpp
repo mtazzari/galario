@@ -79,6 +79,7 @@
     // `min` is chosen for the kernels that are both on gpu and cpu
     #include <algorithm>
     using std::min;
+    using std::max;
 
     #include <fftw3.h>
     #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
@@ -687,24 +688,24 @@ void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
 __host__ __device__
 #endif
 inline void sweep_core(int const i, int const j, int const nr, const dreal* const ints,
-                       dreal const Rmin, dreal const dR, int const nxy, int const rowsize,
+                       dreal const Rmin, dreal const dR, const int rmax, int const nxy, int const rowsize,
                        dreal const dxy, dreal const cos_inc, dreal* const __restrict__ image) {
-
-    int const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     dreal const x = (rmax - j) * dxy;
     dreal const y = (rmax - i) * dxy;
 
-    dreal const r = sqrt(pow(x/cos_inc, 2.) + pow(y, 2.));
+    dreal const r = sqrt(pow(x/cos_inc, 2) + pow(y, 2));
 
-    // interpolate 1D
-    int const iR = floor((r-Rmin) / dR);
+    // TODO Require Rmin < dxy, else iR could be negative and we get a segfault
+    // interpolate 1D.
+    int const iR = max(int(floor((r-Rmin) / dR)), 0);
 
     int const row_offset = nxy / 2 - rmax;
     int const col_offset = nxy / 2 - rmax;
     auto const base = (i+row_offset)*rowsize + j+col_offset;
 
-    if (iR >= nr-1) {
+    // TODO Can we remove if clause by loop < 2*rmax?
+    if (iR > nr-2) {
         image[base] = 0.0;
     } else {
         image[base] = ints[iR] + (r - iR * dR - Rmin) * (ints[iR + 1] - ints[iR]) / dR;
@@ -720,11 +721,11 @@ __global__ void central_pixel_d(const int nxy, dcomplex* const __restrict__ imag
 }
 
 __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR,
+                        const dreal rmax,
                         int const nxy, dreal const dxy, dreal const inc,
                         dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
-    int const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto real_image = reinterpret_cast<dreal*>(image);
     auto const rowsize = 2*(nxy/2+1);
@@ -739,7 +740,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
 
     for (auto i = x0; i < 2*rmax; i += sx) {
         for (auto j = y0; j < 2*rmax; j += sy) {
-            sweep_core(i, j, nr, ints, Rmin, dR, nxy, rowsize, dxy, cos_inc, real_image);
+            sweep_core(i, j, nr, ints, Rmin, dR, rmax, nxy, rowsize, dxy, cos_inc, real_image);
         }
     }
 
@@ -763,14 +764,18 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     CCheck(cudaMemcpy(ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
 
     // most of the image will stay 0, we only need the kernel on a few pixels near the center
-    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
+    auto const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
+
     auto const nblocks = (2*rmax) / tpb + 1;
-    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, nxy, dxy, inc, *addr_image_d);
+    // sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, *addr_image_d);
+    sweep_d<<<1,1>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, *addr_image_d);
     CCheck(cudaDeviceSynchronize());
 
     // central pixel needs special treatment
     auto const value = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
     central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
+
+    CCheck(cudaFree(ints_d));
 }
 
 #else
@@ -785,15 +790,14 @@ void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dre
 
     // now sweep
     dreal const cos_inc = cos(inc);
-    int const rmax = fmin((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
+    int const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto real_image = reinterpret_cast<dreal*>(image);
     auto const rowsize = 2*ncol;
-
 #pragma omp parallel for
     for (auto i = 0; i < 2*rmax; ++i) {
         for (auto j = 0; j < 2*rmax; ++j) {
-            sweep_core(i, j, nr, ints, Rmin, dR, nxy, rowsize, dxy, cos_inc, real_image);
+            sweep_core(i, j, nr, ints, Rmin, dR, rmax, nxy, rowsize, dxy, cos_inc, real_image);
         }
     }
 
@@ -939,14 +943,11 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
                            dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     assert(nxy >= 2);
 
-    // Initialization for uv_idx and interpolate
-    int const ncol = nxy/2+1;
 #ifdef __CUDACC__
     dcomplex *image_d;
-    size_t nbytes = sizeof(dcomplex)*nxy*ncol;
-    CCheck(cudaMalloc(&image_d, nbytes));
 
-    sweep_d<<<dim3(nxy/tpb+1, nxy/tpb+1), dim3(tpb, tpb)>>>(nr, ints, Rmin, dR, nxy, dxy, inc, image_d);
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
+    // sweep_d<<<dim3(nxy/tpb+1, nxy/tpb+1), dim3(tpb, tpb)>>>(nr, ints, Rmin, dR, nxy, dxy, inc, image_d);
 
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
@@ -965,6 +966,8 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
     const dreal arcsec_to_rad = (dreal)M_PI / 3600. / 180.;
     dRA *= arcsec_to_rad;
     dDec *= arcsec_to_rad;
+
+    int const ncol = nxy/2+1;
 
     // fftw_alloc for aligned memory to use SIMD acceleration
     auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
