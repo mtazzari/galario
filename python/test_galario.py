@@ -34,23 +34,18 @@ g_double.use_gpu(max(0, ngpus-1))
 g_double.threads_per_block()
 
 
-# @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
-#                           [(0.1, 3.5, 50, 256, 8.2, 20., 0., 0., 'Gauss', 'float64')],
-#                           ids=["DP_Gauss"])
-# @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
-#                           [(0.1, 3.5, 8, 16, 8.2, 20., 0., 0., 'Gauss', 'float64')],
-#                           ids=["DP_Gauss"])
 @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
                           [(0.1, 3.5, 500, 1024, 8.2, 20., 0., 0., 'Gauss', 'float64'),
-                           (2., 0.3, 1000, 2048, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64')],
-                          ids=["DP_Gauss", "DP_Cos-Gauss"])
+                           (2., 0.3, 1000, 2048, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64'),
+                           (0.1, 3.5, 50, 256, 8.2, 20., 0., 0., 'Gauss', 'float64'),
+                           (0.1, 3.5, 8, 16, 8.2, 20., 0., 0., 'Gauss', 'float64')],
+                          ids=["{}".format(i) for i in range(4)])
 def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type):
 
     # compute radial profile
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
 
-    nrow = nxy
-    ncol = nxy
+    nrow, ncol = nxy, nxy
 
     image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, real_type)
 
@@ -77,68 +72,6 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
 
     # checks that galario sweep works
     assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
-
-
-@pytest.mark.parametrize("Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars",
-                          [(0.1, 1., 500, 20., 'Gauss', 'float64', int(100), 1e-12, 1e-12, par1),
-                           (2., 0.3, 200, 0., 'Cos-Gauss', 'float64', int(100), 1e-12, 1e-12, par1)],
-                          ids=["DP_Gauss", "DP_Cos-Gauss"])
-def test_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars):
-
-    pc = 3.1e18  # cm
-    au = 1.49e13  # cm
-    jy = 1.e+23                 # flux density  1 Jy = 1.0e-23 erg s cm2 Hz
-
-    Rmin *= au
-    dR *= au
-
-    wle_m = pars['wle_m']
-    dRA = pars['x0_arcsec']
-    dDec = pars['y0_arcsec']
-
-    # generate the samples
-    maxuv_generator = 3e3
-    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
-
-    dist = 126. * pc
-
-    nxy, minuv, maxuv = matrix_size(udat, vdat, maxuv_factor=3.)
-    maxuv /= wle_m
-    duv = maxuv / nxy
-    dxy = dist / maxuv
-
-    # print(nxy, minuv, maxuv, duv, dxy/au)
-    # compute the matrix size and maxuv
-    # nxy, dxy = g_double.get_image_size(dist, udat/wle_m, vdat/wle_m)
-
-    # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
-
-    # compute the sweeped image for galario sample
-    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
-
-    # we cannot use this now because the output is not C-contiguous
-    # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
-
-    # R2C
-    fft_r2c_shifted = np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(image_ref)), axes=0)
-    uroti_new, vroti_new = uv_idx_r2c(udat/wle_m, vdat/wle_m, duv, nxy/2.)
-    ReInt = int_bilin_MT(fft_r2c_shifted.real, uroti_new, vroti_new)
-    ImInt = int_bilin_MT(fft_r2c_shifted.imag, uroti_new, vroti_new)
-    uneg = udat < 0.
-    ImInt[uneg] *= -1.
-    fint = ReInt + 1j*ImInt
-    fint_shifted = Fourier_shift_array(udat/wle_m, vdat/wle_m, fint, dRA, dDec)
-
-    # galario sampleImage
-    fint_galarioImage = g_double.sample(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m)
-
-    # galario sampleProfile
-    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, dist, dRA, dDec, udat/wle_m, vdat/wle_m, inc=inc/180.*np.pi, nxy=nxy, dxy=dxy, duv=duv)
-
-    np.testing.assert_allclose(fint_shifted, fint_galarioImage, rtol=rtol, atol=atol)
-    np.testing.assert_allclose(fint_shifted, fint_galarioProfile, rtol=rtol, atol=atol)
-    np.testing.assert_allclose(fint_galarioImage, fint_galarioProfile, rtol=rtol, atol=atol)
 
 
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
@@ -487,7 +420,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
-def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
+def test_chi2Image(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # go for fairly low precision when we add up many large numbers, we loose precision
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
 
@@ -527,4 +460,116 @@ def test_chi2(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     chi2_cuda = acc_lib.chi2(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
-    np.testing.assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
+    assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
+
+
+@pytest.mark.parametrize("Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars",
+                          [(0.1, 1., 500, 20., 'Gauss', 'float64', int(100), 1e-12, 1e-12, par1),
+                           (2., 0.3, 200, 0., 'Cos-Gauss', 'float64', int(100), 1e-12, 1e-12, par1)],
+                          ids=["DP_Gauss", "DP_Cos-Gauss"])
+def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars):
+
+    Rmin *= au
+    dR *= au
+
+    wle_m = pars['wle_m']
+    dRA = pars['x0_arcsec']
+    dDec = pars['y0_arcsec']
+
+    # generate the samples
+    maxuv_generator = 3e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+
+    dist = 126. * pc
+
+    nxy, minuv, maxuv = matrix_size(udat, vdat, maxuv_factor=3.)
+    maxuv /= wle_m
+    duv = maxuv / nxy
+    dxy = dist / maxuv
+
+    # print(nxy, minuv, maxuv, duv, dxy/au)
+    # compute the matrix size and maxuv
+    # nxy, dxy = g_double.get_image_size(dist, udat/wle_m, vdat/wle_m)
+
+    # compute radial profile
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
+
+    # compute the sweeped image for galario sample
+    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
+
+    # we cannot use this now because the output is not C-contiguous
+    # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
+
+    # R2C
+    fft_r2c_shifted = np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(image_ref)), axes=0)
+    uroti_new, vroti_new = uv_idx_r2c(udat/wle_m, vdat/wle_m, duv, nxy/2.)
+    ReInt = int_bilin_MT(fft_r2c_shifted.real, uroti_new, vroti_new)
+    ImInt = int_bilin_MT(fft_r2c_shifted.imag, uroti_new, vroti_new)
+    uneg = udat < 0.
+    ImInt[uneg] *= -1.
+    fint = ReInt + 1j*ImInt
+    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, dRA, dDec)
+
+    # galario sampleImage
+    fint_galarioImage = g_double.sample(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m)
+
+    # galario sampleProfile
+    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, dist, dRA, dDec, udat/wle_m, vdat/wle_m, inc=inc/180.*np.pi, nxy=nxy, dxy=dxy, duv=duv)
+
+    assert_allclose(fint_shifted, fint_galarioImage, rtol=rtol, atol=atol)
+    assert_allclose(fint_shifted, fint_galarioProfile, rtol=rtol, atol=atol)
+    assert_allclose(fint_galarioImage, fint_galarioProfile, rtol=rtol, atol=atol)
+
+
+@pytest.mark.parametrize("Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rtol, atol, acc_lib, pars",
+                         [(0.1, 1., 500, 20., 'Gauss', 1000, 'float32', 8.e-3, 8.e-3, g_single, par1),
+                          (2., 0.3, 200, 0., 'Cos-Gauss', 1000, 'float64', 1.e-14, 1.e-14, g_double, par1),
+                          (0.1, 1., 500, 20., 'Gauss', 1000, 'float32', 8.e-3, 8.e-3, g_single, par2),
+                          (2., 0.3, 200, 0., 'Cos-Gauss', 1000, 'float64', 1.e-14, 1.e-14, g_double, par2),
+                          (0.1, 1., 500, 20., 'Gauss', 1000, 'float32', 8.e-3, 8.e-3, g_single, par3),
+                          (2., 0.3, 200, 0., 'Cos-Gauss', 1000, 'float64', 1.e-14, 1.e-14, g_double, par3)],
+                          ids=["{}".format(i) for i in range(6)])
+def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rtol, atol, acc_lib, pars):
+    # go for fairly low precision when we add up many large numbers, we loose precision
+    # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
+
+    Rmin *= au
+    dR *= au
+
+    wle_m = pars['wle_m']
+    dRA = pars['x0_arcsec']
+    dDec = pars['y0_arcsec']
+
+    # generate the samples
+    maxuv_generator = 3e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+    x, _, w = generate_random_vis(nsamples, real_type)
+
+    dist = 126. * pc
+
+    nxy, minuv, maxuv = matrix_size(udat, vdat, maxuv_factor=3.)
+    maxuv /= wle_m
+    duv = maxuv / nxy
+    dxy = dist / maxuv
+
+    # print(nxy, minuv, maxuv, duv, dxy/au)
+    # compute the matrix size and maxuv
+    # nxy, dxy = g_double.get_image_size(dist, udat/wle_m, vdat/wle_m)
+
+    # compute radial profile
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
+
+    # compute the sweeped image for galario sample
+    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
+
+    # we cannot use this now because the output is not C-contiguous
+    # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
+
+    # GPU
+    chi2_chi2Image = acc_lib.chi2(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
+
+    # galario sampleProfile
+    chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
+
+    assert_allclose(chi2_chi2Profile, chi2_chi2Image, rtol=rtol, atol=atol)
+
