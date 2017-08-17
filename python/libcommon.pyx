@@ -8,6 +8,13 @@ np.import_array()
 
 include "galario_config.pxi"
 
+# CONSTANTS
+arcsec = 4.84813681109536e-06       # radians
+CGS_to_Jy = 1e23                    # 1 Jy = 1.0e-23 erg/(s cm^2 Hz)
+pc = 3.0856775815e18                # cm (IAU 2015 Resolution B2)
+au = 1.49597870700e13               # cm (IAU 2012 Resolution B1)
+
+
 IF DOUBLE_PRECISION:
     ctypedef double dreal
     real_dtype = np.float64
@@ -51,28 +58,6 @@ cdef extern from "galario.h":
 cdef extern from "fftw3.h":
     void fftw_free(void*)
 
-# constants
-sec2rad = 1./3600.*np.pi/180.    # from arcsec to radians
-
-def _check_data(data):
-    # assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
-    return True
-
-def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
-    nd = len(fobs_re)
-    assert len(fobs_im) == nd, "Wrong array length: fobs_im."
-    assert len(weights) == nd, "Wrong array length: weights."
-    if fint is not None:
-        assert len(fint) == nd, "Wrong array length: fint."
-    if u is not None:
-        assert len(u) == nd, "Wrong array length: u"
-    if v is not None:
-        assert len(v) == nd, "Wrong array length: v"
-
-
-def _check_uv(u, v):
-    assert len(u) == len(v), "Wrong array length: u, v."
-
 
 cdef class ArrayWrapper:
     """Wrap an array created by `fftw_alloc`"""
@@ -114,6 +99,44 @@ cdef class ArrayWrapper:
         references to the object are gone. """
         print("Deallocating array")
         galario_free(self.data_ptr)
+
+
+
+########################
+## HELPER FUNCTIONS  ##
+########################
+
+def _check_data(data):
+    # assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
+    return True
+
+def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
+    nd = len(fobs_re)
+    assert len(fobs_im) == nd, "Wrong array length: fobs_im."
+    assert len(weights) == nd, "Wrong array length: weights."
+    if fint is not None:
+        assert len(fint) == nd, "Wrong array length: fint."
+    if u is not None:
+        assert len(u) == nd, "Wrong array length: u"
+    if v is not None:
+        assert len(v) == nd, "Wrong array length: v"
+
+
+def _check_uv(u, v):
+    assert len(u) == len(v), "Wrong array length: u, v."
+
+
+def get_image_size(dist, u, v, max_f=4., min_f=3.):
+    """ dist: cm;  u and v in lambda. Returns dxy: same units as dist"""
+    # TODO: review this
+    uvdist = np.hypot(u, v)
+    max_uv = np.max(uvdist)*max_f
+    min_uv = np.min(uvdist)/min_f
+
+    nxy = int(2**np.ceil(np.log2(max_uv/min_uv)))
+    dxy = dist/max_uv
+
+    return nxy, dxy
 
 
 def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
@@ -174,18 +197,6 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
     _galario_sample_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
-
-
-def get_image_size(dist, u, v, max_f=4., min_f=3.):
-    """ dist: cm;  u and v in lambda. Returns dxy: same units as dist"""
-    uvdist = np.hypot(u, v)
-    max_uv = np.max(uvdist)*max_f
-    min_uv = np.min(uvdist)/min_f
-
-    nxy = int(2**np.ceil(np.log2(max_uv/min_uv)))
-    dxy = dist/max_uv
-
-    return nxy, dxy
 
 
 def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, dreal[::1] v, inc=0., dxy=None, nxy=None, duv=None):
@@ -311,8 +322,8 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
     TODO change `fint` name into `vis`
 
     """
-    dRA *= sec2rad
-    dDec *= sec2rad
+    dRA *= arcsec
+    dDec *= arcsec
 
     fint_out = np.copy(fint, order='C')
     _galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(fint_out))
