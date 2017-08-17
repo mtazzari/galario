@@ -10,11 +10,6 @@ import pyfftw
 
 from utils import *
 
-# TODO move to utils.py. Couldn't import after first try
-def unique_part(array):
-    """Extract the unique part of a real-to-complex Fourier transform"""
-    return array[:, 0:int(array.shape[1]/2)+1]
-
 import galario
 
 if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
