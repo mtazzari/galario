@@ -744,12 +744,11 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
     }
 
 }
-// TODO Think of a good naming scheme for `sweep`, a host function that does stuff on the device
 
 /**
  * Allocate memory on device for `ints` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
  */
-void sweep(int nr, const dreal* const ints, dreal** addr_ints_d, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
+void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
 
@@ -758,14 +757,16 @@ void sweep(int nr, const dreal* const ints, dreal** addr_ints_d, dreal Rmin, dre
     CCheck(cudaMemset(*addr_image_d, 0, nbytes));
 
     // transfer intensities
+    dreal* ints_d;
     auto const nbytes_ints = sizeof(dreal)*nr;
-    CCheck(cudaMalloc((void**)addr_ints_d, nbytes_ints));
-    CCheck(cudaMemcpy(*addr_ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc(&ints_d, nbytes_ints));
+    CCheck(cudaMemcpy(ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
 
     // most of the image will stay 0, we only need the kernel on a few pixels near the center
     int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
     auto const nblocks = (2*rmax) / tpb + 1;
-    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, *addr_ints_d, Rmin, dR, nxy, dxy, inc, *addr_image_d);
+    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, nxy, dxy, inc, *addr_image_d);
+    CCheck(cudaDeviceSynchronize());
 
     // central pixel needs special treatment
     auto const value = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
@@ -774,14 +775,20 @@ void sweep(int nr, const dreal* const ints, dreal** addr_ints_d, dreal Rmin, dre
 
 #else
 
-void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
+void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
 
+    // start with zero image
+    auto const ncol = nxy/2+1;
+    auto const nbytes = sizeof(dcomplex)*nxy*ncol;
+    memset(image, 0, nbytes);
+
+    // now sweep
     dreal const cos_inc = cos(inc);
     int const rmax = fmin((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto real_image = reinterpret_cast<dreal*>(image);
-    auto const rowsize = 2*(nxy/2+1);
+    auto const rowsize = 2*ncol;
 
 #pragma omp parallel for
     for (auto i = 0; i < 2*rmax; ++i) {
@@ -797,21 +804,16 @@ void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal cons
 #endif
 
 void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image) {
-    auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
 #ifdef __CUDACC__
-    // arrays allocated inside sweep
-    dreal* ints_d;
+    // image allocated inside sweep
     dcomplex *image_d;
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
-    sweep(nr, ints, &ints_d, Rmin, dR, nxy, dxy, inc, &image_d);
-
-    CCheck(cudaDeviceSynchronize());
+    auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
     CCheck(cudaMemcpy(image, image_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(image_d));
-    CCheck(cudaFree(ints_d));
 #else
-    memset(image, 0, nbytes);
-    sweep_h(nr, ints, Rmin, dR, nxy, dxy, inc, image);
+    create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, image);
 #endif
 }
 
@@ -967,10 +969,8 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
     // fftw_alloc for aligned memory to use SIMD acceleration
     auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
 
-    // ensures data is initialized with zeroes (sweep only modifies the inner part)
-    auto const nbytes = sizeof(dcomplex)*nxy*ncol;
-    memset(data, 0, nbytes);
-    sweep_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
+    // ensures data is initialized with zeroes
+    create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
     // IMPORTANT TODO: @Marco multiply the sweeped image by a_to_jy = (dxy/dist) ** 2. * jy
 
     shift_h(nxy, nxy, data);
