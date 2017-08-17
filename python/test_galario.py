@@ -75,7 +75,7 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
     # plt.clf()
 
     # checks that galario sweep works
-    np.testing.assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
+    assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
 
 
 @pytest.mark.parametrize("Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars",
