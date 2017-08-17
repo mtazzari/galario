@@ -1137,6 +1137,14 @@ void galario_use_gpu(int device_id)
 #endif
 }
 
+#ifdef __CUDACC__
+void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
+    size_t nbytes_ndat = sizeof(dreal)*nd;
+    CCheck(cudaMalloc(addr_x_d, nbytes_ndat));
+    CCheck(cudaMemcpy(*addr_x_d, x, nbytes_ndat, cudaMemcpyHostToDevice));
+}
+#endif
+
 void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
     // TODO turn checks into a reusable function
     assert(nx >= 2);
@@ -1167,16 +1175,9 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
      // Initialization for comparison and chi square computation
      /* allocate and copy observational data */
      dreal *fobs_re_d, *fobs_im_d, *weights_d;
-
-     size_t nbytes_ndat = sizeof(dreal)*nd;
-     CCheck(cudaMalloc(&fobs_re_d, nbytes_ndat));
-     CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_ndat, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&fobs_im_d, nbytes_ndat));
-     CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_ndat, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&weights_d, nbytes_ndat));
-     CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
+     copy_observations_d(nd, fobs_re, &fobs_re_d);
+     copy_observations_d(nd, fobs_im, &fobs_im_d);
+     copy_observations_d(nd, weights, &weights_d);
 
      dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
@@ -1218,5 +1219,50 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
 }
 
 void _galario_chi2(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
-    galario_chi2(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dreal*>(weights), chi2);
+    galario_chi2(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, nd, static_cast<dreal*>(u),
+                 static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im),
+                 static_cast<dreal*>(weights), chi2);
+}
+
+void galario_chi2_profile(int nr, const dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
+                          dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v,
+                          const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
+#ifdef __CUDACC__
+
+     dcomplex *fint_d;
+     int nbytes_fint = sizeof(dcomplex) * nd;
+     CCheck(cudaMalloc(&fint_d, nbytes_fint));
+
+     // Initialization for comparison and chi square computation
+     /* allocate and copy observational data */
+     dreal *fobs_re_d, *fobs_im_d, *weights_d;
+     copy_observations_d(nd, fobs_re, &fobs_re_d);
+     copy_observations_d(nd, fobs_im, &fobs_im_d);
+     copy_observations_d(nd, weights, &weights_d);
+
+     dcomplex *image_d;
+     create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
+
+     sample_d(nxy, nxy, data_d, dRA, dDec, nd, duv, u, v, fint_d);
+     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
+
+     CCheck(cudaFree(fint_d));
+     CCheck(cudaFree(fobs_re_d));
+     CCheck(cudaFree(fobs_im_d));
+     CCheck(cudaFree(weights_d));
+     CCheck(cudaFree(image_d));
+#else
+     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
+     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd, u, v, fint);
+     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
+     free(fint);
+#endif
+}
+
+void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
+                           dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v,
+                           void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+    galario_chi2_profile(nr, static_cast<dreal*>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd,
+                         static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(fobs_re),
+                         static_cast<dreal*>(fobs_im), static_cast<dreal*>(weights), chi2);
 }
