@@ -38,6 +38,12 @@ g_double.use_gpu(max(0, ngpus-1))
 g_double.threads_per_block()
 
 
+# @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
+#                           [(0.1, 3.5, 50, 256, 8.2, 20., 0., 0., 'Gauss', 'float64')],
+#                           ids=["DP_Gauss"])
+# @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
+#                           [(0.1, 3.5, 8, 16, 8.2, 20., 0., 0., 'Gauss', 'float64')],
+#                           ids=["DP_Gauss"])
 @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
                           [(0.1, 3.5, 500, 4096, 8.2, 20., 0., 0., 'Gauss', 'float64'),
                            (2., 0.3, 1000, 4096, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64')],
@@ -52,13 +58,18 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
 
     image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, real_type)
 
-    image_g_sweep_prototype = g_sweep_prototype(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
-
     image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
 
-    # plot cuts - benchmark
+    # plot images
     # import matplotlib.pyplot as plt
     # plt.figure()
+    # plt.matshow(image_sweep_galario)
+    # plt.savefig("./test_intensity_sweep_galario.pdf")
+    # plt.clf()
+    # plt.matshow(image_ref)
+    # plt.savefig("./test_intensity_sweep_ref.pdf")
+
+    # plot cuts - benchmark
     # for line_no in [0, nx//2-1, nx//2, nx//2+1, nx-1]:
     #     imin, imax = nx//2 - 10, nx//2 + 10
     #     # plt.plot(image_ref[line_no, imin:imax], '.-', label=line_no)
@@ -67,9 +78,6 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
     # plt.legend()
     # plt.savefig("./profile_intensity_ref.pdf")
     # plt.clf()
-
-    # checks that the galario sweep prototype gives same results as the reference interpolation
-    np.testing.assert_allclose(image_ref, image_g_sweep_prototype, rtol=1.e-13, atol=1.e-12)
 
     # checks that galario sweep works
     np.testing.assert_allclose(image_g_sweep_prototype, image_sweep_galario, rtol=1.e-13, atol=1.e-12)

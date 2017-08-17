@@ -708,7 +708,7 @@ inline void sweep_core(int const i, int const j, int const nr, const dreal* cons
  * grid stride loop
  */
 #ifdef __CUDACC__
-__global__ void sweep_d(int const nr, const dreal* const ints_d, dreal const Rmin, dreal const dR,
+__global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR,
                         int const nxy, dreal const dxy, dreal const inc,
                         dcomplex* const __restrict__ image) {
 
@@ -728,14 +728,13 @@ __global__ void sweep_d(int const nr, const dreal* const ints_d, dreal const Rmi
 
     for (auto i = x0; i < 2*rmax; i += sx) {
         for (auto j = y0; j < 2*rmax; j += sy) {
-            sweep_core(i, j, nr, ints_d, Rmin, dR, nxy, rowsize, dxy, cos_inc, real_image);
+            sweep_core(i, j, nr, ints, Rmin, dR, nxy, rowsize, dxy, cos_inc, real_image);
         }
     }
 
-    // TODO done by every block
-    // central pixel
-    if (Rmin != 0.)
-        real_image[nxy/2*rowsize+nxy/2] = ints_d[0] + Rmin * (ints_d[0] - ints_d[1]) / dR;
+    // central pixel updated only by 1st thread
+    if (Rmin != 0.0 && x0 == 0 && y0 == 0)
+        real_image[nxy/2*rowsize+nxy/2] = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
 }
 #else
 
@@ -762,17 +761,20 @@ void sweep_h(int const nr, const dreal* const ints, dreal const Rmin, dreal cons
 #endif
 
 void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image) {
+    auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
 #ifdef __CUDACC__
     dcomplex *image_d;
-    auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
     CCheck(cudaMalloc((void**)&image_d, nbytes));
+    CCheck(cudaMemset(image_d, 0, nbytes));
 
     auto const nbytes_ints = sizeof(dreal)*nr;
     dreal* ints_d;
     CCheck(cudaMalloc((void**)&ints_d, nbytes_ints));
     CCheck(cudaMemcpy(ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
 
-    auto const nblocks = nxy / tpb + 1;
+    // most of the image will stay 0, we only need the kernel on a few pixels in the center
+    int const rmax = (int)ceil((Rmin+nr*dR)/dxy);
+    auto const nblocks = (2*rmax) / tpb + 1;
     sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, nxy, dxy, inc, image_d);
 
     CCheck(cudaDeviceSynchronize());
@@ -780,6 +782,7 @@ void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nx
     CCheck(cudaFree(image_d));
     CCheck(cudaFree(ints_d));
 #else
+    memset(image, 0, nbytes);
     sweep_h(nr, ints, Rmin, dR, nxy, dxy, inc, image);
 #endif
 }
