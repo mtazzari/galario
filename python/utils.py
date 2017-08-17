@@ -10,7 +10,7 @@ __all__ = ["radial_profile", "g_sweep_prototype", "sweep_ref", "create_reference
            "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
            "matrix_size", "Fourier_shift_static",
            "Fourier_shift_array", "generate_random_vis",
-           "sec2rad"]
+           "sec2rad", "unique_part", "assert_allclose"]
 
 sec2rad = np.pi/180./3600.  # from arcsec to radians
 jy = 1.e+23                 # flux density  1 Jy = 1.0e-23 erg s cm2 Hz
@@ -320,3 +320,8 @@ def generate_random_vis(nsamples, dtype):
     w /= w.sum()
 
     return x, y, w
+
+
+def unique_part(array):
+    """Extract the unique part of a real-to-complex Fourier transform"""
+    return array[:, 0:int(array.shape[1]/2)+1]
