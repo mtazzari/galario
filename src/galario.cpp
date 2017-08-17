@@ -1243,7 +1243,7 @@ void galario_chi2_profile(int nr, const dreal* const ints, dreal Rmin, dreal dR,
      dcomplex *image_d;
      create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
-     sample_d(nxy, nxy, data_d, dRA, dDec, nd, duv, u, v, fint_d);
+     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, u, v, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
 
      CCheck(cudaFree(fint_d));
