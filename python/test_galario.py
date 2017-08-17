@@ -38,7 +38,7 @@ g_double.threads_per_block()
                           [(0.1, 3.5, 500, 1024, 8.2, 20., 0., 0., 'Gauss', 'float64'),
                            (2., 0.3, 1000, 2048, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64'),
                            (0.1, 3.5, 50, 256, 8.2, 20., 0., 0., 'Gauss', 'float64'),
-                           (0.1, 3.5, 8, 16, 8.2, 20., 0., 0., 'Gauss', 'float64')],
+                           (0.1, 3.5, 1000, 16, 8.2, 20., 0., 0., 'Gauss', 'float64')],
                           ids=["{}".format(i) for i in range(4)])
 def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type):
 
