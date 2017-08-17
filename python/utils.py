@@ -329,6 +329,9 @@ def unique_part(array):
 
 def assert_allclose(x, y, rtol=1e-10, atol=1e-8):
     """Drop in replacement for `numpy.testing.assert_allclose` that shows the nonmatching elements"""
+    if np.isscalar(x) and np.isscalar(y) == 1:
+        return np.testing.assert_allclose(x, y, rtol=rtol, atol=atol)
+
     if x.shape != y.shape:
         raise AssertionError("Shape mismatch: %s vs %s" % (str(x.shape), str(y.shape)))
 
