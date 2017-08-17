@@ -35,7 +35,7 @@ cdef extern from "galario_py.h":
     void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
     void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image)
     void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
-    void _galario_chi2(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+    void _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
     void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
                                dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v,
                                void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
@@ -370,13 +370,13 @@ def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, drea
     return chi2
 
 
-def chi2(dreal[:,::1] data, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
+def chi2Image(dreal[:,::1] data, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
     _check_data(data)
     _check_obs(fobs_re, fobs_im, weights)
 
     cdef dreal chi2
 
-    _galario_chi2(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
 
     return chi2
 
