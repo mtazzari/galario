@@ -275,7 +275,7 @@ def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
     return v_shifted
 
 
-def Fourier_shift_array(u, v, fint, x0, y0):
+def apply_phase_array(u, v, fint, x0, y0):
     """
     Performs a translation in the real space by applying a phase shift in the Fourier space.
     This function applies the shift to data points sampling the Fourier transform of an image.
