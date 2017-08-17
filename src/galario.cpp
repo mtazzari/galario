@@ -886,7 +886,7 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
 /**
  * return result in `fint`
  */
-void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
+void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
     // Initialization for uv_idx and interpolate
     assert(nx >= 2);
 
@@ -930,8 +930,8 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
 #endif
 }
 
-void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint) {
-    galario_sample(nx, ny, static_cast<dreal*>(data), dRA, dDec, duv, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint) {
+    galario_sample_image(nx, ny, static_cast<dreal*>(data), dRA, dDec, duv, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
 
@@ -1208,7 +1208,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 #else
 
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-     galario_sample(nx, ny, realdata, dRA, dDec, duv, nd, u, v, fint);
+     galario_sample_image(nx, ny, realdata, dRA, dDec, duv, nd, u, v, fint);
 
      galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 

@@ -32,7 +32,7 @@ cdef extern from "galario_py.h":
     void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, dreal duv, void* fint)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
-    void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
+    void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
     void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image)
     void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
     void _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
@@ -171,7 +171,7 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
     """
     _check_data(data)
     fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_sample_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
 
