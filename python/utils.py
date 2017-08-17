@@ -151,7 +151,7 @@ def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
     # TODO make this generator smarter
     assert isinstance(nsamples, int)
 
-    minuv = maxuv/3000.  # change to 10000 to have nxy=4096
+    minuv = maxuv/100.  # change to 10000 to have nxy=4096
     np.random.seed(42)
     # columns are non contiguous arrays => copy
     uvdist = np.random.uniform(low=minuv, high=maxuv, size=nsamples)

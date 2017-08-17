@@ -148,11 +148,11 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
 # single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
 @pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
                          # [(1000, 'float32', 'complex64',  1e-3,  1e-4, g_single, par1),
-                          [(100, 'float64', 'complex128', 1e-14, 1e-12, g_double, par1),
+                          [(1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par1),
                           # (1000, 'float32', 'complex64',  1e-3,  1e-3, g_single, par2), ## large x0, y0 induce larger errors
-                          (100, 'float64', 'complex128', 1e-14, 1e-12, g_double, par2),
+                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par2),
                           # (1000, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
-                          (100, 'float64', 'complex128', 1e-14, 1e-12, g_double, par3)],
+                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par3)],
                          ids=["DP_par1",
                               "DP_par2",
                               "DP_par3"])
@@ -171,6 +171,8 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     # compute the matrix size and maxuv
     size, minuv, maxuv = matrix_size(udat/wle_m, vdat/wle_m)
     # size = 2048 size can be freely set (if larger than the minimum size determined by matrix_size)
+    # print(size)
+    du = maxuv/size
 
     # create model image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size, -10., 30., dtype=real_type)
@@ -178,15 +180,9 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 
     # numpy
     fft_c2c_shifted = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image.copy())))
-    # fft_r2c_shifted = np.fft.fftshift(np.fft.rfft2(np.fft.fftshift(reference_image.copy())), axes=0)
 
     # CPU version
-    # pyfftw
-    # pyfftw.empty_aligned((size, size), dtype='float64')
     fft_r2c_shifted =  np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(reference_image)), axes=0)
-    # tests pass also using pyfftw
-
-    du = maxuv/size
 
     # C2C
     uroti_old, vroti_old = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
