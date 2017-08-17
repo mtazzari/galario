@@ -457,7 +457,7 @@ def test_chi2Image(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars)
     chi2_ref = np.sum(((fint_shifted.real - x.real)**2. + (fint_shifted.imag - x.imag)**2.) * w)
 
     # GPU
-    chi2_cuda = acc_lib.chi2(ref_real, x0_arcsec, y0_arcsec,
+    chi2_cuda = acc_lib.chi2Image(ref_real, x0_arcsec, y0_arcsec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
@@ -566,7 +566,7 @@ def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rto
     # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
 
     # GPU
-    chi2_chi2Image = acc_lib.chi2(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
+    chi2_chi2Image = acc_lib.chi2Image(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     # galario sampleProfile
     chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)

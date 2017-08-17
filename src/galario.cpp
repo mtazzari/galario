@@ -1145,7 +1145,7 @@ void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
 }
 #endif
 
-void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
+void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
     // TODO turn checks into a reusable function
     assert(nx >= 2);
     assert(ny >= 2);
@@ -1218,8 +1218,8 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
 
 }
 
-void _galario_chi2(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
-    galario_chi2(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, nd, static_cast<dreal*>(u),
+void _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+    galario_chi2_image(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, nd, static_cast<dreal*>(u),
                  static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im),
                  static_cast<dreal*>(weights), chi2);
 }
