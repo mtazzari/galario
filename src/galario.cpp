@@ -939,7 +939,7 @@ void _galario_sample(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal du
  * return result in `fint`
  *
  */
-void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
+void galario_sample_profile(int nr, const dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
                            dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     assert(nxy >= 2);
 
@@ -993,8 +993,8 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
 }
 
 
-void _galario_sampleProfile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint) {
-    galario_sampleProfile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd,
+void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint) {
+    galario_sample_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd,
                           static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dcomplex *>(fint));
 }
 

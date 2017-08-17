@@ -82,7 +82,7 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
                           [(0.1, 1., 500, 20., 'Gauss', 'float64', int(100), 1e-12, 1e-12, par1),
                            (2., 0.3, 200, 0., 'Cos-Gauss', 'float64', int(100), 1e-12, 1e-12, par1)],
                           ids=["DP_Gauss", "DP_Cos-Gauss"])
-def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars):
+def test_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars):
 
     pc = 3.1e18  # cm
     au = 1.49e13  # cm
