@@ -153,7 +153,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
 
     // create destination array
     dcomplex *data_d;
-    CCheck(cudaMalloc((void**)&data_d, sizeof(dcomplex)*nx*ncol));
+    CCheck(cudaMalloc(&data_d, sizeof(dcomplex)*nx*ncol));
 
     // set the padding by defining different sizes of a row in bytes
     CCheck(cudaMemcpy2D(data_d, rowsize_complex, realdata, rowsize_real, rowsize_real, nx, cudaMemcpyHostToDevice));
@@ -241,7 +241,7 @@ void galario_fft2d(int nx, int ny, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2 + 1);
-    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMalloc(&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
     fft_d(nx, ny, data_d);
 
@@ -337,7 +337,7 @@ void galario_fftshift(int nx, int ny, dcomplex* data) {
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2+1);
-    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMalloc(&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
     shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
@@ -413,7 +413,7 @@ void galario_fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
 #ifdef __CUDACC__
     dcomplex *matrix_d;
     size_t nbytes = sizeof(dcomplex)*nrow*ncol;
-    CCheck(cudaMalloc((void**)&matrix_d, nbytes));
+    CCheck(cudaMalloc(&matrix_d, nbytes));
     CCheck(cudaMemcpy(matrix_d, matrix, nbytes, cudaMemcpyHostToDevice));
 
     shift_axis0_d<<<dim3(nrow/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nrow, ncol, matrix_d);
@@ -550,7 +550,7 @@ void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const
     // copy the image data
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nrow*ncol;
-    CCheck(cudaMalloc((void**)&data_d, nbytes));
+    CCheck(cudaMalloc(&data_d, nbytes));
     CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
 
     // copy u,v and reserve memory for the interpolated values
@@ -558,14 +558,14 @@ void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const
     dcomplex *fint_d;
     size_t nbytes_nd = sizeof(dreal)*nd;
 
-    CCheck(cudaMalloc((void**)&u_d, nbytes_nd));
+    CCheck(cudaMalloc(&u_d, nbytes_nd));
     CCheck(cudaMemcpy(u_d, u, nbytes_nd, cudaMemcpyHostToDevice));
 
-    CCheck(cudaMalloc((void**)&v_d, nbytes_nd));
+    CCheck(cudaMalloc(&v_d, nbytes_nd));
     CCheck(cudaMemcpy(v_d, v, nbytes_nd, cudaMemcpyHostToDevice));
 
     int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+    CCheck(cudaMalloc(&fint_d, nbytes_fint));
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
     auto const nthreads = tpb * tpb;
@@ -651,13 +651,13 @@ void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const drea
      dreal *u_d, *v_d;
      dcomplex *fint_d;
 
-     CCheck(cudaMalloc((void**)&u_d, nbytes_d_dreal));
+     CCheck(cudaMalloc(&u_d, nbytes_d_dreal));
      CCheck(cudaMemcpy(u_d, u, nbytes_d_dreal, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&v_d, nbytes_d_dreal));
+     CCheck(cudaMalloc(&v_d, nbytes_d_dreal));
      CCheck(cudaMemcpy(v_d, v, nbytes_d_dreal, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&fint_d, nbytes_d_complex));
+     CCheck(cudaMalloc(&fint_d, nbytes_d_complex));
      CCheck(cudaMemcpy(fint_d, fint, nbytes_d_complex, cudaMemcpyHostToDevice));
 
      auto const nthreads = tpb * tpb;
@@ -753,7 +753,7 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
 
     // start with a zero image
-    CCheck(cudaMalloc((void**)addr_image_d, nbytes));
+    CCheck(cudaMalloc(addr_image_d, nbytes));
     CCheck(cudaMemset(*addr_image_d, 0, nbytes));
 
     // transfer intensities
@@ -841,9 +841,9 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     dreal *u_d, *v_d;
     size_t nbytes_ndat = sizeof(dreal)*nd;
 
-    CCheck(cudaMalloc((void**)&u_d, nbytes_ndat));
+    CCheck(cudaMalloc(&u_d, nbytes_ndat));
     CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
-    CCheck(cudaMalloc((void**)&v_d, nbytes_ndat));
+    CCheck(cudaMalloc(&v_d, nbytes_ndat));
     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
 
     // TODO turn into a function. Don't duplicate
@@ -889,7 +889,7 @@ void galario_sample(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec
 #ifdef __CUDACC__
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+    CCheck(cudaMalloc(&fint_d, nbytes_fint));
 
     dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
@@ -944,13 +944,13 @@ void galario_sampleProfile(int nr, const dreal* const ints, dreal Rmin, dreal dR
 #ifdef __CUDACC__
     dcomplex *image_d;
     size_t nbytes = sizeof(dcomplex)*nxy*ncol;
-    CCheck(cudaMalloc((void**)&image_d, nbytes));
+    CCheck(cudaMalloc(&image_d, nbytes));
 
     sweep_d<<<dim3(nxy/tpb+1, nxy/tpb+1), dim3(tpb, tpb)>>>(nr, ints, Rmin, dR, nxy, dxy, inc, image_d);
 
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+    CCheck(cudaMalloc(&fint_d, nbytes_fint));
 
     // do the actual computation
     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, u, v, fint_d);
@@ -1068,22 +1068,22 @@ void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dco
      dreal *fobs_re_d, *fobs_im_d, *weights_d;
      size_t nbytes_nd = sizeof(dreal)*nd;
 
-     CCheck(cudaMalloc((void**)&fobs_re_d, nbytes_nd));
+     CCheck(cudaMalloc(&fobs_re_d, nbytes_nd));
      CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_nd, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&fobs_im_d, nbytes_nd));
+     CCheck(cudaMalloc(&fobs_im_d, nbytes_nd));
      CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_nd, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&weights_d, nbytes_nd));
+     CCheck(cudaMalloc(&weights_d, nbytes_nd));
      CCheck(cudaMemcpy(weights_d, weights, nbytes_nd, cudaMemcpyHostToDevice));
 
      dreal *chi2_d;
      size_t nbytes_chi2 = sizeof(dreal);
-     CCheck(cudaMalloc((void**)&chi2_d, nbytes_chi2));
+     CCheck(cudaMalloc(&chi2_d, nbytes_chi2));
 
      dcomplex* fint_d;
      size_t nbytes_fint = sizeof(dcomplex) * nd;
-     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+     CCheck(cudaMalloc(&fint_d, nbytes_fint));
      CCheck(cudaMemcpy(fint_d, fint, nbytes_fint, cudaMemcpyHostToDevice));
 
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
@@ -1159,20 +1159,20 @@ void galario_chi2(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
      // reserve memory for the interpolated values
      dcomplex *fint_d;
      int nbytes_fint = sizeof(dcomplex) * nd;
-     CCheck(cudaMalloc((void**)&fint_d, nbytes_fint));
+     CCheck(cudaMalloc(&fint_d, nbytes_fint));
 
      // Initialization for comparison and chi square computation
      /* allocate and copy observational data */
      dreal *fobs_re_d, *fobs_im_d, *weights_d;
 
      size_t nbytes_ndat = sizeof(dreal)*nd;
-     CCheck(cudaMalloc((void**)&fobs_re_d, nbytes_ndat));
+     CCheck(cudaMalloc(&fobs_re_d, nbytes_ndat));
      CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_ndat, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&fobs_im_d, nbytes_ndat));
+     CCheck(cudaMalloc(&fobs_im_d, nbytes_ndat));
      CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_ndat, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc((void**)&weights_d, nbytes_ndat));
+     CCheck(cudaMalloc(&weights_d, nbytes_ndat));
      CCheck(cudaMemcpy(weights_d, weights, nbytes_ndat, cudaMemcpyHostToDevice));
 
      dcomplex* data_d = copy_input_d(nx, ny, realdata);
