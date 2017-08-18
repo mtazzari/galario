@@ -13,7 +13,7 @@ void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, 
                            dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v,
                            void* fobs_re, void* fobs_im, void* weights, dreal* chi2);
 void _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2);
-void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image);
+void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image);
 
 /* Interface for the experts */
 void* _galario_copy_input(int nx, int ny, void* realdata);

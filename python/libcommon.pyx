@@ -40,7 +40,7 @@ cdef extern from "galario_py.h":
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
     void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
-    void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image)
+    void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image)
     void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
     void _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
     void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
@@ -274,20 +274,57 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
 
     return fint
 
-def sweep(dreal[::1] ints, Rmin, dR, nxy, dxy, inc):
-    """
-    sweep
 
-    Remove last column(s) for a (nx, nxy) image
+def sweep(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc=0.):
+    """
+    Create a 2D surface brightness image from an axisymmetric brightness profile.
+
+    The brightness profile `ints` is assumed to be sampled on a linear radial grid
+    starting at `Rmin` with spacing `dR`. The output matrix has shape `(nx, nx)`.
+    It is assumed the astronomical convention of x-axis increasing from right (West)
+    to left (East) and y-axis increasing from bottom (South) to top (North).
+
+    Parameters
+    ----------
+    ints : array_like, float
+        Brightness profile.
+        units: Jy/sr
+    Rmin : float
+        Inner edge of the radial grid, i.e. the radius where the brightness is ints[0].
+        units: cm
+    dR : float
+        Cell size of the radial grid, assumed linear.
+        units: cm
+    nxy : int
+        Side of the output image.
+        units: pixel
+    dxy : float
+        Cell size of the image.
+        units: cm
+    dist : float
+        Distance to the object.
+        units: cm
+    inc : float, optional
+        Inclination of the image plane along a North-South (top-bottom) axis.
+        inc=0. is face-on, inc=90. is edge-on.
+        units: degree
+
+    Returns
+    -------
+    image : ndarray of shape (nx, nx), float
+        Image of the surface brightness.
+        units: Jy/pixel
 
     """
+    assert Rmin < dxy, "For the interpolation algorithm, Rmin must be smaller than dxy. " \
+                       "Currently Rmin={}\t dxy={}".format(Rmin, dxy)
     image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
-    _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
+    _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nxy, dxy, dist, inc, <void*>np.PyArray_DATA(image))
 
-    # skip last two padding columns
     # TODO @Fred: image.view(dtype=real_dtype)[:, :-2] is *not* C-Continuous.
     # ensuring the output of sweep is C-contiguous allowes users to use it in sampleImage()
     return  image.view(dtype=real_dtype)[:, :-2]
+
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
     """

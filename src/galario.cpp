@@ -807,7 +807,27 @@ void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dre
 }
 #endif
 
-void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image) {
+/**
+ * Convert intensities from Jy/steradians to Jy/pixels.
+ * The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
+ * Instead of multiplying every image pixel by the conversion factor during the sweeping,
+ * we multiply the intensity profile in advance.
+ * This assumes that the intensity profile is not used after the image creation with sweep.
+ */
+void convert_intensity(const int nr, dreal* const ints, const dreal dxy, const dreal dist) {
+
+    dreal const sr_to_px = dxy*dxy/(dist*dist);
+
+#pragma omp parallel for
+    for (auto j = 0; j < nr; ++j) {
+        ints[j] *= sr_to_px;
+    }
+}
+
+void galario_sweep(int nr, dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex* image) {
+
+    convert_intensity(nr, ints, dxy, dist);
+
 #ifdef __CUDACC__
     // image allocated inside sweep
     dcomplex *image_d;
@@ -821,8 +841,8 @@ void galario_sweep(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nx
 #endif
 }
 
-void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image) {
-    galario_sweep(nr, static_cast<dreal*>(ints), Rmin, dR, nxy, dxy, inc, static_cast<dcomplex*>(image));
+void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image) {
+    galario_sweep(nr, static_cast<dreal*>(ints), Rmin, dR, nxy, dxy, dist, inc, static_cast<dcomplex*>(image));
 }
 
 #ifdef __CUDACC__
@@ -939,9 +959,12 @@ void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dr
  * return result in `fint`
  *
  */
-void galario_sample_profile(int nr, const dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
+void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
                            dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     assert(nxy >= 2);
+
+    // from steradians to pixels
+    convert_intensity(nr, ints, dxy, dist);
 
 #ifdef __CUDACC__
     dcomplex *image_d;
@@ -972,7 +995,7 @@ void galario_sample_profile(int nr, const dreal* const ints, dreal Rmin, dreal d
     // fftw_alloc for aligned memory to use SIMD acceleration
     auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
 
-    // ensures data is initialized with zeroes
+    // ensure data is initialized with zeroes
     create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
     // IMPORTANT TODO: @Marco multiply the sweeped image by a_to_jy = (dxy/dist) ** 2. * CGS_to_Jy
 
@@ -1224,7 +1247,7 @@ void _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, 
                  static_cast<dreal*>(weights), chi2);
 }
 
-void galario_chi2_profile(int nr, const dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
+void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
                           dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v,
                           const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
 #ifdef __CUDACC__
@@ -1239,6 +1262,9 @@ void galario_chi2_profile(int nr, const dreal* const ints, dreal Rmin, dreal dR,
      copy_observations_d(nd, fobs_re, &fobs_re_d);
      copy_observations_d(nd, fobs_im, &fobs_im_d);
      copy_observations_d(nd, weights, &weights_d);
+
+     // from steradians to pixels
+     convert_intensity(nr, ints, dxy, dist);
 
      dcomplex *image_d;
      create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
