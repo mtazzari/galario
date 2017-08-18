@@ -13,6 +13,8 @@ import sys
 
 from utils import generate_random_vis, create_reference_image, create_sampling_points
 import galario
+from galario import au, pc, CGS_to_Jy
+from utils import *
 
 import optparse
 p = optparse.OptionParser()
@@ -34,7 +36,8 @@ p.add_option("--output", action="store", dest="output", default="",
              help="Name of output file")
 p.add_option("--output_header", action="store_true", dest="output_header",
              help="Only create output file and print header, then quit.")
-
+p.add_option("--image", action="store_true", default=False,
+             help="If True computes from Image, else computes from profile.")
 
 (options, args) = p.parse_args()
 
@@ -85,6 +88,42 @@ def setup_chi2(size, nsamples):
     return ref_image, dRA, dDec, maxuv, udat, vdat, x.real.copy(), x.imag.copy(), w
 
 
+def setup_sampleProfile(size, nsamples):
+
+    pars = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88., 'nxy': 4096}
+    Rmin, dR, nrad, inc, profile_mode, real_type = 0.1, 1., 500, 20., 'Gauss', 'float64'
+    Rmin *= au
+    dR *= au
+
+    wle_m = pars['wle_m']
+    dRA = pars['dRA']
+    dDec = pars['dDec']
+    PA = pars['PA']
+
+    # generate the samples
+    maxuv_generator = 3e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+    x, _, w = generate_random_vis(nsamples, real_type)
+
+    dist = 126. * pc
+
+    nxy, minuv, maxuv = matrix_size(udat, vdat, maxuv_factor=3.)
+    maxuv /= wle_m
+    duv = maxuv / nxy
+    dxy = dist / maxuv
+
+    # print(nxy, minuv, maxuv, duv, dxy/au)
+    # compute the matrix size and maxuv
+    # nxy, dxy = g_double.get_image_size(dist, udat/wle_m, vdat/wle_m)
+
+    # compute radial profile
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
+
+    # compute the sweeped image for galario sample
+    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
+    
+    return ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w
+
 if __name__ == '__main__':
     str_headers = "\t".join(["size", "nsamples", "real", "OMP", "tpb", "Ttot", "Tavg", "Tstd", "Tmin"])
     if options.output_header:
@@ -96,6 +135,7 @@ if __name__ == '__main__':
     nsamples = int(1e6)
 
     input_chi2 = setup_chi2(size, nsamples)
+    input_chi2Profile = setup_sampleProfile(size, nsamples)
 
     if not options.TIMING:
         input_sample = setup_sample(size, nsamples)
@@ -109,8 +149,12 @@ if __name__ == '__main__':
 
         cycles = options.cycles
         number = 1
-        t = timeit.Timer('from __main__ import setup_chi2, input_chi2, acc_lib; acc_lib.chi2Image(*input_chi2)')
 
+        if options.image:
+            t = timeit.Timer('from __main__ import input_chi2, acc_lib; acc_lib.chi2Image(*input_chi2)')
+        else:
+            t = timeit.Timer('from __main__ import input_chi2Profile, acc_lib; acc_lib.chi2Profile(*input_chi2Profile)')
+            
         if options.output:
             filename = options.output
         else:

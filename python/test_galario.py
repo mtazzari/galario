@@ -30,7 +30,7 @@ par4 = {'wle_m': 0.00088, 'dRA': 0., 'dDec': 0., 'PA': 145., 'nxy': 1024}
 # use last gpu if available. Check `watch -n 0.1 nvidia-smi` to see which gpu is
 # used during test execution.
 ngpus = g_double.ngpus()
-g_double.use_gpu(max(0, ngpus-1))
+g_double.use_gpu(0) #max(0, ngpus-1))
 
 g_double.threads_per_block()
 
