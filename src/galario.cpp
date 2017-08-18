@@ -920,6 +920,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
  * Allocate memory on device for `ints` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
  */
 void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
+    GpuTimer t;
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
 
@@ -945,13 +946,17 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
 
     CCheck(cudaFree(ints_d));
+    t.Elapsed("create_image");
 }
 
 #else
 
 void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
-
+    double start_sample = 0;
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    start_sample = omp_get_wtime();
+#endif
     // start with zero image
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
@@ -973,6 +978,8 @@ void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dre
     // central pixel
     if (Rmin != 0.)
         real_image[nxy/2*rowsize+nxy/2] = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
+
+    print_timing("create_image", start);
 }
 #endif
 
@@ -1052,26 +1059,27 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     // ################################
     // ########### KERNELS ############
     // ################################
+    GpuTimer t;
     // rotate uv points
      if (PA==0) {
         dRArot = dRA;
         dDecrot = dDec;
         cudaMemcpy(urot_d, u_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
         cudaMemcpy(vrot_d, v_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
+        t.Elapsed("copy uvrot D->D");
      } else {
         const dreal cos_PA = cos(PA);
         const dreal sin_PA = sin(PA);
 
         uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
         uv_rotate_core(cos_PA, sin_PA, dRA, dDec, dRArot, dDecrot);
+        t.Elapsed("rotate");
      }
-     CCheck(cudaDeviceSynchronize());
 
     // Kernel for shift --> FFT --> shift
     shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d); t.Elapsed("shift");
     fft_d(nx, ny, (dcomplex*) data_d); t.Elapsed("fft");
     shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d); t.Elapsed("shift axis0");
-    // CCheck(cudaDeviceSynchronize());
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
     interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d, vrot_d, duv, fint_d); t.Elapsed("interpolate");
