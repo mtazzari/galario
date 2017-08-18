@@ -695,23 +695,15 @@ inline void uv_rotate_core(dreal cos_PA, dreal sin_PA, const dreal u, const drea
 }
 
 #ifdef __CUDACC__
-__global__ void uv_rotate_d(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* __restrict__ fint) {
-    // TODO implement
-    if ((dRA==0) || (dDec==0)) {
-        return;
-    }
-
-    dRA *= 2.*(dreal)M_PI;
-    dDec *= 2.*(dreal)M_PI;
-
+__global__ void uv_rotate_d(dreal cos_PA, dreal sin_PA, int const nd, const dreal* const u, const dreal* const v, dreal* const urot, dreal* vrot) {
     //index
     int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
 
     // stride
     int const sx = blockDim.x * gridDim.x;
 
-    for (auto x = idx_x0; x < nd; x += sx) {
-        apply_phase_sampled_core(x, u, v, fint, dRA, dDec);
+    for (auto i = idx_x0; i < nd; i += sx) {
+        uv_rotate_core(cos_PA, sin_PA, u[i], v[i], urot[i], vrot[i]);
     }
 }
 #else
@@ -735,9 +727,8 @@ void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot,
         uv_rotate_core(cos_PA, sin_PA, u[i], v[i], urot[i], vrot[i]);
     }
 
-    // can't we use uv_rotate_core?
-    *dRArot = dRA * cos_PA - dDec * sin_PA;
-    *dDecrot = dRA * sin_PA + dDec * cos_PA;
+    uv_rotate_core(cos_PA, sin_PA, dRA, dDec, *dRArot, *dDecrot);
+
 
 }
 #endif
@@ -745,13 +736,9 @@ void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot,
 void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
                        dreal* const urot, dreal* const vrot) {
 #ifdef __CUDACC__
-    // TODO implement
-
-     size_t nbytes_d_complex = sizeof(dcomplex)*nd;
      size_t nbytes_d_dreal = sizeof(dreal)*nd;
 
-     dreal *u_d, *v_d;
-     dcomplex *fint_d;
+     dreal *u_d, *v_d, *urot_d, *vrot_d;
 
      CCheck(cudaMalloc(&u_d, nbytes_d_dreal));
      CCheck(cudaMemcpy(u_d, u, nbytes_d_dreal, cudaMemcpyHostToDevice));
@@ -759,17 +746,29 @@ void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dD
      CCheck(cudaMalloc(&v_d, nbytes_d_dreal));
      CCheck(cudaMemcpy(v_d, v, nbytes_d_dreal, cudaMemcpyHostToDevice));
 
-     CCheck(cudaMalloc(&fint_d, nbytes_d_complex));
-     CCheck(cudaMemcpy(fint_d, fint, nbytes_d_complex, cudaMemcpyHostToDevice));
+     CCheck(cudaMalloc(&urot_d, nbytes_d_dreal));
+     CCheck(cudaMalloc(&vrot_d, nbytes_d_dreal));
 
-     auto const nthreads = tpb * tpb;
-     apply_phase_sampled_d<<<nd/nthreads+1, nthreads>>>(dRA, dDec, nd, u_d, v_d, fint_d);
-
+     if (PA==0) {
+        *dRArot = dRA;
+        *dDecrot = dDec;
+        cudaMemcpy(urot_d, u_d, nbytes_d_dreal, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(vrot_d, v_d, nbytes_d_dreal, cudaMemcpyDeviceToDevice);
+     } else {
+        const dreal cos_PA = cos(PA);
+        const dreal sin_PA = sin(PA);
+        
+        auto const nthreads = tpb * tpb;
+        uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
+        uv_rotate_core(cos_PA, sin_PA, dRA, dDec, *dRArot, *dDecrot);
+     }
      CCheck(cudaDeviceSynchronize());
-     CCheck(cudaMemcpy(fint, fint_d, nbytes_d_complex, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(fint_d));
+     CCheck(cudaMemcpy(urot, urot_d, nbytes_d_dreal, cudaMemcpyDeviceToHost));
+     CCheck(cudaMemcpy(vrot, vrot_d, nbytes_d_dreal, cudaMemcpyDeviceToHost));
      CCheck(cudaFree(v_d));
      CCheck(cudaFree(u_d));
+     CCheck(cudaFree(vrot_d));
+     CCheck(cudaFree(urot_d));
 #else
     uv_rotate_h(PA, dRA, dDec, dRArot, dDecrot, nd, u, v, urot, vrot);
 #endif
@@ -948,8 +947,15 @@ void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy
 }
 
 #ifdef __CUDACC__
-inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal duv, const dreal* u, const dreal* v, dcomplex* fint_d)
+inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
+    // TODO turn into a function. Don't duplicate
+    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
+    dRA *= arcsec;
+    dDec *= arcsec;
+    int const ncol = ny/2+1;
+
+
     // ################################
     // ### ALLOCATION, INITIALIZATION ###
     // ################################
@@ -964,42 +970,57 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
        draw dependencies on paper: first thing is to do fft while other data is transferred
     */
 
-    dreal *u_d, *v_d;
+    dreal *u_d, *v_d, *urot_d, *vrot_d;
     size_t nbytes_ndat = sizeof(dreal)*nd;
 
     CCheck(cudaMalloc(&u_d, nbytes_ndat));
     CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
     CCheck(cudaMalloc(&v_d, nbytes_ndat));
     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
+    CCheck(cudaMalloc(&urot_d, nbytes_ndat));
+    CCheck(cudaMalloc(&vrot_d, nbytes_ndat));
 
-    // TODO turn into a function. Don't duplicate
-    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec;
-    dDec *= arcsec;
-    int const ncol = ny/2+1;
+    auto const nthreads = tpb * tpb;
+    dreal dRArot = 0.;
+    dreal dDecrot = 0.;
 
     // ################################
     // ########### KERNELS ############
     // ################################
+    // rotate uv points
+     if (PA==0) {
+        dRArot = dRA;
+        dDecrot = dDec;
+        cudaMemcpy(urot_d, u_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(vrot_d, v_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
+     } else {
+        const dreal cos_PA = cos(PA);
+        const dreal sin_PA = sin(PA);
+        
+        uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
+        uv_rotate_core(cos_PA, sin_PA, dRA, dDec, dRArot, dDecrot);
+     }
+     CCheck(cudaDeviceSynchronize());
+
     // Kernel for shift --> FFT --> shift
     shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
     fft_d(nx, ny, (dcomplex*) data_d);
     shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d);
     CCheck(cudaDeviceSynchronize());
 
-    auto const nthreads = tpb * tpb;
-
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, u_d, v_d, duv, fint_d);
+    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d, vrot_d, duv, fint_d);
 
     // apply phase to the sampled points
-    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRArot, dDecrot, nd, urot_d, vrot_d, fint_d);
 
     // ################################
     // ########### CLEANUP ############
     // ################################
     CCheck(cudaFree(u_d));
     CCheck(cudaFree(v_d));
+    CCheck(cudaFree(vrot_d));
+    CCheck(cudaFree(urot_d));
 }
 
 #endif
@@ -1021,7 +1042,7 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
     // do the actual computation
-    sample_d(nx, ny, data_d, dRA, dDec, nd, duv, u, v, fint_d);
+    sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
 
     // retrieve interpolated values
     CCheck(cudaDeviceSynchronize());
@@ -1088,7 +1109,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     CCheck(cudaMalloc(&fint_d, nbytes_fint));
 
     // do the actual computation
-    sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, u, v, fint_d);
+    sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
 
     // retrieve interpolated values
     CCheck(cudaDeviceSynchronize());
@@ -1322,7 +1343,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 
      dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
-     sample_d(nx, ny, data_d, dRA, dDec, nd, duv, u, v, fint_d);
+     sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
      // ################################
      // ########### CLEANUP ############
@@ -1387,7 +1408,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
      dcomplex *image_d;
      create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
-     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, u, v, fint_d);
+     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
 
      CCheck(cudaFree(fint_d));
