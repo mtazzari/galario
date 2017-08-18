@@ -937,8 +937,7 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     auto const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto const nblocks = (2*rmax) / tpb + 1;
-    // sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, *addr_image_d);
-    sweep_d<<<1,1>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, *addr_image_d);
+    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, *addr_image_d);
     CCheck(cudaDeviceSynchronize());
 
     // central pixel needs special treatment
