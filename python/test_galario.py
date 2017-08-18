@@ -47,9 +47,10 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
 
     nrow, ncol = nxy, nxy
 
-    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, real_type)
+    dist = 150.
+    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx, Dy, real_type)
 
-    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
+    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi)
 
     # plot images
     # import matplotlib.pyplot as plt
@@ -495,7 +496,7 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
 
     # compute the sweeped image for galario sample
-    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
+    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
 
     # we cannot use this now because the output is not C-contiguous
     # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
@@ -560,7 +561,7 @@ def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rto
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
 
     # compute the sweeped image for galario sample
-    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
+    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
 
     # we cannot use this now because the output is not C-contiguous
     # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)

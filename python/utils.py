@@ -30,7 +30,7 @@ def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_wid
     return ints
 
 
-def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
+def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, dist, inc, dtype_image='float64'):
     """ Prototype of the sweep function for galario. """
     assert Rmin <= dxy, "Rmin must be smaller or equal than dxy"
     image = np.zeros((nrow, ncol), dtype=dtype_image)
@@ -61,10 +61,13 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     if Rmin != 0.:
         image[irow_center, icol_center] = I[0] + Rmin * (I[0] - I[1]) / dR
 
+    sr_to_px = (dxy/dist)**2.
+    image *= sr_to_px
+
     return image
 
 
-def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='float64'):
+def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx, Dy, dtype_image='float64'):
     """
     Compute the intensity map (i.e. the image) given the radial profile I(R)=ints.
     We assume an axisymmetric profile.
@@ -115,7 +118,8 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx, Dy, dtype_image='float64'):
     intensmap[int(nrow/2), int(ncol/2)] = f_center(0.)
 
     # convert to Jansky
-    # intensmap *= self.a_to_jy
+    sr_to_px = (dxy/dist)**2.
+    intensmap *= sr_to_px
 
     return intensmap.astype(dtype_image)
 
