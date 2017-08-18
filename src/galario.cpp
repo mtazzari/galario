@@ -1368,13 +1368,12 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
      printf("The total time to free memory in chi2 is %.3f ms", elapsed);
      */
 #else
-
-     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
+     auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd));
      galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
 
      galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
-     free(fint);
+     galario_free(fint);
 
 #endif
 
