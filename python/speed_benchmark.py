@@ -100,16 +100,16 @@ if __name__ == '__main__':
     if not options.TIMING:
         input_sample = setup_sample(size, nsamples)
 
-        acc_lib.sample(*input_sample)
+        acc_lib.sampleImage(*input_sample)
 
-        acc_lib.chi2(*input_chi2)
+        acc_lib.chi2Image(*input_chi2)
 
     else:
         omp_num_threads = os.environ.get('OMP_NUM_THREADS', 1)
 
         cycles = options.cycles
         number = 1
-        t = timeit.Timer('from __main__ import setup_chi2, input_chi2, acc_lib; acc_lib.chi2(*input_chi2)')
+        t = timeit.Timer('from __main__ import setup_chi2, input_chi2, acc_lib; acc_lib.chi2Image(*input_chi2)')
 
         if options.output:
             filename = options.output
