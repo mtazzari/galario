@@ -949,12 +949,7 @@ void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy
 #ifdef __CUDACC__
 inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
-    // TODO turn into a function. Don't duplicate
-    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec;
-    dDec *= arcsec;
     int const ncol = ny/2+1;
-
 
     // ################################
     // ### ALLOCATION, INITIALIZATION ###
@@ -1051,10 +1046,6 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(data_d));
 #else
-    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec;
-    dDec *= arcsec;
-
     auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
     auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
     dreal dRArot;
@@ -1118,10 +1109,6 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(image_d));
 #else
-    const dreal arcsec = (dreal)M_PI / 3600. / 180.;
-    dRA *= arcsec;
-    dDec *= arcsec;
-
     auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
     auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
     dreal dRArot;

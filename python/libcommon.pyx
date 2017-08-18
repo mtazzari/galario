@@ -10,6 +10,7 @@ include "galario_config.pxi"
 
 # CONSTANTS
 arcsec = 4.84813681109536e-06       # radians
+deg = 0.017453292519943295          # radians
 CGS_to_Jy = 1e23                    # 1 Jy = 1.0e-23 erg/(s cm^2 Hz)
 pc = 3.0856775815e18                # cm (IAU 2015 Resolution B2)
 au = 1.49597870700e13               # cm (IAU 2012 Resolution B1)
@@ -33,21 +34,21 @@ ELSE:
 
 cdef extern from "galario_py.h":
     # Main user functions
-    void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint)
-    void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint)
-    void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
-    void _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+    void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
+    void _galario_sample_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
+    void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* vis_obs_w, dreal* chi2)
+    void _galario_chi2_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* vis_obs_w, dreal* chi2)
     void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image)
     void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* u, void* v, void* urot, void* vrot)
 
     # Interface for the experts
-    void* _galario_copy_input(int nx, int ny, void* realdata);
-    void* _galario_fft2d(int nx, int ny, void* data)
-    void _galario_fftshift(int nx, int ny, void* data)
-    void _galario_fftshift_axis0(int nx, int ny, void* data);
-    void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, dreal duv, void* fint)
-    void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
-    void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
+    void* _galario_copy_input(int nx, int ny, void* realimage);
+    void* _galario_fft2d(int nx, int ny, void* image)
+    void _galario_fftshift(int nx, int ny, void* image)
+    void _galario_fftshift_axis0(int nx, int ny, void* image);
+    void _galario_interpolate(int nx, int ncol, void* image, int nd, void* u, void* v, dreal duv, void* vis)
+    void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* vis)
+    void _galario_reduce_chi2(int nd, void* vis_obs_re, void* vis_obs_im, void* vis, void* vis_obs_w, dreal* chi2)
 
 cdef extern from "galario.h":
     int  galario_threads_per_block(int num);
@@ -108,19 +109,22 @@ cdef class ArrayWrapper:
 ## HELPER FUNCTIONS  ##
 ########################
 
-def _check_data(data):
-    # assert data.shape[0] == data.shape[1], "Expect a square image but got shape %s" % data.shape
+def _check_image(image):
+    nx, ny = image.shape
+    assert nx == ny, "Expect a square image but got shape {}".format(image.shape)
+    assert nx % 2 == 0
+
     return True
 
-def _check_obs(fobs_re, fobs_im, weights, fint=None, u=None, v=None):
-    nd = len(fobs_re)
-    assert len(fobs_im) == nd, "Wrong array length: fobs_im."
-    assert len(weights) == nd, "Wrong array length: weights."
-    if fint is not None:
-        assert len(fint) == nd, "Wrong array length: fint."
-    if u is not None:
+def _check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis=None, u=None, v=None):
+    nd = len(vis_obs_re)
+    assert len(vis_obs_im) == nd, "Wrong array length: vis_obs_im."
+    assert len(vis_obs_w) == nd, "Wrong array length: vis_obs_w."
+    if vis:
+        assert len(vis) == nd, "Wrong array length: vis."
+    if u:
         assert len(u) == nd, "Wrong array length: u"
-    if v is not None:
+    if v:
         assert len(v) == nd, "Wrong array length: v"
 
 
@@ -140,10 +144,16 @@ def get_image_size(dist, u, v, max_f=4., min_f=3.):
 
     return nxy, dxy
 
-
-def sampleImage(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v, PA=0.):
+# TODO: pass dxy and dist instead of duv.
+def sampleImage(dreal[:,::1] image, dRA, dDec, duv, dreal[::1] u, dreal[::1] v, PA=0.):
     """
-    Performs Fourier transform, translation by (dRA, dDec) and sampling in (u, v) locations of a given image.
+    Computes the synthetic visibilities at the (u, v) locations for a given 2D surface brightness.
+
+    The image of the object surface brightness provided in `image` is Fourier transformed
+    and sampled in the (u, v) coordinates defined by the `u` and `v` arrays.
+
+    If provided, the image is offset by dRA (dDec) in Right Ascension (Declination).
+    If provided, the image is rotated East of North by an angle PA.
 
     Typical call signature::
 
@@ -152,7 +162,7 @@ def sampleImage(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v, P
     Parameters
     ----------
     image : array_like, float
-        Matrix of size (nx, ny) containing the object brightness distribution.
+        Matrix of shape (nx, ny) containing the object surface brightness.
         units: Jy/pixel
     dRA : float
         Right Ascension offset by which the image has to be translated.
@@ -172,8 +182,9 @@ def sampleImage(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v, P
 
     Returns
     -------
-    fint: array_like, complex
-        Sampled values of the translated Fourier transform of data.
+    vis: array_like, complex
+        Synthetic visibilities.
+        units: Jy
 
     Example
     -------
@@ -186,17 +197,20 @@ def sampleImage(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v, P
         dx = 1.49e14  # cm
         dist = 3.1e20  # cm
         duv = uvcell_size(dist, dx, nx)
-        fint = sample(image, dRA, dDec, duv, u/wle, v/wle)
-        Re_V = fint.real
-        Im_V = fint.imag
+        vis = sample(image, dRA, dDec, duv, u/wle, v/wle)
+        Re_V = vis.real
+        Im_V = vis.imag
 
     """
-    PA = PA / 180. * np.pi
-    _check_data(data)
-    fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    PA *= deg
+    dRA *= arcsec
+    dDec *= arcsec
 
-    return fint
+    _check_image(image)
+    vis = np.zeros(len(u), dtype=complex_dtype)
+    _galario_sample_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+
+    return vis
 
 
 def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, dreal[::1] v, inc=0., dxy=None, nxy=None, duv=None, PA=0.):
@@ -238,8 +252,9 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
 
     Returns
     -------
-    fint: array_like, complex
-        Sampled values of the translated Fourier transform of data.
+    vis: array_like, complex
+        Synthetic visibilities.
+        units: Jy
 
     Example
     -------
@@ -252,9 +267,9 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
         dx = 1.49e14  # cm
         dist = 3.1e20  # cm
         duv = uvcell_size(dist, dx, nx)
-        fint = sample(image, dRA, dDec, duv, u/wle, v/wle)
-        Re_V = fint.real
-        Im_V = fint.imag
+        vis = sample(image, dRA, dDec, duv, u/wle, v/wle)
+        Re_V = vis.real
+        Im_V = vis.imag
 
     """
     # TODO @Marco think better the input parameters, which are optional or not
@@ -266,14 +281,16 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
     #     pass
 
     # if not duv:
-    #     # _check_data(data)
+    #     # _check_image(image)
     #     duv = uvcell_size(dxy, nxy, dist)
-    PA = PA / 180. * np.pi
+    PA *= deg
+    dRA *= arcsec
+    dDec *= arcsec
 
-    fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_profile(len(ints), <void*>&ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    vis = np.zeros(len(u), dtype=complex_dtype)
+    _galario_sample_profile(len(ints), <void*>&ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
-    return fint
+    return vis
 
 
 def sweep(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc=0.):
@@ -327,7 +344,7 @@ def sweep(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc=0.):
     return  image.view(dtype=real_dtype)[:, :-2]
 
 
-def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fint):
+def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
     """
     Apply phase to sampled visibility points as to translate the image in the real
     space by an offset dRA along Right Ascension (R.A.) and dDec along Declination.
@@ -347,44 +364,44 @@ def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] fin
     v : array_like, float
         v-coordinates of visibility points.
         units: observing wavelength
-    fint : array_like, complex
+    vis : array_like, complex
         complex visibilities, of form Real(Vis) + i*Imag(Vis).
         units: Jy
 
     Returns
     -------
-    fint_out : array_like, complex
+    vis_out : array_like, complex
         shifted complex visibilities
-        units: arbitrary, same as fint
+        units: arbitrary, same as vis
 
-    TODO change `fint` name into `vis`
+    TODO change `vis` name into `vis`
 
     """
     dRA *= arcsec
     dDec *= arcsec
 
-    fint_out = np.copy(fint, order='C')
-    _galario_apply_phase_sampled(dRA, dDec, len(fint), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(fint_out))
+    vis_out = np.copy(vis, order='C')
+    _galario_apply_phase_sampled(dRA, dDec, len(vis), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(vis_out))
 
-    return fint_out
+    return vis_out
 
 
 # require contiguous arrays with stride=1 in buffer[::1]
-def fft2d(dreal[:,::1] data):
-    _check_data(data)
-    nx, ny = data.shape[0], data.shape[1]
-    cdef void* res = _galario_copy_input(nx, ny, <void*>&data[0,0])
+def fft2d(dreal[:,::1] image):
+    _check_image(image)
+    nx, ny = image.shape[0], image.shape[1]
+    cdef void* res = _galario_copy_input(nx, ny, <void*>&image[0,0])
 
     _galario_fft2d(nx, ny, res)
 
-    # Use a custom delete function to free the array http://gael-varo1quaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-data-copies.html
+    # Use a custom delete function to free the array http://gael-varo1quaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-image-copies.html
     return ArrayWrapper().as_ndarray(nx, ny, res)
 
 
-def fftshift(dreal[:,::1] data):
-    _check_data(data)
-    nx, ny = data.shape[0], data.shape[1]
-    cdef void* res = _galario_copy_input(nx, ny, <void*>&data[0,0])
+def fftshift(dreal[:,::1] image):
+    _check_image(image)
+    nx, ny = image.shape[0], image.shape[1]
+    cdef void* res = _galario_copy_input(nx, ny, <void*>&image[0,0])
 
     _galario_fftshift(nx, ny, res)
 
@@ -404,40 +421,44 @@ def fftshift_axis0(dcomplex[:,::1] matrix):
     _galario_fftshift_axis0(matrix.shape[0], matrix.shape[1], <void*>&matrix[0,0])
 
 
-def interpolate(dcomplex[:,::1] data, dreal[::1] u, dreal[::1] v, duv):
-    fint = np.empty(len(u), dtype=complex_dtype)
-    _galario_interpolate(data.shape[0], data.shape[1], <void*>&data[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(fint))
-    return fint
+def interpolate(dcomplex[:,::1] image, dreal[::1] u, dreal[::1] v, duv):
+    vis = np.empty(len(u), dtype=complex_dtype)
+    _galario_interpolate(image.shape[0], image.shape[1], <void*>&image[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(vis))
+    return vis
 
 
-def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, dreal[::1] weights):
-    _check_obs(fobs_re, fobs_im, weights, fint)
+def reduce_chi2(dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dcomplex[::1] vis, dreal[::1] vis_obs_w):
+    _check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis)
 
     cdef dreal chi2
-    _galario_reduce_chi2(len(fint), <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&fint[0], <void*>&weights[0], &chi2)
+    _galario_reduce_chi2(len(vis), <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis[0], <void*>&vis_obs_w[0], &chi2)
 
     return chi2
 
 
-def chi2Image(dreal[:,::1] data, dreal dRA, dreal dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights, PA=0.):
-    _check_data(data)
-    _check_obs(fobs_re, fobs_im, weights)
+def chi2Image(dreal[:,::1] image, dreal dRA, dreal dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w, PA=0.):
+    _check_image(image)
+    _check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
 
     cdef dreal chi2
-    PA = PA / 180. * np.pi
+    PA *= deg
+    dRA *= arcsec
+    dDec *= arcsec
 
-    _galario_chi2_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
 
     return chi2
 
 
-def chi2Profile(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights, PA=0.):
-    _check_obs(fobs_re, fobs_im, weights)
+def chi2Profile(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w, PA=0.):
+    _check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
 
     cdef dreal chi2
-    PA = PA / 180. * np.pi
+    PA *= deg
+    dRA *= arcsec
+    dDec *= arcsec
 
-    _galario_chi2_profile(len(ints), <void*> &ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2_profile(len(ints), <void*> &ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
 
     return chi2
 
@@ -504,7 +525,7 @@ def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
     nd = len(u)
     assert nd == len(v)
 
-    PA = PA / 180. * np.pi
+    PA *= deg
 
     cdef dreal dRArot
     cdef dreal dDecrot
