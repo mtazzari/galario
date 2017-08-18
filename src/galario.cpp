@@ -1088,6 +1088,37 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     CCheck(cudaFree(vrot_d));
     CCheck(cudaFree(urot_d));
 }
+#else
+
+void sample_h(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint) {
+    double start_sample = 0;
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    start_sample = omp_get_wtime();
+#endif
+    int const ncol = ny/2+1;
+
+    OPENMPTIME(shift_h(nx, ny, data), "1st shift");
+
+    OPENMPTIME(fft_h(nx, ny, data), "FFT");
+
+    OPENMPTIME(shift_axis0_h(nx, ncol, data), "2nd shift");
+
+    auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
+    auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
+    dreal dRArot;
+    dreal dDecrot;
+    uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
+
+    // interpolate
+    OPENMPTIME(interpolate_h(nx, ncol, data, nd, urot, vrot, duv, fint), "interpolate");
+
+    // apply phase to the sampled points
+    OPENMPTIME(apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint), "phase_sampled");
+
+    galario_free(urot);
+    galario_free(vrot);
+    print_timing("sample_h", start_sample);
+}
 
 #endif
 
@@ -1121,11 +1152,6 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     CCheck(cudaFree(data_d)); t.Elapsed("data cudaFree");
     t_total.Elapsed("galario sample");
 #else
-    auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
-    auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
-    dreal dRArot;
-    dreal dDecrot;
-    uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
 
     double start_copy = 0;
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
@@ -1134,25 +1160,11 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     auto data = galario_copy_input(nx, ny, realdata);
     print_timing("copy input", start_copy);
 
-    int const ncol = ny/2+1;
-
-    OPENMPTIME(shift_h(nx, ny, data), "1st shift");
-
-    OPENMPTIME(fft_h(nx, ny, data), "FFT");
-
-    OPENMPTIME(shift_axis0_h(nx, ncol, data), "2nd shift");
-
-    // interpolate
-    OPENMPTIME(interpolate_h(nx, ncol, data, nd, urot, vrot, duv, fint), "interpolate");
-
-    // apply phase to the sampled points
-    OPENMPTIME(apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint), "phase_sampled");
+    sample_h(nx, ny, data, dRA, dDec, nd, duv, PA, u, v, fint);
 
     galario_free(data);
-    galario_free(urot);
-    galario_free(vrot);
 
-    print_timing("sample", start_copy);
+    print_timing("sample_image", start_copy);
 #endif
 }
 
@@ -1173,6 +1185,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     convert_intensity(nr, ints, dxy, dist);
 
 #ifdef __CUDACC__
+    GpuTimer t;
     dcomplex *image_d;
 
     create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
@@ -1191,13 +1204,8 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
 
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(image_d));
+    t.Elapsed("sample_profile");
 #else
-    auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
-    auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
-    dreal dRArot;
-    dreal dDecrot;
-    uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
-
     int const ncol = nxy/2+1;
 
     // fftw_alloc for aligned memory to use SIMD acceleration
@@ -1206,21 +1214,8 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     // ensure data is initialized with zeroes
     create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
 
-    shift_h(nxy, nxy, data);
-
-    fft_h(nxy, nxy, data);
-
-    shift_axis0_h(nxy, ncol, data);
-
-    // interpolate
-    interpolate_h(nxy, ncol, data, nd, urot, vrot, duv, fint);
-
-    // apply phase to the sampled points
-    apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint);
-
+    sample_h(nxy, nxy, data, dRA, dDec, nd, duv, PA, u, v, fint);
     galario_free(data);
-    galario_free(urot);
-    galario_free(vrot);
 #endif
 }
 
@@ -1398,40 +1393,46 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 
       While the FFT etc. are calculated, we can copy over the weights and observed values.
      */
+    GpuTimer t;
 
-     // reserve memory for the interpolated values
-     dcomplex *fint_d;
-     int nbytes_fint = sizeof(dcomplex) * nd;
-     CCheck(cudaMalloc(&fint_d, nbytes_fint));
+    // reserve memory for the interpolated values
+    dcomplex *fint_d;
+    int nbytes_fint = sizeof(dcomplex) * nd;
+    CCheck(cudaMalloc(&fint_d, nbytes_fint));
 
-     // Initialization for comparison and chi square computation
-     /* allocate and copy observational data */
-     dreal *fobs_re_d, *fobs_im_d, *weights_d;
-     copy_observations_d(nd, fobs_re, &fobs_re_d);
-     copy_observations_d(nd, fobs_im, &fobs_im_d);
-     copy_observations_d(nd, weights, &weights_d);
+    // Initialization for comparison and chi square computation
+    /* allocate and copy observational data */
+    dreal *fobs_re_d, *fobs_im_d, *weights_d;
+    copy_observations_d(nd, fobs_re, &fobs_re_d);
+    copy_observations_d(nd, fobs_im, &fobs_im_d);
+    copy_observations_d(nd, weights, &weights_d);
 
-     dcomplex* data_d = copy_input_d(nx, ny, realdata);
+    dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
-     sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
-     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
+    sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
+    reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
 
-     // ################################
-     // ########### CLEANUP ############
-     // ################################
-     CCheck(cudaFree(fint_d));
-     CCheck(cudaFree(fobs_re_d));
-     CCheck(cudaFree(fobs_im_d));
-     CCheck(cudaFree(weights_d));
-     CCheck(cudaFree(data_d));
+    // ################################
+    // ########### CLEANUP ############
+    // ################################
+    CCheck(cudaFree(fint_d));
+    CCheck(cudaFree(fobs_re_d));
+    CCheck(cudaFree(fobs_im_d));
+    CCheck(cudaFree(weights_d));
+    CCheck(cudaFree(data_d));
+    t.Elapsed("sample_profile");
 #else
-     auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd));
-     galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
+    double start = 0;
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    start = omp_get_wtime();
+#endif
+    auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd));
+    galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
 
-     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
+    galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
-     galario_free(fint);
-
+    galario_free(fint);
+    print_timing("chi2_image", start);
 #endif
 
 }
@@ -1446,37 +1447,44 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
                           dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v,
                           const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
 #ifdef __CUDACC__
+    GpuTimer t;
 
-     dcomplex *fint_d;
-     int nbytes_fint = sizeof(dcomplex) * nd;
-     CCheck(cudaMalloc(&fint_d, nbytes_fint));
+    dcomplex *fint_d;
+    int nbytes_fint = sizeof(dcomplex) * nd;
+    CCheck(cudaMalloc(&fint_d, nbytes_fint));
 
-     // Initialization for comparison and chi square computation
-     /* allocate and copy observational data */
-     dreal *fobs_re_d, *fobs_im_d, *weights_d;
-     copy_observations_d(nd, fobs_re, &fobs_re_d);
-     copy_observations_d(nd, fobs_im, &fobs_im_d);
-     copy_observations_d(nd, weights, &weights_d);
+    // Initialization for comparison and chi square computation
+    /* allocate and copy observational data */
+    dreal *fobs_re_d, *fobs_im_d, *weights_d;
+    copy_observations_d(nd, fobs_re, &fobs_re_d);
+    copy_observations_d(nd, fobs_im, &fobs_im_d);
+    copy_observations_d(nd, weights, &weights_d);
 
-     // from steradians to pixels
-     convert_intensity(nr, ints, dxy, dist);
+    // from steradians to pixels
+    convert_intensity(nr, ints, dxy, dist);
 
-     dcomplex *image_d;
-     create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
+    dcomplex *image_d;
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
-     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
-     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
+    sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
+    reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
 
-     CCheck(cudaFree(fint_d));
-     CCheck(cudaFree(fobs_re_d));
-     CCheck(cudaFree(fobs_im_d));
-     CCheck(cudaFree(weights_d));
-     CCheck(cudaFree(image_d));
+    CCheck(cudaFree(fint_d));
+    CCheck(cudaFree(fobs_re_d));
+    CCheck(cudaFree(fobs_im_d));
+    CCheck(cudaFree(weights_d));
+    CCheck(cudaFree(image_d));
+    t.Elapsed("sample_profile");
 #else
-     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd, u, v, fint);
-     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
-     free(fint);
+    double start = 0;
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    start = omp_get_wtime();
+#endif
+    dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
+    galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd, u, v, fint);
+    galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
+    free(fint);
+    print_timing("chi2_image", start);
 #endif
 }
 
