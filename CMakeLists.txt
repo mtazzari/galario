@@ -7,7 +7,13 @@ if(NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: Debug Release
 RelWithDebInfo MinSizeRel."
       FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
+  endif(NOT CMAKE_BUILD_TYPE)
+
+# The NDEBUG turns off error printing but we want that even in the release
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  string( REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+  string( REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
+endif()
 
 # ship extra findXXX.cmake in `cmake/`
 # APPEND doesn't propagate variable to subdirectory

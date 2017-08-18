@@ -9,9 +9,6 @@ set(extra_compile_options  -Wall -pedantic -fno-strict-aliasing -pthread -fwrapv
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${compile_options}")
 add_compile_options(${compile_options} ${extra_compile_options})
 
-# only affects CPU compilation
-# add_compile_options("${compile_options}" -pthread -fwrapv)
-
 # we compile the same source file multiple times, varying preprocessor definitions
 set(common_cpp "${CMAKE_CURRENT_SOURCE_DIR}/galario.cpp")
 
@@ -46,12 +43,7 @@ foreach(t IN ITEMS galario_single galario)
 endforeach()
 
 if (CUDA_FOUND)
-# if (0)
-
-  # TODO I couldn't get nvcc to work with flags propagated and I still
-  # need to pass every arg in ${extra_compile_options} to
-  # nvcc. Probably a function will do it that emits "-Xcompiler arg1 -Xcompiler arg2 ..."
-  list(APPEND CUDA_NVCC_FLAGS ${cxx_std} ${compile_options})
+  list(APPEND CUDA_NVCC_FLAGS ${compile_options})
 
   # for timing test, we want to avoid the start-up time from JIT, so we create fat binaries
   # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
@@ -61,7 +53,10 @@ if (CUDA_FOUND)
   # https://github.com/BVLC/caffe/issues/4046
   list(APPEND CUDA_NVCC_FLAGS -D_FORCE_INLINES)
 
-  SET(CUDA_PROPAGATE_HOST_FLAGS OFF)
+  # TODO I couldn't get nvcc to work with flags propagated. Code
+  # doesn't compile with optimization turned on. Very strange. Also
+  # the NDEBUG symbol affect if compilation succeeds.
+  SET(CUDA_PROPAGATE_HOST_FLAGS ON)
 
   # Specify include directories
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
@@ -75,6 +70,10 @@ if (CUDA_FOUND)
   # copy over common file and rename to .cu, else cmake doesn't call nvcc on it
   set(common_cu "${CMAKE_CURRENT_BINARY_DIR}/cuda_lib.cu")
   configure_file(${common_cpp} ${common_cu})
+
+  if(GALARIO_TIMING)
+    list(APPEND CUDA_NVCC_FLAGS -DGALARIO_TIMING)
+  endif()
 
   # first compile float version
   cuda_add_library(galario_single_cuda ${common_cu})
