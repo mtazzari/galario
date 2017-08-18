@@ -21,10 +21,10 @@ else:
     from galario import single as g_single
 
 # PARAMETERS FOR MULTIPLE TEST EXECUTIONS
-par1 = {'wle_m': 0.0013, 'x0_arcsec': 0.4, 'y0_arcsec': 4., 'PA': 35., 'nxy': 1024}
-par2 = {'wle_m': 0.00088, 'x0_arcsec': -3.5, 'y0_arcsec': 7.2, 'PA': -23., 'nxy': 2048}
-par3 = {'wle_m': 0.00088, 'x0_arcsec': 2.3, 'y0_arcsec': 3.2, 'PA': 88., 'nxy': 4096}
-par4 = {'wle_m': 0.00088, 'x0_arcsec': 0., 'y0_arcsec': 0., 'PA': 145., 'nxy': 1024}
+par1 = {'wle_m': 0.0013, 'dRA': 0.4, 'dDec': 4., 'PA': 35., 'nxy': 1024}
+par2 = {'wle_m': 0.00088, 'dRA': -3.5, 'dDec': 7.2, 'PA': -23., 'nxy': 2048}
+par3 = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88., 'nxy': 4096}
+par4 = {'wle_m': 0.00088, 'dRA': 0., 'dDec': 0., 'PA': 145., 'nxy': 1024}
 
 
 # use last gpu if available. Check `watch -n 0.1 nvidia-smi` to see which gpu is
@@ -91,8 +91,8 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
 
     wle_m = pars['wle_m']
-    dRA = pars['x0_arcsec']
-    dDec = pars['y0_arcsec']
+    dRA = pars['dRA']
+    dDec = pars['dDec']
     PA = pars['PA']
     nxy = pars['nxy']
 
@@ -273,8 +273,8 @@ def test_shift_axis0(size, complex_type, tol, acc_lib):
                               "SP_par3", "DP_par3"])
 def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars):
 
-    x0_arcsec = pars.get('x0_arcsec', 0.4)
-    y0_arcsec = pars.get('y0_arcsec', 10.)
+    dRA = pars.get('dRA', 0.4)
+    dDec = pars.get('dDec', 10.)
 
     # generate the samples
     nsamples = 10000
@@ -286,9 +286,9 @@ def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars)
     fint.real = np.random.random(nsamples) * 10.
     fint.imag = np.random.random(nsamples) * 30.
 
-    fint_numpy = apply_phase_array(udat, vdat, fint.copy(), x0_arcsec, y0_arcsec)
+    fint_numpy = apply_phase_array(udat, vdat, fint.copy(), dRA, dDec)
 
-    fint_shifted = acc_lib.apply_phase_sampled(x0_arcsec, y0_arcsec, udat, vdat, fint)
+    fint_shifted = acc_lib.apply_phase_sampled(dRA, dDec, udat, vdat, fint)
 
     assert_allclose(fint_numpy.real, fint_shifted.real, rtol, atol)
     assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
@@ -322,8 +322,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # try to find out where precision is lost
 
     wle_m = pars.get('wle_m', 0.003)
-    x0_arcsec = pars.get('x0_arcsec', 0.4)
-    y0_arcsec = pars.get('y0_arcsec', 10.)
+    dRA = pars.get('dRA', 0.4)
+    dDec = pars.get('dDec', 10.)
 
     # generate the samples
     maxuv_generator = 3.e3
@@ -377,8 +377,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt
     fint_acc = fint.copy()
-    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
-    fint_acc_shifted = acc_lib.apply_phase_sampled(x0_arcsec, y0_arcsec, udat/wle_m, vdat/wle_m, fint_acc)
+    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, dRA, dDec)
+    fint_acc_shifted = acc_lib.apply_phase_sampled(dRA, dDec, udat/wle_m, vdat/wle_m, fint_acc)
 
 
     # lose some absolute precision here  --> not anymore. Really? check by decreasing rtol, atol
@@ -409,7 +409,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # now all steps in one function
     # -> MT removed this because there is already a test for sample and here it is not clear what is the reference.
     ###
-    # sampled = acc_lib.sampleImage(ref_real, x0_arcsec, y0_arcsec, du, udat/wle_m, vdat/wle_m)
+    # sampled = acc_lib.sampleImage(ref_real, dRA, dDec, du, udat/wle_m, vdat/wle_m)
     #
     # # a lot of precision lost. Why? --> not anymore
     # # rtol = 1
@@ -433,8 +433,8 @@ def test_chi2Image(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars)
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
 
     wle_m = pars.get('wle_m', 0.003)
-    x0_arcsec = pars.get('x0_arcsec', 0.4)
-    y0_arcsec = pars.get('y0_arcsec', 10.)
+    dRA = pars.get('dRA', 0.4)
+    dDec = pars.get('dDec', 10.)
 
     # generate the samples
     maxuv_generator = 3.e3
@@ -460,12 +460,12 @@ def test_chi2Image(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars)
     ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
     fint = ReInt + 1j*ImInt
-    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
+    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, dRA, dDec)
 
     chi2_ref = np.sum(((fint_shifted.real - x.real)**2. + (fint_shifted.imag - x.imag)**2.) * w)
 
     # GPU
-    chi2_cuda = acc_lib.chi2Image(ref_real, x0_arcsec, y0_arcsec,
+    chi2_cuda = acc_lib.chi2Image(ref_real, dRA, dDec,
                              maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
@@ -481,8 +481,8 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     dR *= au
 
     wle_m = pars['wle_m']
-    dRA = pars['x0_arcsec']
-    dDec = pars['y0_arcsec']
+    dRA = pars['dRA']
+    dDec = pars['dDec']
     PA = pars['PA']
 
     # generate the samples
@@ -547,8 +547,8 @@ def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rto
     dR *= au
 
     wle_m = pars['wle_m']
-    dRA = pars['x0_arcsec']
-    dDec = pars['y0_arcsec']
+    dRA = pars['dRA']
+    dDec = pars['dDec']
 
     # generate the samples
     maxuv_generator = 3e3

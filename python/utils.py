@@ -17,7 +17,7 @@ __all__ = ["radial_profile", "g_sweep_prototype", "sweep_ref", "create_reference
 
 
 def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_width=100):
-    """ Compute a radial brightness profile. """
+    """ Compute a radial brightness profile. Returns int in Jy/sr """
     gridrad = np.linspace(Rmin, Rmin + delta_R * (nrad - 1), nrad).astype(dtype)
 
     if mode == 'Gauss':
@@ -84,12 +84,6 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx, Dy, dtype_image='floa
     -------
     intensmap: 2D float array
         Image of the disk, i.e. the intensity map.
-
-    # Note
-    # ----
-    # iCPOR = index of the Central Pixel Outer Radius
-    # It is needed to compute how many cells of the radial grid gridad fall inside the Central Pixel.
-    # It is needed, more generally, to compute the flux of the central pixel.
 
     """
     inc = inc/180.*np.pi
