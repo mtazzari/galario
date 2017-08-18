@@ -680,6 +680,108 @@ void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
                                 static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
+
+/**
+ * Rotates the RA, Dec offsets and the u and v coordinates by Position Angle PA
+ */
+#ifdef __CUDACC__
+__host__ __device__
+#endif
+inline void uv_rotate_core(dreal cos_PA, dreal sin_PA, const dreal u, const dreal v, dreal& urot, dreal& vrot) {
+
+    urot = u * cos_PA - v * sin_PA;
+    vrot = u * sin_PA + v * cos_PA;
+
+}
+
+#ifdef __CUDACC__
+__global__ void uv_rotate_d(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* __restrict__ fint) {
+    // TODO implement
+    if ((dRA==0) || (dDec==0)) {
+        return;
+    }
+
+    dRA *= 2.*(dreal)M_PI;
+    dDec *= 2.*(dreal)M_PI;
+
+    //index
+    int const idx_x0 = blockDim.x * blockIdx.x + threadIdx.x;
+
+    // stride
+    int const sx = blockDim.x * gridDim.x;
+
+    for (auto x = idx_x0; x < nd; x += sx) {
+        apply_phase_sampled_core(x, u, v, fint, dRA, dDec);
+    }
+}
+#else
+
+void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
+                 dreal* const urot, dreal* vrot) {
+
+    if (PA==0) {
+        *dRArot = dRA;
+        *dDecrot = dDec;
+        memcpy(urot, u, sizeof(dreal)*nd);
+        memcpy(vrot, v, sizeof(dreal)*nd);
+        return;
+    }
+
+    const dreal cos_PA = cos(PA);
+    const dreal sin_PA = sin(PA);
+
+#pragma omp parallel for
+    for (auto i = 0; i < nd; ++i) {
+        uv_rotate_core(cos_PA, sin_PA, u[i], v[i], urot[i], vrot[i]);
+    }
+
+    // can't we use uv_rotate_core?
+    *dRArot = dRA * cos_PA - dDec * sin_PA;
+    *dDecrot = dRA * sin_PA + dDec * cos_PA;
+
+}
+#endif
+
+void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
+                       dreal* const urot, dreal* const vrot) {
+#ifdef __CUDACC__
+    // TODO implement
+
+     size_t nbytes_d_complex = sizeof(dcomplex)*nd;
+     size_t nbytes_d_dreal = sizeof(dreal)*nd;
+
+     dreal *u_d, *v_d;
+     dcomplex *fint_d;
+
+     CCheck(cudaMalloc(&u_d, nbytes_d_dreal));
+     CCheck(cudaMemcpy(u_d, u, nbytes_d_dreal, cudaMemcpyHostToDevice));
+
+     CCheck(cudaMalloc(&v_d, nbytes_d_dreal));
+     CCheck(cudaMemcpy(v_d, v, nbytes_d_dreal, cudaMemcpyHostToDevice));
+
+     CCheck(cudaMalloc(&fint_d, nbytes_d_complex));
+     CCheck(cudaMemcpy(fint_d, fint, nbytes_d_complex, cudaMemcpyHostToDevice));
+
+     auto const nthreads = tpb * tpb;
+     apply_phase_sampled_d<<<nd/nthreads+1, nthreads>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+
+     CCheck(cudaDeviceSynchronize());
+     CCheck(cudaMemcpy(fint, fint_d, nbytes_d_complex, cudaMemcpyDeviceToHost));
+     CCheck(cudaFree(fint_d));
+     CCheck(cudaFree(v_d));
+     CCheck(cudaFree(u_d));
+#else
+    uv_rotate_h(PA, dRA, dDec, dRArot, dDecrot, nd, u, v, urot, vrot);
+#endif
+}
+
+void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* const u,
+                                  void* const v, void* const urot, void* const vrot) {
+    galario_uv_rotate(PA, dRA, dDec, static_cast<dreal*>(dRArot), static_cast<dreal*>(dDecrot), nd, static_cast<dreal*>(u),
+                                static_cast<dreal*>(v), static_cast<dreal*>(urot), static_cast<dreal*>(vrot));
+}
+
+
 /**
  * Sweep.
  * TODO avoid rmax 3 definitions. pass rmax (perhaps also base as argument of sweep_core.
@@ -906,7 +1008,8 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
 /**
  * return result in `fint`
  */
-void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
+void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv,
+                          const dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
     // Initialization for uv_idx and interpolate
     assert(nx >= 2);
 
@@ -931,6 +1034,12 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     dRA *= arcsec;
     dDec *= arcsec;
 
+    auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
+    auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
+    dreal dRArot;
+    dreal dDecrot;
+    uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
+
     auto data = galario_copy_input(nx, ny, realdata);
     int const ncol = ny/2+1;
 
@@ -941,17 +1050,19 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     shift_axis0_h(nx, ncol, data);
 
     // interpolate
-    interpolate_h(nx, ncol, data, nd, u, v, duv, fint);
+    interpolate_h(nx, ncol, data, nd, urot, vrot, duv, fint);
 
     // apply phase to the sampled points
-    apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
+    apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint);
 
     galario_free(data);
+    galario_free(urot);
+    galario_free(vrot);
 #endif
 }
 
-void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint) {
-    galario_sample_image(nx, ny, static_cast<dreal*>(data), dRA, dDec, duv, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint) {
+    galario_sample_image(nx, ny, static_cast<dreal*>(data), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
 
@@ -960,7 +1071,7 @@ void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dr
  *
  */
 void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                           dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
+                           dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     assert(nxy >= 2);
 
     // from steradians to pixels
@@ -990,6 +1101,12 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     dRA *= arcsec;
     dDec *= arcsec;
 
+    auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
+    auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
+    dreal dRArot;
+    dreal dDecrot;
+    uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
+
     int const ncol = nxy/2+1;
 
     // fftw_alloc for aligned memory to use SIMD acceleration
@@ -997,7 +1114,6 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
 
     // ensure data is initialized with zeroes
     create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
-    // IMPORTANT TODO: @Marco multiply the sweeped image by a_to_jy = (dxy/dist) ** 2. * CGS_to_Jy
 
     shift_h(nxy, nxy, data);
 
@@ -1006,18 +1122,20 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     shift_axis0_h(nxy, ncol, data);
 
     // interpolate
-    interpolate_h(nxy, ncol, data, nd, u, v, duv, fint);
+    interpolate_h(nxy, ncol, data, nd, urot, vrot, duv, fint);
 
     // apply phase to the sampled points
-    apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
+    apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint);
 
     galario_free(data);
+    galario_free(urot);
+    galario_free(vrot);
 #endif
 }
 
 
-void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint) {
-    galario_sample_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd,
+void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint) {
+    galario_sample_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd,
                           static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dcomplex *>(fint));
 }
 
@@ -1168,7 +1286,7 @@ void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
 }
 #endif
 
-void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
+void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
     // TODO turn checks into a reusable function
     assert(nx >= 2);
     assert(ny >= 2);
@@ -1231,7 +1349,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 #else
 
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-     galario_sample_image(nx, ny, realdata, dRA, dDec, duv, nd, u, v, fint);
+     galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
 
      galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
@@ -1241,14 +1359,14 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 
 }
 
-void _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
-    galario_chi2_image(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, nd, static_cast<dreal*>(u),
+void _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
+    galario_chi2_image(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u),
                  static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im),
                  static_cast<dreal*>(weights), chi2);
 }
 
 void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                          dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v,
+                          dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v,
                           const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
 #ifdef __CUDACC__
 
@@ -1279,16 +1397,16 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
      CCheck(cudaFree(image_d));
 #else
      dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
-     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd, u, v, fint);
+     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd, u, v, fint);
      galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
      free(fint);
 #endif
 }
 
 void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                           dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v,
+                           dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v,
                            void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
-    galario_chi2_profile(nr, static_cast<dreal*>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, nd,
+    galario_chi2_profile(nr, static_cast<dreal*>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd,
                          static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(fobs_re),
                          static_cast<dreal*>(fobs_im), static_cast<dreal*>(weights), chi2);
 }

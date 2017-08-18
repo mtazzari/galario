@@ -8,13 +8,14 @@ extern "C"
 #endif /* __cplusplus */
     /* Main user functions */
     void galario_sample_profile(int nr, dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                                dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v, dcomplex *fint);
-    void galario_sample_image(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, dcomplex* fint);
+                                dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint);
+    void galario_sample_image(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint);
     void galario_chi2_profile(int nr, dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                              dreal dRA, dreal dDec, dreal duv, int nd, const dreal *u, const dreal *v,
+                              dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v,
                               const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2);
-    void galario_chi2_image(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2);
+    void galario_chi2_image(int nx, int ny, const dreal* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2);
     void galario_sweep(int nr, dreal* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex* image);
+    void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int nd, const dreal* u, const dreal* v, dreal* urot, dreal* vrot);
 
     /* Interface for the experts */
     dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata);

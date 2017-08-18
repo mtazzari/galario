@@ -21,9 +21,10 @@ else:
     from galario import single as g_single
 
 # PARAMETERS FOR MULTIPLE TEST EXECUTIONS
-par1 = {'wle_m': 0.0013, 'x0_arcsec': 0.4, 'y0_arcsec': 4.}
-par2 = {'wle_m': 0.00088, 'x0_arcsec': -3.5, 'y0_arcsec': 7.2}
-par3 = {'wle_m': 0.00088, 'x0_arcsec': 0., 'y0_arcsec': 0.}
+par1 = {'wle_m': 0.0013, 'x0_arcsec': 0.4, 'y0_arcsec': 4., 'PA': 35., 'nxy': 1024}
+par2 = {'wle_m': 0.00088, 'x0_arcsec': -3.5, 'y0_arcsec': 7.2, 'PA': -23., 'nxy': 2048}
+par3 = {'wle_m': 0.00088, 'x0_arcsec': 2.3, 'y0_arcsec': 3.2, 'PA': 88., 'nxy': 4096}
+par4 = {'wle_m': 0.00088, 'x0_arcsec': 0., 'y0_arcsec': 0., 'PA': 145., 'nxy': 1024}
 
 
 # use last gpu if available. Check `watch -n 0.1 nvidia-smi` to see which gpu is
@@ -82,60 +83,66 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
                           # (1000, 'float32', 'complex64',  1e-3,  1e-3, g_single, par2), ## large x0, y0 induce larger errors
                           (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par2),
                           # (1000, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
-                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par3)],
-                         ids=["DP_par1",
-                              "DP_par2",
-                              "DP_par3"])
+                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par3),
+                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par4)],
+                         ids=["{}".format(i) for i in range(4)])
 def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # go for fairly low precision when we add up many large numbers, we loose precision
     # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
 
-    wle_m = pars.get('wle_m', 0.003)
-    x0_arcsec = pars.get('x0_arcsec', 0.4)
-    y0_arcsec = pars.get('y0_arcsec', 10.)
+    wle_m = pars['wle_m']
+    dRA = pars['x0_arcsec']
+    dDec = pars['y0_arcsec']
+    PA = pars['PA']
+    nxy = pars['nxy']
 
     # generate the samples
     maxuv_generator = 3.e3
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
 
-    # compute the matrix size and maxuv
-    size, minuv, maxuv = matrix_size(udat/wle_m, vdat/wle_m)
-    # size = 2048 size can be freely set (if larger than the minimum size determined by matrix_size)
-    # print(size)
-    du = maxuv/size
+    # compute the matrix nxy and maxuv
+    _, minuv, maxuv = matrix_size(udat/wle_m, vdat/wle_m)
+    # nxy = 2048 size can be freely set (if larger than the minimum size determined by matrix_size)
+    # print(nxy)
+    du = maxuv/nxy
 
     # create model image (it happens to have 0 imaginary part)
-    reference_image = create_reference_image(size, -10., 30., dtype=real_type)
+    reference_image = create_reference_image(nxy, -10., 30., dtype=real_type)
     ref_real = reference_image.copy()
 
-    # numpy
-    fft_c2c_shifted = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image.copy())))
-
     # CPU version
-    fft_r2c_shifted =  np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(reference_image)), axes=0)
+    dRArot, dDecrot, urot, vrot = apply_rotation(PA, dRA, dDec, udat, vdat)
+    dRArot_g, dDecrot_g, urot_g, vrot_g = acc_lib.uv_rotate(PA, dRA, dDec, udat, vdat)
 
-    # C2C
-    uroti_old, vroti_old = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
+    np.testing.assert_allclose(dRArot, dRArot_g)
+    np.testing.assert_allclose(dDecrot, dDecrot_g)
+    np.testing.assert_allclose(urot, urot_g)
+    np.testing.assert_allclose(vrot, vrot_g)
+
+    #  1) C2C (numpy)
+    fft_c2c_shifted = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image.copy())))
+    uroti_old, vroti_old = uv_idx(urot/wle_m, vrot/wle_m, du, nxy/2.)
     ReInt_old = int_bilin_MT(fft_c2c_shifted.real, uroti_old, vroti_old)
     ImInt_old = int_bilin_MT(fft_c2c_shifted.imag, uroti_old, vroti_old)
     fint_old = ReInt_old + 1j*ImInt_old
-    fint_old_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint_old, x0_arcsec, y0_arcsec)
+    fint_old_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, fint_old, dRArot, dDecrot)
 
-    # R2C
-    uroti_new, vroti_new = uv_idx_r2c(udat/wle_m, vdat/wle_m, du, size/2.)
+    #  2) R2C (pyfftw)
+    fft_r2c_shifted = np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(reference_image)), axes=0)
+    uroti_new, vroti_new = uv_idx_r2c(urot/wle_m, vrot/wle_m, du, nxy/2.)
     ReInt = int_bilin_MT(fft_r2c_shifted.real, uroti_new, vroti_new)
     ImInt = int_bilin_MT(fft_r2c_shifted.imag, uroti_new, vroti_new)
-    uneg = udat < 0.
+    uneg = urot < 0.
     ImInt[uneg] *= -1.
     fint = ReInt + 1j*ImInt
-    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, x0_arcsec, y0_arcsec)
+    fint_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, fint, dRArot, dDecrot)
 
-    # galario (C2C)
-    fint_galario = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec,
-                             du, udat/wle_m, vdat/wle_m)
+    # CPU/GPU version (galario)
+    fint_galario = acc_lib.sampleImage(ref_real, dRA, dDec,
+                             du, udat/wle_m, vdat/wle_m, PA=PA)
 
-    uneg = udat < 0.
-    upos = udat > 0.
+    uneg = urot < 0.
+    upos = urot > 0.
     assert_allclose(fint_old.real, fint.real, rtol, atol)
     assert_allclose(fint_old[upos].real, fint[upos].real, rtol, atol)
     assert_allclose(fint_old[uneg].real, fint[uneg].real, rtol, atol)
@@ -402,7 +409,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # now all steps in one function
     # -> MT removed this because there is already a test for sample and here it is not clear what is the reference.
     ###
-    # sampled = acc_lib.sample(ref_real, x0_arcsec, y0_arcsec, du, udat/wle_m, vdat/wle_m)
+    # sampled = acc_lib.sampleImage(ref_real, x0_arcsec, y0_arcsec, du, udat/wle_m, vdat/wle_m)
     #
     # # a lot of precision lost. Why? --> not anymore
     # # rtol = 1
@@ -476,6 +483,7 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     wle_m = pars['wle_m']
     dRA = pars['x0_arcsec']
     dDec = pars['y0_arcsec']
+    PA = pars['PA']
 
     # generate the samples
     maxuv_generator = 3e3
@@ -502,20 +510,21 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
 
     # R2C
+    dRArot_g, dDecrot_g, urot_g, vrot_g = g_double.uv_rotate(PA, dRA, dDec, udat, vdat)
     fft_r2c_shifted = np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(image_ref)), axes=0)
-    uroti_new, vroti_new = uv_idx_r2c(udat/wle_m, vdat/wle_m, duv, nxy/2.)
+    uroti_new, vroti_new = uv_idx_r2c(urot_g/wle_m, vrot_g/wle_m, duv, nxy/2.)
     ReInt = int_bilin_MT(fft_r2c_shifted.real, uroti_new, vroti_new)
     ImInt = int_bilin_MT(fft_r2c_shifted.imag, uroti_new, vroti_new)
-    uneg = udat < 0.
+    uneg = urot_g < 0.
     ImInt[uneg] *= -1.
     fint = ReInt + 1j*ImInt
-    fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, dRA, dDec)
+    fint_shifted = apply_phase_array(urot_g/wle_m, vrot_g/wle_m, fint, dRArot_g, dDecrot_g)
 
     # galario sampleImage
-    fint_galarioImage = g_double.sample(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m)
+    fint_galarioImage = g_double.sampleImage(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m, PA=PA)
 
     # galario sampleProfile
-    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, dist, dRA, dDec, udat/wle_m, vdat/wle_m, inc=inc/180.*np.pi, nxy=nxy, dxy=dxy, duv=duv)
+    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, dist, dRA, dDec, udat/wle_m, vdat/wle_m, inc=inc/180.*np.pi, nxy=nxy, dxy=dxy, duv=duv, PA=PA)
 
     assert_allclose(fint_shifted, fint_galarioImage, rtol=rtol, atol=atol)
     assert_allclose(fint_shifted, fint_galarioProfile, rtol=rtol, atol=atol)
