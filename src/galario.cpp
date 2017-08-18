@@ -89,7 +89,7 @@
                 CCheck(cudaEventSynchronize(stop));
                 float elapsed;
                 CCheck(cudaEventElapsedTime(&elapsed, start, stop));
-                std::cout << msg << ": " <<elapsed << " ms" << std::endl;
+                std::cout << "[GPU] " << msg << ": " <<elapsed << " ms" << std::endl;
                 if (restart)
                     Start();
                 return elapsed;
@@ -136,7 +136,7 @@
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
     inline void print_timing(const char* const msg, const double start, double end=0.0) {
         end += (end == 0.0)? omp_get_wtime() : 0;
-        std::cout << msg << ": " << 1000*(end-start) << " ms" <<  std::endl;
+        std::cout << "[CPU] " << msg << ": " << 1000*(end-start) << " ms" <<  std::endl;
     }
     #define OPENMPTIME(body, msg)                                 \
         do {                                                      \
