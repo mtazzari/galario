@@ -113,7 +113,7 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     # CPU version
     dRArot, dDecrot, urot, vrot = apply_rotation(PA, dRA, dDec, udat, vdat)
     dRArot_g, dDecrot_g, urot_g, vrot_g = acc_lib.uv_rotate(PA, dRA, dDec, udat, vdat)
-
+    
     np.testing.assert_allclose(dRArot, dRArot_g)
     np.testing.assert_allclose(dDecrot, dDecrot_g)
     np.testing.assert_allclose(urot, urot_g)
@@ -263,11 +263,11 @@ def test_shift_axis0(size, complex_type, tol, acc_lib):
 
 @pytest.mark.parametrize("real_type, complex_type, rtol, atol, acc_lib, pars",
                          [('float32', 'complex64',  1.e-7,  1e-5, g_single, par1),
-                          ('float64', 'complex128', 1.e-16, 1e-14, g_double, par1),
+                          ('float64', 'complex128', 1.e-16, 1e-13, g_double, par1),
                           ('float32', 'complex64',  1.e-3,  1e-5, g_single, par2),
-                          ('float64', 'complex128', 1.e-16, 1e-14, g_double, par2),
+                          ('float64', 'complex128', 1.e-16, 1e-13, g_double, par2),
                           ('float32', 'complex64',  1.e-7,  1e-5, g_single, par3),
-                          ('float64', 'complex128', 1.e-16, 1e-15, g_double, par3)],
+                          ('float64', 'complex128', 1.e-16, 1e-13, g_double, par3)],
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
@@ -277,7 +277,7 @@ def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars)
     y0_arcsec = pars.get('y0_arcsec', 10.)
 
     # generate the samples
-    nsamples = 1000
+    nsamples = 10000
     maxuv_generator = 3.e3
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
 
