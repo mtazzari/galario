@@ -132,6 +132,22 @@
     using std::min;
     using std::max;
 
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    inline void print_timing(const char* const msg, const double start, double end=0.0) {
+        end += (end == 0.0)? omp_get_wtime() : 0;
+        std::cout << msg << ": " << end-start << " s" <<  std::endl;
+    }
+    #define OPENMPTIME(body, msg)                                 \
+        do {                                                      \
+            const auto start = omp_get_wtime();                   \
+            body ;                                                \
+            print_timing(msg, start);                         \
+        } while (false)
+#else
+    inline void print_timing(const char* const msg, const double start, double end=0.0) {}
+    #define OPENMPTIME(body, msg) body
+#endif // _OPENMP && !NDEBUG
+
     #include <fftw3.h>
     #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
 
@@ -143,27 +159,6 @@
         }
     #endif // NDEBUG
     }
-
-    #if defined(_OPENMP) && defined(GALARIO_TIMING)
-
-    inline void print_timing(const double start, const double end, const char* const msg) {
-        std::cout << msg << ": " << end-start << " s" <<  std::endl;
-    }
-
-    #define OPENMPTIME(body, msg)                   \
-        do {                                        \
-            const auto start = omp_get_wtime();     \
-            body ;                                  \
-            const auto end = omp_get_wtime();       \
-            print_timing(start, end, msg);          \
-        } while (false)
-
-    #else
-
-    inline void print_timing(const double start, const double end, const char* const msg) {}
-    #define OPENMPTIME(body, msg) body
-
-    #endif // _OPENMP && GALARIO_TIMING
 
     #define CMPLXSUB(a, b) ((a) - (b))
     #define CMPLXADD(a, b) ((a) + (b))
@@ -1124,11 +1119,12 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     dreal dDecrot;
     uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
 
+    double start_copy = 0;
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
-    const auto start_copy = omp_get_wtime();
+    start_copy = omp_get_wtime();
 #endif
     auto data = galario_copy_input(nx, ny, realdata);
-    print_timing(start_copy, omp_get_wtime(), "copy input");
+    print_timing("copy input", start_copy);
 
     int const ncol = ny/2+1;
 
@@ -1148,7 +1144,7 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     galario_free(urot);
     galario_free(vrot);
 
-    print_timing(start_copy, omp_get_wtime(), "sample");
+    print_timing("sample", start_copy);
 #endif
 }
 
