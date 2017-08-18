@@ -25,14 +25,14 @@
     #include <cstdlib>
 
     #define CCheck(err) __cudaSafeCall((err), __FILE__, __LINE__)
-    inline void __cudaSafeCall(cudaError err, const char *file, const int line) {
+    inline void __cudaSafeCall(cudaError err, const char *file, const int line)  {
     #ifndef NDEBUG
         if(cudaSuccess != err) {
             fprintf(stderr, "[ERROR] Cuda call %s: %d\n%s\n", file, line, cudaGetErrorString(err));
             exit(42);
         }
-    }
     #endif
+    }
 
     #define CBlasCheck(err) __cublasSafeCall((err), __FILE__, __LINE__)
     inline void __cublasSafeCall(cublasStatus_t err, const char *file, const int line) {
@@ -54,9 +54,7 @@
     #endif
     }
 
-    #ifdef NDEBUG
-        #define CUDATIME(body, msg) body
-    #else
+    #ifdef GALARIO_TIMING
         struct GpuTimer
         {
             cudaEvent_t start;
@@ -64,45 +62,48 @@
 
             GpuTimer()
             {
-                cudaEventCreate(&start);
-                cudaEventCreate(&stop);
+                CCheck(cudaEventCreate(&start));
+                CCheck(cudaEventCreate(&stop));
+                Start();
             }
 
             ~GpuTimer()
             {
-                cudaEventDestroy(start);
-                cudaEventDestroy(stop);
+                CCheck(cudaEventDestroy(start));
+                CCheck(cudaEventDestroy(stop));
             }
 
             void Start()
             {
-                cudaEventRecord(start, 0);
+                CCheck(cudaEventRecord(start, 0));
             }
 
             void Stop()
             {
-                cudaEventRecord(stop, 0);
+                CCheck(cudaEventRecord(stop, 0));
             }
 
-            float Elapsed(const std::string& msg)
+            float Elapsed(const std::string& msg, bool restart=true)
             {
+                CCheck(cudaEventRecord(stop, 0));
+                CCheck(cudaEventSynchronize(stop));
                 float elapsed;
-                cudaEventSynchronize(stop);
-                cudaEventElapsedTime(&elapsed, start, stop);
-                std::cout << msg << ": " << elapsed << std::endl;
+                CCheck(cudaEventElapsedTime(&elapsed, start, stop));
+                std::cout << msg << ": " <<elapsed << " ms" << std::endl;
+                if (restart)
+                    Start();
                 return elapsed;
             }
         };
-
-        #define CUDATIME(body, msg)                         \
-            do {               \
-                GpuTimer timer(); \
-                timer.Start();
-                body \
-                timer.Stop(); \
-                timer.Elapsed(msg);   \
-        } while (false)
-    #endif // NDEBUG
+    #else
+        struct GpuTimer
+        {
+            GpuTimer() {}
+            void Start() {}
+            void Stop() {}
+            float Elapsed(const std::string& msg) { return 0; }
+        };
+    #endif // TIMING
 
     #ifdef DOUBLE_PRECISION
         #define CUFFTEXEC cufftExecD2Z
@@ -135,7 +136,7 @@
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
     inline void print_timing(const char* const msg, const double start, double end=0.0) {
         end += (end == 0.0)? omp_get_wtime() : 0;
-        std::cout << msg << ": " << end-start << " s" <<  std::endl;
+        std::cout << msg << ": " << 1000*(end-start) << " ms" <<  std::endl;
     }
     #define OPENMPTIME(body, msg)                                 \
         do {                                                      \
@@ -215,6 +216,7 @@ void galario_free(void* data) {
  * Caller is responsible for freeing the device memory with `cudaFree()`.
  */
 dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
+    GpuTimer t;
     auto const ncol = ny/2+1;
     auto const rowsize_real = sizeof(dreal)*ny;
     auto const rowsize_complex = sizeof(dcomplex)*ncol;
@@ -225,7 +227,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
 
     // set the padding by defining different sizes of a row in bytes
     CCheck(cudaMemcpy2D(data_d, rowsize_complex, realdata, rowsize_real, rowsize_real, nx, cudaMemcpyHostToDevice));
-
+    t.Elapsed("image H->D");
     return data_d;
 }
 #endif
@@ -1035,12 +1037,14 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     dreal *u_d, *v_d, *urot_d, *vrot_d;
     size_t nbytes_ndat = sizeof(dreal)*nd;
 
+    GpuTimer t;
     CCheck(cudaMalloc(&u_d, nbytes_ndat));
     CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
     CCheck(cudaMalloc(&v_d, nbytes_ndat));
     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
     CCheck(cudaMalloc(&urot_d, nbytes_ndat));
     CCheck(cudaMalloc(&vrot_d, nbytes_ndat));
+    t.Elapsed("copy u,d");
 
     auto const nthreads = tpb * tpb;
     dreal dRArot = 0.;
@@ -1065,16 +1069,16 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
      CCheck(cudaDeviceSynchronize());
 
     // Kernel for shift --> FFT --> shift
-    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
-    fft_d(nx, ny, (dcomplex*) data_d);
-    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d);
-    CCheck(cudaDeviceSynchronize());
+    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d); t.Elapsed("shift");
+    fft_d(nx, ny, (dcomplex*) data_d); t.Elapsed("fft");
+    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d); t.Elapsed("shift axis0");
+    // CCheck(cudaDeviceSynchronize());
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d, vrot_d, duv, fint_d);
+    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d, vrot_d, duv, fint_d); t.Elapsed("interpolate");
 
     // apply phase to the sampled points
-    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRArot, dDecrot, nd, urot_d, vrot_d, fint_d);
+    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRArot, dDecrot, nd, urot_d, vrot_d, fint_d); t.Elapsed("apply phase sampled");
 
     // ################################
     // ########### CLEANUP ############
@@ -1097,6 +1101,7 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     assert(nx >= 2);
 
 #ifdef __CUDACC__
+    GpuTimer t_total;
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
     CCheck(cudaMalloc(&fint_d, nbytes_fint));
@@ -1108,10 +1113,13 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
 
     // retrieve interpolated values
     CCheck(cudaDeviceSynchronize());
-    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
 
-    CCheck(cudaFree(fint_d));
-    CCheck(cudaFree(data_d));
+    GpuTimer t;
+    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost)); t.Elapsed("fint D->H");
+
+    CCheck(cudaFree(fint_d)); t.Elapsed("fint cudaFree");
+    CCheck(cudaFree(data_d)); t.Elapsed("data cudaFree");
+    t_total.Elapsed("galario sample");
 #else
     auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
     auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
@@ -1407,28 +1415,15 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 
      sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
      reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
+
      // ################################
      // ########### CLEANUP ############
      // ################################
-     /*float elapsed=0;
-     cudaEvent_t start, stop;
-     CCheck(cudaEventCreate(&start));
-     CCheck(cudaEventCreate(&stop));
-     CCheck(cudaEventRecord(start, 0));*/
-
      CCheck(cudaFree(fint_d));
      CCheck(cudaFree(fobs_re_d));
      CCheck(cudaFree(fobs_im_d));
      CCheck(cudaFree(weights_d));
      CCheck(cudaFree(data_d));
-
-     /*CCheck(cudaEventRecord(stop, 0));
-     CCheck(cudaEventSynchronize(stop));
-     CCheck(cudaEventElapsedTime(&elapsed, start, stop) );
-     CCheck(cudaEventDestroy(start));
-     CCheck(cudaEventDestroy(stop));
-     printf("The total time to free memory in chi2 is %.3f ms", elapsed);
-     */
 #else
      auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd));
      galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
