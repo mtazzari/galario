@@ -32,6 +32,15 @@ ELSE:
     complex_typenum = np.NPY_COMPLEX64
 
 cdef extern from "galario_py.h":
+    # Main user functions
+    void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint)
+    void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint)
+    void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+    void _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
+    void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image)
+    void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* u, void* v, void* urot, void* vrot)
+
+    # Interface for the experts
     void* _galario_copy_input(int nx, int ny, void* realdata);
     void* _galario_fft2d(int nx, int ny, void* data)
     void _galario_fftshift(int nx, int ny, void* data)
@@ -39,13 +48,6 @@ cdef extern from "galario_py.h":
     void _galario_interpolate(int nx, int ncol, void* data, int nd, void* u, void* v, dreal duv, void* fint)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* fint)
     void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2)
-    void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
-    void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image)
-    void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fint)
-    void _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
-    void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                               dreal dRA, dreal dDec, dreal duv, int nd, void* u, void* v,
-                               void* fobs_re, void* fobs_im, void* weights, dreal* chi2)
 
 cdef extern from "galario.h":
     int  galario_threads_per_block(int num);
@@ -126,9 +128,9 @@ def _check_uv(u, v):
     assert len(u) == len(v), "Wrong array length: u, v."
 
 
+# TODO: review this function
 def get_image_size(dist, u, v, max_f=4., min_f=3.):
     """ dist: cm;  u and v in lambda. Returns dxy: same units as dist"""
-    # TODO: review this
     uvdist = np.hypot(u, v)
     max_uv = np.max(uvdist)*max_f
     min_uv = np.min(uvdist)/min_f
@@ -139,12 +141,9 @@ def get_image_size(dist, u, v, max_f=4., min_f=3.):
     return nxy, dxy
 
 
-def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
+def sampleImage(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v, PA=0.):
     """
     Performs Fourier transform, translation by (dRA, dDec) and sampling in (u, v) locations of a given image.
-
-    # TODO: add that FT operations are done in-place, and padding might be required
-    #       if user creates smaller images.
 
     Typical call signature::
 
@@ -154,7 +153,7 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
     ----------
     image : array_like, float
         Matrix of size (nx, ny) containing the object brightness distribution.
-        units: Jy/pixel.
+        units: Jy/pixel
     dRA : float
         Right Ascension offset by which the image has to be translated.
         units: arcseconds
@@ -166,10 +165,10 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
         units: observing wavelength
     u: array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        (units: observing wavelength).
+        units: observing wavelength
     v: array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        (units: observing wavelength).
+        units: observing wavelength
 
     Returns
     -------
@@ -192,14 +191,15 @@ def sample(dreal[:,::1] data, dRA, dDec, duv, dreal[::1] u, dreal[::1] v):
         Im_V = fint.imag
 
     """
+    PA = PA / 180. * np.pi
     _check_data(data)
     fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_sample_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
 
 
-def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, dreal[::1] v, inc=0., dxy=None, nxy=None, duv=None):
+def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, dreal[::1] v, inc=0., dxy=None, nxy=None, duv=None, PA=0.):
     """
     Computes the synthetic visibilities of a brightness profile.
 
@@ -268,9 +268,10 @@ def sampleProfile(dreal[::1] ints, Rmin, dR, dist, dRA, dDec, dreal[::1] u, drea
     # if not duv:
     #     # _check_data(data)
     #     duv = uvcell_size(dxy, nxy, dist)
+    PA = PA / 180. * np.pi
 
     fint = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_profile(len(ints), <void*>&ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
+    _galario_sample_profile(len(ints), <void*>&ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(fint))
 
     return fint
 
@@ -418,23 +419,25 @@ def reduce_chi2(dreal[::1] fobs_re, dreal[::1] fobs_im, dcomplex[::1] fint, drea
     return chi2
 
 
-def chi2Image(dreal[:,::1] data, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
+def chi2Image(dreal[:,::1] data, dreal dRA, dreal dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights, PA=0.):
     _check_data(data)
     _check_obs(fobs_re, fobs_im, weights)
 
     cdef dreal chi2
+    PA = PA / 180. * np.pi
 
-    _galario_chi2_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2_image(data.shape[0], data.shape[1], <void*>&data[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
 
     return chi2
 
 
-def chi2Profile(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights):
+def chi2Profile(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc, dRA, dDec, dreal duv, dreal[::1] u, dreal[::1] v, dreal[::1] fobs_re, dreal[::1] fobs_im, dreal[::1] weights, PA=0.):
     _check_obs(fobs_re, fobs_im, weights)
 
     cdef dreal chi2
+    PA = PA / 180. * np.pi
 
-    _galario_chi2_profile(len(ints), <void*> &ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
+    _galario_chi2_profile(len(ints), <void*> &ints[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&fobs_re[0], <void*>&fobs_im[0], <void*>&weights[0], &chi2)
 
     return chi2
 
@@ -459,7 +462,63 @@ def threads_per_block(int num=0):
     return galario_threads_per_block(num)
 
 
-# TODO update to rectangular images
+def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
+    """
+    Rotate (u, v) point coordinates and dRA, dDec angular offsets by a position angle PA.
+    Applies a cartesian rotation of angle PA to the pair (dRA, dDec) and to the arrays (u, v).
+
+    Typical call signature::
+
+        uv_rotate(PA, dRA, dDec, u, v)
+
+    Parameters
+    ----------
+    PA : float
+        Position Angle, defined East of North.
+        units: degree
+    dRA : float
+        Right Ascension offset.
+    dDec : float
+        Declination offset.
+    u : array_like, float
+        u coordinates of the visibility points.
+    v : array_like, float
+        v coordinates of the visibility points.
+
+    Returns
+    -------
+    dRArot : float
+        Rotated Right Ascension offset.
+    dDecrot : float
+        Rotated Declination offset.
+    urot : array_like, float
+        Rotated u coordinates of the visibility points.
+    vrot : array_like, float
+        Rotated v coordinates of the visibility points.
+
+    Notes
+    -----
+    The units of the returned values are the same of the input values.
+
+    """
+    nd = len(u)
+    assert nd == len(v)
+
+    PA = PA / 180. * np.pi
+
+    cdef dreal dRArot
+    cdef dreal dDecrot
+    urot = np.copy(u, order='C')
+    vrot = np.copy(v, order='C')
+
+    _galario_uv_rotate(PA, dRA, dDec, &dRArot, &dDecrot, nd,
+                       <void*> &u[0], <void*> &v[0],
+                       <void*>np.PyArray_DATA(urot), <void*>np.PyArray_DATA(vrot))
+
+    return dRArot, dDecrot, urot, vrot
+
+
+# TODO: review this
 def uvcell_size(dx, nx, dist):
     """
     Computes the cell size in the Fourier (uv) space,

@@ -12,7 +12,7 @@ __all__ = ["radial_profile", "g_sweep_prototype", "sweep_ref", "create_reference
            "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
            "matrix_size", "Fourier_shift_static",
            "apply_phase_array", "generate_random_vis",
-           "unique_part", "assert_allclose"]
+           "unique_part", "assert_allclose", "apply_rotation"]
 
 
 
@@ -324,6 +324,23 @@ def generate_random_vis(nsamples, dtype):
     w /= w.sum()
 
     return x, y, w
+
+
+def apply_rotation(PA, dRA, dDec, udat, vdat):
+    """ Rotates the RA, Dec offsets and the udat and vdat coordinates by Position Angle PA """
+    # PA: deg
+
+    PA = PA / 180. * np.pi
+    cos_PA = np.cos(PA)
+    sin_PA = np.sin(PA)
+
+    urot = udat * cos_PA - vdat * sin_PA
+    vrot = udat * sin_PA + vdat * cos_PA
+
+    dRArot = dRA * cos_PA - dDec * sin_PA
+    dDecrot = dRA * sin_PA + dDec * cos_PA
+
+    return dRArot, dDecrot, urot, vrot
 
 
 def unique_part(array):
