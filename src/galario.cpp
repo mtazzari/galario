@@ -1063,7 +1063,6 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     // ################################
     // ########### KERNELS ############
     // ################################
-    GpuTimer t;
     // rotate uv points
      if (PA==0) {
         dRArot = dRA;
