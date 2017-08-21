@@ -779,6 +779,10 @@ __global__ void uv_rotate_d(dreal cos_PA, dreal sin_PA, int const nd, const drea
 
 void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
                  dreal* const urot, dreal* vrot) {
+    double start = 0;
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    start = omp_get_wtime();
+#endif
 
     if (PA==0) {
         *dRArot = dRA;
@@ -798,7 +802,7 @@ void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot,
 
     uv_rotate_core(cos_PA, sin_PA, dRA, dDec, *dRArot, *dDecrot);
 
-
+    print_timing("uv_rotate_h", start);
 }
 #endif
 
@@ -953,9 +957,9 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
 void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
-    double start_sample = 0;
+    double start = 0;
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
-    start_sample = omp_get_wtime();
+    start = omp_get_wtime();
 #endif
     // start with zero image
     auto const ncol = nxy/2+1;
