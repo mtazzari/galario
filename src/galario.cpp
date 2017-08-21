@@ -89,7 +89,8 @@
                 CCheck(cudaEventSynchronize(stop));
                 float elapsed;
                 CCheck(cudaEventElapsedTime(&elapsed, start, stop));
-                std::cout << "[GPU] " << msg << ": " <<elapsed << " ms" << std::endl;
+                std::cout << std::endl;
+                std::cout << "[GPU] " << msg << ": " <<elapsed << " ms";
                 if (restart)
                     Start();
                 return elapsed;
@@ -136,7 +137,8 @@
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
     inline void print_timing(const char* const msg, const double start, double end=0.0) {
         end += (end == 0.0)? omp_get_wtime() : 0;
-        std::cout << "[CPU] " << msg << ": " << 1000*(end-start) << " ms" <<  std::endl;
+        std::cout << std::endl; 
+        std::cout << "[CPU] " << msg << ": " << 1000*(end-start) << " ms";
     }
     #define OPENMPTIME(body, msg)                                 \
         do {                                                      \
@@ -227,7 +229,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
 
     // set the padding by defining different sizes of a row in bytes
     CCheck(cudaMemcpy2D(data_d, rowsize_complex, realdata, rowsize_real, rowsize_real, nx, cudaMemcpyHostToDevice));
-    t.Elapsed("image H->D");
+    t.Elapsed("copy_input_H->D");
     return data_d;
 }
 #endif
@@ -1054,7 +1056,7 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
     CCheck(cudaMalloc(&urot_d, nbytes_ndat));
     CCheck(cudaMalloc(&vrot_d, nbytes_ndat));
-    t.Elapsed("copy u,d");
+    t.Elapsed("sample::copy_uv_H->D");
 
     auto const nthreads = tpb * tpb;
     dreal dRArot = 0.;
@@ -1069,26 +1071,26 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
         dDecrot = dDec;
         cudaMemcpy(urot_d, u_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
         cudaMemcpy(vrot_d, v_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
-        t.Elapsed("copy uvrot D->D");
+        t.Elapsed("sample::copy_uvrot_D->D");
      } else {
         const dreal cos_PA = cos(PA);
         const dreal sin_PA = sin(PA);
 
         uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
         uv_rotate_core(cos_PA, sin_PA, dRA, dDec, dRArot, dDecrot);
-        t.Elapsed("rotate");
+        t.Elapsed("sample::uv_rotate");
      }
 
     // Kernel for shift --> FFT --> shift
-    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d); t.Elapsed("shift");
-    fft_d(nx, ny, (dcomplex*) data_d); t.Elapsed("fft");
-    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d); t.Elapsed("shift axis0");
+    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d); t.Elapsed("sample::1st_shift");
+    fft_d(nx, ny, (dcomplex*) data_d); t.Elapsed("sample::FFT");
+    shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d); t.Elapsed("sample::2nd_shift");
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d, vrot_d, duv, fint_d); t.Elapsed("interpolate");
+    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d, vrot_d, duv, fint_d); t.Elapsed("sample::interpolate");
 
     // apply phase to the sampled points
-    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRArot, dDecrot, nd, urot_d, vrot_d, fint_d); t.Elapsed("apply phase sampled");
+    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRArot, dDecrot, nd, urot_d, vrot_d, fint_d); t.Elapsed("sample::apply_phase_sampled");
 
     // ################################
     // ########### CLEANUP ############
@@ -1107,11 +1109,11 @@ void sample_h(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec, int nd, dre
 #endif
     int const ncol = ny/2+1;
 
-    OPENMPTIME(shift_h(nx, ny, data), "1st shift");
+    OPENMPTIME(shift_h(nx, ny, data), "sample::1st_shift");
 
-    OPENMPTIME(fft_h(nx, ny, data), "FFT");
+    OPENMPTIME(fft_h(nx, ny, data), "sample::FFT");
 
-    OPENMPTIME(shift_axis0_h(nx, ncol, data), "2nd shift");
+    OPENMPTIME(shift_axis0_h(nx, ncol, data), "sample::2nd_shift");
 
     auto urot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
     auto vrot = reinterpret_cast<dreal*>(FFTW(alloc_real)(nd));
@@ -1120,14 +1122,14 @@ void sample_h(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec, int nd, dre
     uv_rotate_h(PA, dRA, dDec, &dRArot, &dDecrot, nd, u, v, urot, vrot);
 
     // interpolate
-    OPENMPTIME(interpolate_h(nx, ncol, data, nd, urot, vrot, duv, fint), "interpolate");
+    OPENMPTIME(interpolate_h(nx, ncol, data, nd, urot, vrot, duv, fint), "sample::interpolate");
 
     // apply phase to the sampled points
-    OPENMPTIME(apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint), "phase_sampled");
+    OPENMPTIME(apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint), "sample::apply_phase_sampled");
 
     galario_free(urot);
     galario_free(vrot);
-    print_timing("sample_h", start_sample);
+    print_timing("sample_tot", start_sample);
 }
 
 #endif
@@ -1156,11 +1158,11 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     CCheck(cudaDeviceSynchronize());
 
     GpuTimer t;
-    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost)); t.Elapsed("fint D->H");
+    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost)); t.Elapsed("sample_image::fint_ D->H");
 
-    CCheck(cudaFree(fint_d)); t.Elapsed("fint cudaFree");
-    CCheck(cudaFree(data_d)); t.Elapsed("data cudaFree");
-    t_total.Elapsed("galario sample");
+    CCheck(cudaFree(fint_d)); t.Elapsed("sample_image::fint_cudaFree");
+    CCheck(cudaFree(data_d)); t.Elapsed("sample_image::data_cudaFree");
+    t_total.Elapsed("sample_image_tot");
 #else
 
     double start_copy = 0;
@@ -1168,13 +1170,13 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     start_copy = omp_get_wtime();
 #endif
     auto data = galario_copy_input(nx, ny, realdata);
-    print_timing("copy input", start_copy);
+    print_timing("copy_input", start_copy);
 
     sample_h(nx, ny, data, dRA, dDec, nd, duv, PA, u, v, fint);
 
     galario_free(data);
 
-    print_timing("sample_image", start_copy);
+    print_timing("sample_image_tot", start_copy);
 #endif
 }
 
@@ -1214,7 +1216,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
 
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(image_d));
-    t.Elapsed("sample_profile");
+    t.Elapsed("sample_profile_tot");
 #else
     int const ncol = nxy/2+1;
 
@@ -1430,7 +1432,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     CCheck(cudaFree(fobs_im_d));
     CCheck(cudaFree(weights_d));
     CCheck(cudaFree(data_d));
-    t.Elapsed("sample_profile");
+    t.Elapsed("chi2_image_tot");
 #else
     double start = 0;
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
@@ -1442,7 +1444,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
     galario_free(fint);
-    print_timing("chi2_image", start);
+    print_timing("chi2_image_tot", start);
 #endif
 
 }
@@ -1484,7 +1486,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     CCheck(cudaFree(fobs_im_d));
     CCheck(cudaFree(weights_d));
     CCheck(cudaFree(image_d));
-    t.Elapsed("sample_profile");
+    t.Elapsed("chi2_profile_tot");
 #else
     double start = 0;
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
@@ -1494,7 +1496,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd, u, v, fint);
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
     free(fint);
-    print_timing("chi2_image", start);
+    print_timing("chi2_profile_tot", start);
 #endif
 }
 
