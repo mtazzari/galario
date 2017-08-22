@@ -55,54 +55,47 @@
     }
 
     #ifdef GALARIO_TIMING
-        struct GpuTimer
+        struct GPUTimer
         {
             cudaEvent_t start;
             cudaEvent_t stop;
 
-            GpuTimer()
-            {
+            GPUTimer() {
                 CCheck(cudaEventCreate(&start));
                 CCheck(cudaEventCreate(&stop));
                 Start();
             }
 
-            ~GpuTimer()
-            {
+            ~GPUTimer() {
                 CCheck(cudaEventDestroy(start));
                 CCheck(cudaEventDestroy(stop));
             }
 
-            void Start()
-            {
+            void Start() {
                 CCheck(cudaEventRecord(start, 0));
             }
 
-            void Stop()
-            {
+            void Stop() {
                 CCheck(cudaEventRecord(stop, 0));
             }
 
-            float Elapsed(const std::string& msg, bool restart=true)
-            {
+            void Elapsed(const std::string& msg) {
                 CCheck(cudaEventRecord(stop, 0));
                 CCheck(cudaEventSynchronize(stop));
                 float elapsed;
                 CCheck(cudaEventElapsedTime(&elapsed, start, stop));
                 std::cout << std::endl;
                 std::cout << "[GPU] " << msg << ": " <<elapsed << " ms";
-                if (restart)
-                    Start();
-                return elapsed;
+                Start();
             }
         };
     #else
-        struct GpuTimer
+        struct GPUTimer
         {
-            GpuTimer() {}
+            GPUTimer() {}
             void Start() {}
             void Stop() {}
-            float Elapsed(const std::string& msg) { return 0; }
+            void Elapsed(const std::string& msg) {}
         };
     #endif // TIMING
 
@@ -135,20 +128,36 @@
     using std::max;
 
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
-    inline void print_timing(const char* const msg, const double start, double end=0.0) {
-        end += (end == 0.0)? omp_get_wtime() : 0;
-        std::cout << std::endl; 
-        std::cout << "[CPU] " << msg << ": " << 1000*(end-start) << " ms";
-    }
-    #define OPENMPTIME(body, msg)                                 \
-        do {                                                      \
-            const auto start = omp_get_wtime();                   \
-            body ;                                                \
-            print_timing(msg, start);                         \
-        } while (false)
+    struct CPUTimer {
+        double start;
+
+        CPUTimer() {
+            Start();
+        }
+
+        inline void Start() {
+            start = omp_get_wtime();
+        }
+
+        void Elapsed(const std::string& msg) {
+            const double elapsed = 1000 * (omp_get_wtime() - start);
+            std::cout << std::endl;
+            std::cout << "[CPU] " << msg << ": " << elapsed << " ms";
+            Start();
+        }
+    };
+
+    #define OPENMPTIME(body, msg)                                     \
+    do {                                                              \
+        CPUTimer t;                                                   \
+        body;                                                         \
+        t.Elapsed(msg);                                               \
+    } while (false)
 #else
-    inline void print_timing(const char* const msg, const double start, double end=0.0) {}
     #define OPENMPTIME(body, msg) body
+    struct CPUTimer {
+        void Elapsed(const std::string&) {}
+    };
 #endif // _OPENMP && !NDEBUG
 
     #include <fftw3.h>
@@ -218,7 +227,7 @@ void galario_free(void* data) {
  * Caller is responsible for freeing the device memory with `cudaFree()`.
  */
 dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
-    GpuTimer t;
+    GPUTimer t;
     auto const ncol = ny/2+1;
     auto const rowsize_real = sizeof(dreal)*ny;
     auto const rowsize_complex = sizeof(dcomplex)*ncol;
@@ -781,10 +790,7 @@ __global__ void uv_rotate_d(dreal cos_PA, dreal sin_PA, int const nd, const drea
 
 void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
                  dreal* const urot, dreal* vrot) {
-    double start = 0;
-#if defined(_OPENMP) && defined(GALARIO_TIMING)
-    start = omp_get_wtime();
-#endif
+    CPUTimer t;
 
     if (PA==0) {
         *dRArot = dRA;
@@ -804,7 +810,7 @@ void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot,
 
     uv_rotate_core(cos_PA, sin_PA, dRA, dDec, *dRArot, *dDecrot);
 
-    print_timing("uv_rotate_h", start);
+    t.Elapsed("uv_rotate_h");
 }
 #endif
 
@@ -926,7 +932,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
  * Allocate memory on device for `ints` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
  */
 void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
-    GpuTimer t;
+    GPUTimer t;
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
 
@@ -959,10 +965,8 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
 void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
              dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
-    double start = 0;
-#if defined(_OPENMP) && defined(GALARIO_TIMING)
-    start = omp_get_wtime();
-#endif
+    CPUTimer t;
+
     // start with zero image
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
@@ -985,7 +989,7 @@ void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dre
     if (Rmin != 0.)
         real_image[nxy/2*rowsize+nxy/2] = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
 
-    print_timing("create_image", start);
+    t.Elapsed("create_image");
 }
 #endif
 
@@ -1049,7 +1053,7 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     dreal *u_d, *v_d, *urot_d, *vrot_d;
     size_t nbytes_ndat = sizeof(dreal)*nd;
 
-    GpuTimer t;
+    GPUTimer t;
     CCheck(cudaMalloc(&u_d, nbytes_ndat));
     CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
     CCheck(cudaMalloc(&v_d, nbytes_ndat));
@@ -1103,10 +1107,8 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
 #else
 
 void sample_h(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint) {
-    double start_sample = 0;
-#if defined(_OPENMP) && defined(GALARIO_TIMING)
-    start_sample = omp_get_wtime();
-#endif
+    CPUTimer t_start;
+
     int const ncol = ny/2+1;
 
     OPENMPTIME(shift_h(nx, ny, data), "sample::1st_shift");
@@ -1129,7 +1131,7 @@ void sample_h(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec, int nd, dre
 
     galario_free(urot);
     galario_free(vrot);
-    print_timing("sample_tot", start_sample);
+    t_start.Elapsed("sample_tot");
 }
 
 #endif
@@ -1144,7 +1146,7 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     assert(nx >= 2);
 
 #ifdef __CUDACC__
-    GpuTimer t_total;
+    GPUTimer t_total;
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
     CCheck(cudaMalloc(&fint_d, nbytes_fint));
@@ -1157,26 +1159,22 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     // retrieve interpolated values
     CCheck(cudaDeviceSynchronize());
 
-    GpuTimer t;
+    GPUTimer t;
     CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost)); t.Elapsed("sample_image::fint_ D->H");
 
     CCheck(cudaFree(fint_d)); t.Elapsed("sample_image::fint_cudaFree");
     CCheck(cudaFree(data_d)); t.Elapsed("sample_image::data_cudaFree");
     t_total.Elapsed("sample_image_tot");
 #else
+    CPUTimer t_start, t;
 
-    double start_copy = 0;
-#if defined(_OPENMP) && defined(GALARIO_TIMING)
-    start_copy = omp_get_wtime();
-#endif
-    auto data = galario_copy_input(nx, ny, realdata);
-    print_timing("copy_input", start_copy);
+    auto data = galario_copy_input(nx, ny, realdata); t.Elapsed("sample_image::copy_input");
 
     sample_h(nx, ny, data, dRA, dDec, nd, duv, PA, u, v, fint);
 
-    galario_free(data);
+    t.Start(); galario_free(data); t.Elapsed("sample_image::free_data");
 
-    print_timing("sample_image_tot", start_copy);
+    t_start.Elapsed("sample_image_tot");
 #endif
 }
 
@@ -1197,7 +1195,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     convert_intensity(nr, ints, dxy, dist);
 
 #ifdef __CUDACC__
-    GpuTimer t;
+    GPUTimer t;
     dcomplex *image_d;
 
     create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
@@ -1273,10 +1271,12 @@ __global__ void diff_weighted_d
 void diff_weighted_h
         (int const nd, const dreal* const fobs_re, const dreal* const fobs_im, dcomplex* const fint, const dreal* const weights)
 {
+    CPUTimer t;
 #pragma omp parallel for
     for (auto idx = 0; idx < nd; ++idx) {
         diff_weighted_core(idx, nd, fobs_re, fobs_im, fint, weights);
     }
+    t.Elapsed("diff_weighted");
 }
 #endif
 
@@ -1340,7 +1340,8 @@ void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dco
      CCheck(cudaFree(fint_d));
 
 #else
-    diff_weighted_h(nd, fobs_re, fobs_im, fint, weights);
+     CPUTimer t;
+     diff_weighted_h(nd, fobs_re, fobs_im, fint, weights);
 
     // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
     // compute the Euclidean norm
@@ -1352,7 +1353,7 @@ void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dco
         y += real(CMPLXMUL(x, x_conj));
     }
     *chi2 = y;
-
+    t.Elapsed("reduce_chi2_tot");
 #endif
 }
 
@@ -1405,7 +1406,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 
       While the FFT etc. are calculated, we can copy over the weights and observed values.
      */
-    GpuTimer t;
+    GPUTimer t_start;
 
     // reserve memory for the interpolated values
     dcomplex *fint_d;
@@ -1434,17 +1435,15 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     CCheck(cudaFree(data_d));
     t.Elapsed("chi2_image_tot");
 #else
-    double start = 0;
-#if defined(_OPENMP) && defined(GALARIO_TIMING)
-    start = omp_get_wtime();
-#endif
-    auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd));
+    CPUTimer t_start, t;
+
+    auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd)); t.Elapsed("chi2_profile::fftw_alloc");
     galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
 
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
-    galario_free(fint);
-    print_timing("chi2_image_tot", start);
+    t.Start(); galario_free(fint); t.Elapsed("chi2_imag::free_fint");
+    t_start.Elapsed("chi2_image_tot");
 #endif
 
 }
@@ -1459,7 +1458,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
                           dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v,
                           const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
 #ifdef __CUDACC__
-    GpuTimer t;
+    GPUTimer t;
 
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
@@ -1488,15 +1487,13 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     CCheck(cudaFree(image_d));
     t.Elapsed("chi2_profile_tot");
 #else
-    double start = 0;
-#if defined(_OPENMP) && defined(GALARIO_TIMING)
-    start = omp_get_wtime();
-#endif
-    dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd);
+    CPUTimer t_start, t;
+
+    dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd); t.Elapsed("chi2_profile::malloc_fint");
     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd, u, v, fint);
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
-    free(fint);
-    print_timing("chi2_profile_tot", start);
+    t.Start(); free(fint); t.Elapsed("chi2_profile::free_fint");
+    t_start.Elapsed("chi2_profile_tot");
 #endif
 }
 
