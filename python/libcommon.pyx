@@ -339,9 +339,8 @@ def sweep(dreal[::1] ints, Rmin, dR, nxy, dxy, dist, inc=0.):
     image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
     _galario_sweep(len(ints), <void*>&ints[0], Rmin, dR, nxy, dxy, dist, inc, <void*>np.PyArray_DATA(image))
 
-    # TODO @Fred: image.view(dtype=real_dtype)[:, :-2] is *not* C-Continuous.
-    # ensuring the output of sweep is C-contiguous allowes users to use it in sampleImage()
-    return  image.view(dtype=real_dtype)[:, :-2]
+    # return a copy so is C-Continuous and can be used in sampleImage()
+    return image.view(dtype=real_dtype)[:, :-2].copy()
 
 
 def apply_phase_sampled(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
