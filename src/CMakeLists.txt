@@ -1,13 +1,13 @@
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
 # these options are understood by both gcc and nvcc
 set(cxx_std "-std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${cxx_std}")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+set(CMAKE_CXX_FLAGS "${cxx_std} ${CMAKE_CXX_FLAGS}")
+set(CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS}")
+
 # these need to be wrapped in -Xcompiler for nvcc
-set(extra_compile_options  -Wall -pedantic -fno-strict-aliasing -pthread -fwrapv)
-# we set CXX_FLAGS because they are then automatically propagated also to nvcc with -Xcompiler option
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${compile_options}")
-add_compile_options(${compile_options} ${extra_compile_options})
+# use strict-aliasing because all input arrays to functions must not alias for correctness
+set(extra_compile_options  -Wall -pedantic -fstrict-aliasing -pthread)
+add_compile_options(${extra_compile_options})
 
 # we compile the same source file multiple times, varying preprocessor definitions
 set(common_cpp "${CMAKE_CURRENT_SOURCE_DIR}/galario.cpp")
@@ -22,10 +22,10 @@ set(install_libs galario_single galario)
 
 find_package(OpenMP)
 if(OPENMP_FOUND)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
   # https://cmake.org/Bug/view.php?id=9075
   # http://stackoverflow.com/questions/24532853/how-to-add-linker-flag-for-libraries-with-cmake
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(CMAKE_SHARED_LINKER_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS}")
   set(FFTW_PARALLEL "OPENMP")
 endif()
 
@@ -43,8 +43,6 @@ foreach(t IN ITEMS galario_single galario)
 endforeach()
 
 if (CUDA_FOUND)
-  list(APPEND CUDA_NVCC_FLAGS ${compile_options})
-
   # for timing test, we want to avoid the start-up time from JIT, so we create fat binaries
   # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
   list(APPEND CUDA_NVCC_FLAGS --gpu-architecture=compute_30 --gpu-code=compute_30,sm_53)
