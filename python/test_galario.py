@@ -113,7 +113,7 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     # CPU version
     dRArot, dDecrot, urot, vrot = apply_rotation(PA, dRA, dDec, udat, vdat)
     dRArot_g, dDecrot_g, urot_g, vrot_g = acc_lib.uv_rotate(PA, dRA, dDec, udat, vdat)
-    
+
     np.testing.assert_allclose(dRArot, dRArot_g)
     np.testing.assert_allclose(dDecrot, dDecrot_g)
     np.testing.assert_allclose(urot, urot_g)
@@ -472,8 +472,8 @@ def test_chi2Image(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars)
 
 
 @pytest.mark.parametrize("Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars",
-                          [(0.1, 1., 500, 20., 'Gauss', 'float64', int(100), 1e-12, 1e-12, par1),
-                           (2., 0.3, 200, 0., 'Cos-Gauss', 'float64', int(100), 1e-12, 1e-12, par1)],
+                          [(0.1, 1., 500, 20., 'Gauss', 'float64', int(100), 1e-12, 1e-10, par1),
+                           (2., 0.3, 200, 0., 'Cos-Gauss', 'float64', int(100), 1e-12, 1e-10, par1)],
                           ids=["DP_Gauss", "DP_Cos-Gauss"])
 def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsamples, rtol, atol, pars):
 
@@ -504,10 +504,11 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
 
     # compute the sweeped image for galario sample
-    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
+    image_ref_proto = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
 
     # we cannot use this now because the output is not C-contiguous
-    # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
+    image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi)
+    assert_allclose(image_ref, image_ref_proto, rtol=rtol, atol=atol)
 
     # R2C
     dRArot_g, dDecrot_g, urot_g, vrot_g = g_double.uv_rotate(PA, dRA, dDec, udat, vdat)
@@ -582,4 +583,3 @@ def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rto
     chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
 
     assert_allclose(chi2_chi2Profile, chi2_chi2Image, rtol=rtol, atol=atol)
-
