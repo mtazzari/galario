@@ -46,10 +46,10 @@ galario should work with both python 2 and 3. To create conda environments
     conda create --name galario2 python=2 numpy cython pytest
     conda create --name galario3 python=3 numpy cython pytest
 
-To run the tests, additionally install `pyfftw` within the environment
+To run the tests, install some more dependencies within the environment
 
     conda config --add channels conda-forge
-    conda install pyfftw
+    conda install pyfftw scipy
 
 cmake may get confused with the conda python and the system
 python. This is a general problem
