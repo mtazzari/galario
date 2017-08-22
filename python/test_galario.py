@@ -162,8 +162,9 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 #                      TESTS                           #
 #                                                      #
 ########################################################
+# single precision less precise if code compiled with `-ffast-math`, otherwise rtol=1e-7 passes
 @pytest.mark.parametrize("size, real_type, complex_type, rtol, atol, acc_lib",
-                         [(1024, 'float32', 'complex64',  1e-7,  1e-5, g_single),
+                         [(1024, 'float32', 'complex64',  2e-4,  1e-5, g_single),
                           (1024, 'float64', 'complex128', 1e-16, 1e-8, g_double)],
                          ids=["SP", "DP"])
 def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):

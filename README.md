@@ -33,6 +33,11 @@ The default is `Release`. If you want debug symbols as well, use
 
     cmake -DCMAKE_BUILD_TYPE=Debug
 
+To turn on even more aggressive optimization, pass the flags
+directly. For example for gcc
+
+    cmake -DCMAKE_CXX_FLAGS='-march=native -ffast-math'
+
 ### python
 
 Specify a python version. This is useful if python 2.7 and 3.x are in
