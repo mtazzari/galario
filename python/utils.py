@@ -6,7 +6,7 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 from scipy.interpolate import interp1d
 
-from galario import arcsec, CGS_to_Jy, pc, au
+from galario import arcsec, pc, au
 
 __all__ = ["radial_profile", "g_sweep_prototype", "sweep_ref", "create_reference_image", "create_sampling_points", "uv_idx",
            "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",

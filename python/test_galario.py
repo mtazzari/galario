@@ -11,7 +11,7 @@ import pyfftw
 from utils import *
 
 import galario
-from galario import au, pc, CGS_to_Jy
+from galario import au, pc
 
 if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
     from galario import double_cuda as g_double
@@ -138,8 +138,9 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
     fint_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, fint, dRArot, dDecrot)
 
     # CPU/GPU version (galario)
-    fint_galario = acc_lib.sampleImage(ref_real, dRA, dDec,
-                             du, udat/wle_m, vdat/wle_m, PA=PA)
+    dist = 30
+    dxy = dist/nxy/du
+    fint_galario = acc_lib.sampleImage(ref_real, dxy, dist, udat/wle_m, vdat/wle_m, dRA=dRA, dDec=dDec, PA=PA)
 
     uneg = urot < 0.
     upos = urot > 0.
@@ -192,9 +193,9 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     uneg = udat < 0.
     ImInt[uneg] *= -1.
 
-    complexInt = acc_lib.interpolate(ft,
+    complexInt = acc_lib.interpolate(ft, du,
                                      udat.astype(real_type),
-                                     vdat.astype(real_type), du)
+                                     vdat.astype(real_type))
 
     assert_allclose(ReInt, complexInt.real, rtol, atol)
     assert_allclose(ImInt, complexInt.imag, rtol, atol)
@@ -210,7 +211,7 @@ def test_FFT(size, real_type, rtol, atol, acc_lib):
 
     ft = np.fft.fft2(reference_image)
 
-    acc_res = acc_lib.fft2d(reference_image)
+    acc_res = acc_lib._fft2d(reference_image)
 
     # outputs of different shape because np doesn't use the redundancy y[i] == y[n-i] for i>0
     np.testing.assert_equal(ft.shape[0], acc_res.shape[0])
@@ -235,7 +236,7 @@ def test_shift_axes01(size, real_type, tol, acc_lib):
     npshifted = np.fft.fftshift(reference_image)
 
     ref_complex = reference_image.copy()
-    acc_shift_real = acc_lib.fftshift(ref_complex)
+    acc_shift_real = acc_lib._fftshift(ref_complex)
 
     # interpret complex array as real and skip last two columns
     real_view = acc_shift_real.view(dtype=real_type)[:, :-2]
@@ -257,7 +258,7 @@ def test_shift_axis0(size, complex_type, tol, acc_lib):
     npshifted = np.fft.fftshift(reference_image, axes=0)
 
     ref_complex = reference_image.copy()
-    acc_lib.fftshift_axis0(ref_complex)
+    acc_lib._fftshift_axis0(ref_complex)
     assert_allclose(npshifted, ref_complex, rtol=tol)
 
 
@@ -271,7 +272,7 @@ def test_shift_axis0(size, complex_type, tol, acc_lib):
                          ids=["SP_par1", "DP_par1",
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
-def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars):
+def test_apply_phase_vis(real_type, complex_type, rtol, atol, acc_lib, pars):
 
     dRA = pars.get('dRA', 0.4)
     dDec = pars.get('dDec', 10.)
@@ -288,7 +289,7 @@ def test_apply_phase_sampled(real_type, complex_type, rtol, atol, acc_lib, pars)
 
     fint_numpy = apply_phase_array(udat, vdat, fint.copy(), dRA, dDec)
 
-    fint_shifted = acc_lib.apply_phase_sampled(dRA, dDec, udat, vdat, fint)
+    fint_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, fint)
 
     assert_allclose(fint_numpy.real, fint_shifted.real, rtol, atol)
     assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
@@ -304,7 +305,7 @@ def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
     x, y, w = generate_random_vis(nsamples, real_type)
     chi2_ref = np.sum(((x.real - y.real) ** 2. + (x.imag - y.imag)**2.) * w)
 
-    chi2_loc = acc_lib.reduce_chi2(x.real.copy(order='C'), x.imag.copy(order='C'), y.copy(), w)
+    chi2_loc = acc_lib.reduce_chi2(x.real.copy(order='C'), x.imag.copy(order='C'), w, y.copy())
 
     # print("Chi2_ref:{0}  Chi2_acc:{1}".format(chi2_ref, chi2_loc))
     # print("Absolute diff: {0}".format(chi2_loc-chi2_ref))
@@ -341,7 +342,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # shift real
     ###
     py_shift_real = np.fft.fftshift(reference_image)
-    acc_shift_real = acc_lib.fftshift(reference_image)
+    acc_shift_real = acc_lib._fftshift(reference_image)
 
     # interpret complex array as real and skip last two columns
     real_view = acc_shift_real.view(dtype=real_type)[:, :-2]
@@ -355,7 +356,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     py_fft = np.fft.fft2(py_shift_real)
     # use the real input!
-    acc_fft = acc_lib.fft2d(py_shift_real)
+    acc_fft = acc_lib._fft2d(py_shift_real)
 
     assert_allclose(unique_part(py_fft).real, acc_fft.real, rtol, atol)
     assert_allclose(unique_part(py_fft).imag, acc_fft.imag, rtol, atol)
@@ -364,7 +365,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # shift complex
     ###
     py_shift_cmplx = np.fft.fftshift(py_fft, axes=0)
-    acc_lib.fftshift_axis0(acc_fft)
+    acc_lib._fftshift_axis0(acc_fft)
     assert_allclose(unique_part(py_shift_cmplx).real, acc_fft.real, rtol, atol)
     assert_allclose(unique_part(py_shift_cmplx).imag, acc_fft.imag, rtol, atol)
 
@@ -378,7 +379,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     fint = ReInt + 1j*ImInt
     fint_acc = fint.copy()
     fint_shifted = apply_phase_array(udat/wle_m, vdat/wle_m, fint, dRA, dDec)
-    fint_acc_shifted = acc_lib.apply_phase_sampled(dRA, dDec, udat/wle_m, vdat/wle_m, fint_acc)
+    fint_acc_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat/wle_m, vdat/wle_m, fint_acc)
 
 
     # lose some absolute precision here  --> not anymore. Really? check by decreasing rtol, atol
@@ -398,9 +399,9 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ImInt[uneg] *= -1.
 
     complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
+                                     du,
                                      udat.astype(real_type)/wle_m,
-                                     vdat.astype(real_type)/wle_m,
-                                     du)
+                                     vdat.astype(real_type)/wle_m)
 
     assert_allclose(ReInt, complexInt.real, rtol, atol)
     assert_allclose(ImInt, complexInt.imag, rtol, atol)
@@ -442,20 +443,18 @@ def test_chi2Image(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars)
     x, _, w = generate_random_vis(nsamples, real_type)
 
     # compute the matrix size and maxuv
-    size, minuv, maxuv = matrix_size(udat, vdat)
+    nxy, minuv, maxuv = matrix_size(udat/wle_m, vdat/wle_m)
     #print("size:{0}, minuv:{1}, maxuv:{2}".format(size, minuv, maxuv))
-    uv = pixel_coordinates(maxuv, size).astype(real_type)
-
     # create model image (it happens to have 0 imaginary part)
-    ref_complex = create_reference_image(size=size, dtype=complex_type)
+    ref_complex = create_reference_image(size=nxy, dtype=complex_type)
     ref_real = ref_complex.real.copy()
 
     # CPU version
     cpu_shift_fft_shift = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(ref_complex)))
 
     # compute interpolation and chi2
-    du = maxuv/size/wle_m
-    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, size/2.)
+    du = maxuv/nxy
+    uroti, vroti = uv_idx(udat/wle_m, vdat/wle_m, du, nxy/2.)
 
     ReInt = int_bilin_MT(cpu_shift_fft_shift.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(cpu_shift_fft_shift.imag, uroti, vroti).astype(real_type)
@@ -465,8 +464,9 @@ def test_chi2Image(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars)
     chi2_ref = np.sum(((fint_shifted.real - x.real)**2. + (fint_shifted.imag - x.imag)**2.) * w)
 
     # GPU
-    chi2_cuda = acc_lib.chi2Image(ref_real, dRA, dDec,
-                             maxuv/size/wle_m, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
+    dist = 1.
+    dxy = dist/maxuv
+    chi2_cuda = acc_lib.chi2Image(ref_real, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
 
     assert_allclose(chi2_ref, chi2_cuda, rtol=rtol, atol=atol)
 
@@ -522,10 +522,10 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     fint_shifted = apply_phase_array(urot_g/wle_m, vrot_g/wle_m, fint, dRArot_g, dDecrot_g)
 
     # galario sampleImage
-    fint_galarioImage = g_double.sampleImage(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m, PA=PA)
+    fint_galarioImage = g_double.sampleImage(image_ref, dxy, dist, udat/wle_m, vdat/wle_m, dRA=dRA, dDec=dDec, PA=PA)
 
     # galario sampleProfile
-    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, dist, dRA, dDec, udat/wle_m, vdat/wle_m, inc=inc/180.*np.pi, nxy=nxy, dxy=dxy, duv=duv, PA=PA)
+    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, inc=inc/180.*np.pi, dRA=dRA, dDec=dDec, PA=PA)
 
     assert_allclose(fint_shifted, fint_galarioImage, rtol=rtol, atol=atol)
     assert_allclose(fint_shifted, fint_galarioProfile, rtol=rtol, atol=atol)
@@ -577,9 +577,9 @@ def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rto
     # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
 
     # GPU
-    chi2_chi2Image = acc_lib.chi2Image(image_ref, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
+    chi2_chi2Image = acc_lib.chi2Image(image_ref, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
 
     # galario sampleProfile
-    chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w)
+    chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc=inc/180.*np.pi, dRA=dRA, dDec=dDec)
 
     assert_allclose(chi2_chi2Profile, chi2_chi2Image, rtol=rtol, atol=atol)
