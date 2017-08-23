@@ -1002,19 +1002,20 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
  * Allocate memory on device for `ints` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
  */
 void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex** addr_image_d) {
-    GPUTimer t;
+    GPUTimer t, t_start;
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
 
     // start with a zero image
-    CCheck(cudaMalloc(addr_image_d, nbytes));
-    CCheck(cudaMemset(*addr_image_d, 0, nbytes));
+    CCheck(cudaMalloc(addr_image_d, nbytes)); t.Elapsed("create_image_d::malloc_image");
+    CCheck(cudaMemset(*addr_image_d, 0, nbytes)); t.Elapsed("create_image_d::memset");
 
     // transfer intensities
     dreal* ints_d;
     auto const nbytes_ints = sizeof(dreal)*nr;
-    CCheck(cudaMalloc(&ints_d, nbytes_ints));
+    CCheck(cudaMalloc(&ints_d, nbytes_ints)); t.Elapsed("create_image_d::malloc_ints");
     CCheck(cudaMemcpy(ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
+    t.Elapsed("create_image_d::copy_ints_H->D");
 
     // Convert intensities from Jy/steradians to Jy/pixels.
     // The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
@@ -1026,13 +1027,15 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     auto const nblocks = (2*rmax) / tpb + 1;
     sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, sr_to_px, *addr_image_d);
     CCheck(cudaDeviceSynchronize());
+    t.Elapsed("create_image_d::sweep");
 
     // central pixel needs special treatment
     auto const value = sr_to_px * (ints[0] + Rmin * (ints[0] - ints[1]) / dR);
     central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
+    t.Elapsed("create_image_d::central_pixel");
 
-    CCheck(cudaFree(ints_d));
-    t.Elapsed("create_image");
+    CCheck(cudaFree(ints_d)); t.Elapsed("create_image_d::free_ints");
+    t_start.Elapsed("create_image");
 }
 
 #else
