@@ -140,6 +140,16 @@ namespace {
     #endif
     }
 
+namespace {
+    cublasHandle_t& cublas_handle() {
+        static bool initialized = false;
+        static cublasHandle_t handle;
+        if (!initialized)
+            CBlasCheck(cublasCreate(&handle));
+        return handle;
+    }
+}
+
     #ifdef GALARIO_TIMING
         struct GPUTimer
         {
@@ -247,7 +257,9 @@ int galario_threads_per_block(int x)
 }
 
 void galario_init() {
-#ifndef __CUDACC__
+#ifdef __CUDACC__
+    cublas_handle();
+#else
     #ifdef _OPENMP
     FFTWCheck(fftw_init_threads());
     fftw_plan_with_nthreads(omp_get_max_threads());
@@ -256,7 +268,9 @@ void galario_init() {
 }
 
 void galario_cleanup() {
-#ifndef __CUDACC__
+#ifdef __CUDACC__
+    CBlasCheck(cublasDestroy(cublas_handle()));
+#else
     #ifdef _OPENMP
     FFTW(cleanup_threads)();
     #endif
@@ -1249,7 +1263,6 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     dcomplex *image_d;
 
     create_image_d(nr, ints, Rmin, dR, nxy, dxy, dist, inc, &image_d);
-    // sweep_d<<<dim3(nxy/tpb+1, nxy/tpb+1), dim3(tpb, tpb)>>>(nr, ints, Rmin, dR, nxy, dxy, inc, image_d);
 
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
@@ -1334,26 +1347,20 @@ void diff_weighted_h
 void reduce_chi2_d
 (int nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im, dcomplex * const __restrict__ fint, const dreal* const __restrict__ weights, dreal* const __restrict__ chi2)
 {
-    GPUTimer t_start;
-
-    // TODO create handle only once in init!
-    cublasHandle_t handle;
-    CBlasCheck(cublasCreate(&handle));
+    GPUTimer t_start, t;
 
     auto const nthreads = tpb * tpb;
 
-    GPUTimer t;
     /* compute weighted difference */
     diff_weighted_d<<<nd / nthreads + 1, nthreads>>>(nd, fobs_re, fobs_im, fint, weights);
     t.Elapsed("reduce_chi2_d::diff_weighted_d");
 
     // only device pointers! maybe not ... check with jiri
     // compute the Euclidean norm
-    CUBLASNRM2(handle, nd, fint, 1, chi2); t.Elapsed("reduce_chi2_d::CUBLASNRM2");
+    CUBLASNRM2(cublas_handle(), nd, fint, 1, chi2); t.Elapsed("reduce_chi2_d::CUBLASNRM2");
     // but we want the square of the norm
     *chi2 *= *chi2;
 
-    CBlasCheck(cublasDestroy(handle));
     t_start.Elapsed("reduce_chi2");
 }
 #endif
@@ -1445,6 +1452,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 
     CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
+    GPUTimer t;
      // ################################
      // ### ALLOCATION, INITIALIZATION ###
      // ################################
@@ -1463,7 +1471,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     // reserve memory for the interpolated values
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc(&fint_d, nbytes_fint));
+    CCheck(cudaMalloc(&fint_d, nbytes_fint)); t.Elapsed("chi2_image::malloc_fint");
 
     // Initialization for comparison and chi square computation
     /* allocate and copy observational data */
@@ -1471,6 +1479,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     copy_observations_d(nd, fobs_re, &fobs_re_d);
     copy_observations_d(nd, fobs_im, &fobs_im_d);
     copy_observations_d(nd, weights, &weights_d);
+    t.Elapsed("chi2_image::copy_observations");
 
     dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
@@ -1480,11 +1489,13 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     // ################################
     // ########### CLEANUP ############
     // ################################
+    t.Start();
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(fobs_re_d));
     CCheck(cudaFree(fobs_im_d));
     CCheck(cudaFree(weights_d));
     CCheck(cudaFree(data_d));
+    t.Elapsed("chi2_image::free_all");
 #else
     CPUTimer t;
 
