@@ -11,3 +11,5 @@ Somebody has to write the documentation
                 void* fobs_im, void* weights, dreal* chi2, int rank)
 
    Accelerates everything
+
+TBC
