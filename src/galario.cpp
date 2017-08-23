@@ -58,6 +58,39 @@ namespace {
     } while (0)
 }
 
+#if defined(_OPENMP) && defined(GALARIO_TIMING)
+    struct CPUTimer {
+        double start;
+
+        CPUTimer() {
+            Start();
+        }
+
+        void Start() {
+            start = omp_get_wtime();
+        }
+
+        void Elapsed(const std::string& msg) {
+            const double elapsed = 1000 * (omp_get_wtime() - start);
+            ::out() << "[CPU] " << msg << ": " << elapsed << " ms\n";
+            // reset the timer for the next use
+            Start();
+        }
+    };
+
+    #define OPENMPTIME(body, msg)                                     \
+    do {                                                              \
+        CPUTimer t;                                                   \
+        body;                                                         \
+        t.Elapsed(msg);                                               \
+    } while (false)
+#else
+    #define OPENMPTIME(body, msg) body
+    struct CPUTimer {
+        void Elapsed(const std::string&) {}
+    };
+#endif // _OPENMP && TIMING
+
 #ifdef __CUDACC__
     #include <cuda_runtime_api.h>
     #include <cuda.h>
@@ -129,8 +162,7 @@ namespace {
                 CCheck(cudaEventSynchronize(stop));
                 float elapsed;
                 CCheck(cudaEventElapsedTime(&elapsed, start, stop));
-                std::cout << std::endl;
-                std::cout << "[GPU] " << msg << ": " <<elapsed << " ms";
+                ::out() << "[GPU] " << msg << ": " <<elapsed << " ms\n";
                 Start();
             }
         };
@@ -171,38 +203,6 @@ namespace {
     #include <algorithm>
     using std::min;
     using std::max;
-
-#if defined(_OPENMP) && defined(GALARIO_TIMING)
-    struct CPUTimer {
-        double start;
-
-        CPUTimer() {
-            Start();
-        }
-
-        inline void Start() {
-            start = omp_get_wtime();
-        }
-
-        void Elapsed(const std::string& msg) {
-            const double elapsed = 1000 * (omp_get_wtime() - start);
-            ::out() << "[CPU] " << msg << ": " << elapsed << " ms\n";
-            Start();
-        }
-    };
-
-    #define OPENMPTIME(body, msg)                                     \
-    do {                                                              \
-        CPUTimer t;                                                   \
-        body;                                                         \
-        t.Elapsed(msg);                                               \
-    } while (false)
-#else
-    #define OPENMPTIME(body, msg) body
-    struct CPUTimer {
-        void Elapsed(const std::string&) {}
-    };
-#endif // _OPENMP && !NDEBUG
 
     #include <fftw3.h>
     #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
@@ -1083,6 +1083,8 @@ void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy
 #ifdef __CUDACC__
 inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
+    GPUTimer t_start;
+
     int const ncol = ny/2+1;
 
     // ################################
@@ -1152,6 +1154,8 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     CCheck(cudaFree(v_d));
     CCheck(cudaFree(vrot_d));
     CCheck(cudaFree(urot_d));
+
+    t_start.Elapsed("sample_tot");
 }
 #else
 
@@ -1223,7 +1227,7 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
 
     sample_h(nx, ny, data, dRA, dDec, nd, duv, PA, u, v, fint);
 
-    t.Start(); galario_free(data); t.Elapsed("sample_image::free_data");
+    t = CPUTimer(); galario_free(data); t.Elapsed("sample_image::free_data");
 #endif
     t_start.Elapsed("sample_image_tot");
 }
@@ -1335,6 +1339,8 @@ void diff_weighted_h
 void reduce_chi2_d
 (int nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im, dcomplex * const __restrict__ fint, const dreal* const __restrict__ weights, dreal* const __restrict__ chi2)
 {
+    GPUTimer t_start;
+
     // TODO create handle only once in init!
     cublasHandle_t handle;
     CBlasCheck(cublasCreate(&handle));
@@ -1351,6 +1357,7 @@ void reduce_chi2_d
     *chi2 *= *chi2;
 
     CBlasCheck(cublasDestroy(handle));
+    t_start.Elapsed("reduce_chi2");
 }
 #endif
 
@@ -1481,7 +1488,6 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     CCheck(cudaFree(fobs_im_d));
     CCheck(cudaFree(weights_d));
     CCheck(cudaFree(data_d));
-    t.Elapsed("chi2_image_tot");
 #else
     CPUTimer t;
 
@@ -1490,7 +1496,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
 
-    t.Start(); galario_free(fint); t.Elapsed("chi2_imag::free_fint");
+    t = CPUTimer(); galario_free(fint); t.Elapsed("chi2_imag::free_fint");
 #endif
     t_start.Elapsed("chi2_image_tot");
 }
@@ -1518,6 +1524,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     copy_observations_d(nd, fobs_re, &fobs_re_d);
     copy_observations_d(nd, fobs_im, &fobs_im_d);
     copy_observations_d(nd, weights, &weights_d);
+    t.Elapsed("chi2_profile::copy_observations");
 
     // from steradians to pixels
     convert_intensity(nr, ints, dxy, dist);
@@ -1528,18 +1535,21 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
 
+    t.Start();
     CCheck(cudaFree(fint_d));
     CCheck(cudaFree(fobs_re_d));
     CCheck(cudaFree(fobs_im_d));
     CCheck(cudaFree(weights_d));
     CCheck(cudaFree(image_d));
+    t.Elapsed("chi2_profile::free_all");
+    t_start2.Elapsed("chi2_profile_tot_gputimer");
 #else
     CPUTimer t;
 
     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd); t.Elapsed("chi2_profile::malloc_fint");
     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd, u, v, fint);
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
-    t.Start(); free(fint); t.Elapsed("chi2_profile::free_fint");
+    t = CPUTimer(); free(fint); t.Elapsed("chi2_profile::free_fint");
 #endif
     t_start.Elapsed("chi2_profile_tot");
     flush_timing();
