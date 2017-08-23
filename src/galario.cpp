@@ -43,13 +43,13 @@ namespace {
    /**
     * Macros to check input image lengths.
     */
-    #define check_input(nx)   \
+    #define CHECK_INPUT(nx)   \
     do {                      \
         assert(nx >= 2);      \
         assert(nx % 2 == 0);  \
     } while (0)
 
-    #define check_inputxy(nx, ny) \
+    #define CHECK_INPUTXY(nx, ny) \
     do {                      \
         assert(nx >= 2);      \
         assert(ny >= 2);      \
@@ -296,7 +296,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
  *   https://stackoverflow.com/questions/19601696/what-is-the-fastest-do-array-padding-of-the-image-array
  */
 dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
-    check_inputxy(nx, ny);
+    CHECK_INPUTXY(nx, ny);
     // in r2c, the last dimension only has ~half the size
     auto const ncol = ny/2 + 1;
 
@@ -364,7 +364,7 @@ void fft_h(int nx, int ny, dcomplex* data) {
  * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
  */
 void galario_fft2d(int nx, int ny, dcomplex* data) {
-    check_inputxy(nx, ny);
+    CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2 + 1);
@@ -461,7 +461,7 @@ void shift_h(int const nx, int const ny, dcomplex* const __restrict__ data) {
 #endif
 
 void galario_fftshift(int nx, int ny, dcomplex* data) {
-    check_inputxy(nx, ny);
+    CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2+1);
@@ -538,7 +538,7 @@ void shift_axis0_h(int const nrow, int const ncol, dcomplex* const __restrict__ 
 #endif
 
 void galario_fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
-    check_input(nrow);
+    CHECK_INPUT(nrow);
 #ifdef __CUDACC__
     dcomplex *matrix_d;
     size_t nbytes = sizeof(dcomplex)*nrow*ncol;
@@ -1060,7 +1060,7 @@ void convert_intensity(const int nr, dreal* const ints, const dreal dxy, const d
 }
 
 void galario_sweep(int nr, dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex* image) {
-    check_input(nxy);
+    CHECK_INPUT(nxy);
     convert_intensity(nr, ints, dxy, dist);
 
 #ifdef __CUDACC__
@@ -1194,7 +1194,7 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     CPUTimer t_start;
 
     // Initialization for uv_idx and interpolate
-    check_input(nx);
+    CHECK_INPUT(nx);
 
 #ifdef __CUDACC__
     GPUTimer t_total;
@@ -1241,7 +1241,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
                            dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     CPUTimer t_start;
 
-    check_input(nxy);
+    CHECK_INPUT(nxy);
 
     // from steradians to pixels
     convert_intensity(nr, ints, dxy, dist);
@@ -1439,7 +1439,7 @@ void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
 void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
     CPUTimer t_start;
 
-    check_inputxy(nx, ny);
+    CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
      // ################################
      // ### ALLOCATION, INITIALIZATION ###
@@ -1505,11 +1505,12 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
                           dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v,
                           const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
     CPUTimer t_start;
-    check_input(nxy);
+    CHECK_INPUT(nxy);
 #ifdef __CUDACC__
+    GPUTimer t, t_start2;
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc(&fint_d, nbytes_fint));
+    CCheck(cudaMalloc(&fint_d, nbytes_fint)); t.Elapsed("chi2_profile::malloc_fint");
 
     // Initialization for comparison and chi square computation
     /* allocate and copy observational data */
