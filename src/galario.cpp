@@ -1342,12 +1342,14 @@ void reduce_chi2_d
 
     auto const nthreads = tpb * tpb;
 
+    GPUTimer t;
     /* compute weighted difference */
     diff_weighted_d<<<nd / nthreads + 1, nthreads>>>(nd, fobs_re, fobs_im, fint, weights);
+    t.Elapsed("reduce_chi2_d::diff_weighted_d");
 
     // only device pointers! maybe not ... check with jiri
     // compute the Euclidean norm
-    CUBLASNRM2(handle, nd, fint, 1, chi2);
+    CUBLASNRM2(handle, nd, fint, 1, chi2); t.Elapsed("reduce_chi2_d::CUBLASNRM2");
     // but we want the square of the norm
     *chi2 *= *chi2;
 
