@@ -296,6 +296,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
  *   https://stackoverflow.com/questions/19601696/what-is-the-fastest-do-array-padding-of-the-image-array
  */
 dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
+    check_inputxy(nx, ny);
     // in r2c, the last dimension only has ~half the size
     auto const ncol = ny/2 + 1;
 
@@ -363,6 +364,7 @@ void fft_h(int nx, int ny, dcomplex* data) {
  * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
  */
 void galario_fft2d(int nx, int ny, dcomplex* data) {
+    check_inputxy(nx, ny);
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2 + 1);
@@ -459,6 +461,7 @@ void shift_h(int const nx, int const ny, dcomplex* const __restrict__ data) {
 #endif
 
 void galario_fftshift(int nx, int ny, dcomplex* data) {
+    check_inputxy(nx, ny);
 #ifdef __CUDACC__
     dcomplex *data_d;
     size_t nbytes = sizeof(dcomplex)*nx*(ny/2+1);
@@ -535,6 +538,7 @@ void shift_axis0_h(int const nrow, int const ncol, dcomplex* const __restrict__ 
 #endif
 
 void galario_fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
+    check_input(nrow);
 #ifdef __CUDACC__
     dcomplex *matrix_d;
     size_t nbytes = sizeof(dcomplex)*nrow*ncol;
@@ -1187,7 +1191,7 @@ void sample_h(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec, int nd, dre
 void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv,
                           const dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
     // Initialization for uv_idx and interpolate
-    assert(nx >= 2);
+    check_input(nx);
 
 #ifdef __CUDACC__
     GPUTimer t_total;
@@ -1234,6 +1238,7 @@ void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dr
 void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
                            dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     assert(nxy >= 2);
+    check_input(nxy);
 
     // from steradians to pixels
     convert_intensity(nr, ints, dxy, dist);
@@ -1430,10 +1435,8 @@ void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
 #endif
 
 void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
-    // TODO turn checks into a reusable function
-    assert(nx >= 2);
-    assert(ny >= 2);
 
+    check_inputxy(nx, ny);
 #ifdef __CUDACC__
      // ################################
      // ### ALLOCATION, INITIALIZATION ###
