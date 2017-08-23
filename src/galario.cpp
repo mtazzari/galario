@@ -11,7 +11,52 @@
 #include <cassert>
 #include <cstring>
 #include <cmath>
+#include <iosfwd>
 #include <iostream>
+#include <sstream>
+
+// Stuff needed for GPU and CPU but should not be visible any other translation unit so we can use very common names.
+namespace {
+    /**
+     * Provide a string buffer to avoid overhead from calling std::cout repeatedly.
+     */
+    std::ostringstream& out(bool reset=false) {
+        static std::ostringstream my_stream;
+
+        // insert a newline only if my_stream is empty
+        if (!my_stream.tellp())
+            my_stream.put('\n');
+
+        if (reset) {
+            my_stream.str("\n");
+            my_stream.clear();
+        }
+        return my_stream;
+    }
+
+    void flush_timing() {
+        std::cout << out().str() << std::flush;
+        // empty the stream
+        out(true);
+    }
+
+   /**
+    * Macros to check input image lengths.
+    */
+    #define check_input(nx)   \
+    do {                      \
+        assert(nx >= 2);      \
+        assert(nx % 2 == 0);  \
+    } while (0)
+
+    #define check_inputxy(nx, ny) \
+    do {                      \
+        assert(nx >= 2);      \
+        assert(ny >= 2);      \
+        assert(nx % 2 == 0);  \
+        assert(ny % 2 == 0);  \
+    } while (0)
+}
 
 #ifdef __CUDACC__
     #include <cuda_runtime_api.h>
@@ -141,8 +186,7 @@
 
         void Elapsed(const std::string& msg) {
             const double elapsed = 1000 * (omp_get_wtime() - start);
-            std::cout << std::endl;
-            std::cout << "[CPU] " << msg << ": " << elapsed << " ms";
+            ::out() << "[CPU] " << msg << ": " << elapsed << " ms\n";
             Start();
         }
     };
@@ -1495,6 +1539,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     t.Start(); free(fint); t.Elapsed("chi2_profile::free_fint");
     t_start.Elapsed("chi2_profile_tot");
 #endif
+    flush_timing();
 }
 
 void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
