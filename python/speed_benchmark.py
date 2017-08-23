@@ -13,7 +13,7 @@ import sys
 
 from utils import generate_random_vis, create_reference_image, create_sampling_points
 import galario
-from galario import au, pc, CGS_to_Jy
+from galario import au, pc, cgs_to_Jy
 from utils import *
 
 import optparse
@@ -57,38 +57,50 @@ else:
     from galario import double as acc_lib
 
 
-def setup_sample(size, nsamples):
+def setup_sampleImage(nxy, nsamples):
 
-    sys.stdout.write("Setup sample...")
+    sys.stdout.write("Setup sampleImage...")
     sys.stdout.flush()
 
     # these number can be freely changed for this speed test
     dRA = -3.1
     dDec = 2.5
-    wle_m = 1.
+    PA = 80.
+
+    dist = 130. * pc
+    maxuv_generator = 3e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype='float64')
+
+    _, _, maxuv = matrix_size(udat, vdat)
+    dxy = dist / maxuv
 
     # generate the samples
     maxuv = 3.e3
     udat, vdat = create_sampling_points(nsamples, maxuv/2.2, dtype=options.dtype)
-    x, _, w = generate_random_vis(nsamples, options.dtype)
 
     # create model image (it happens to have 0 imaginary part)
-    ref_image = create_reference_image(size=size, kernel='gaussian', dtype=options.dtype)
+    image_ref = create_reference_image(size=nxy, kernel='gaussian', dtype=options.dtype)
 
-    print("done")
-
-    return ref_image, dRA, dDec, maxuv/size/wle_m, udat/wle_m, vdat/wle_m
+    print("...done")
+    return image_ref, dxy, dist, udat, vdat, dRA, dDec, PA
 
 
 def setup_chi2(size, nsamples):
 
-    ref_image, dRA, dDec, maxuv, udat, vdat = setup_sample(size, nsamples)
+    sys.stdout.write("Setup chi2Image...")
+    sys.stdout.flush()
+
+    image_ref, dxy, dist, udat, vdat, dRA, dDec, PA = setup_sampleImage(size, nsamples)
     x, _, w = generate_random_vis(nsamples, options.dtype)
 
-    return ref_image, dRA, dDec, maxuv, udat, vdat, x.real.copy(), x.imag.copy(), w
+    print("...done")
 
+    return image_ref, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA, dDec
 
-def setup_sampleProfile(size, nsamples):
+def setup_chi2Profile(nxy, nsamples):
+
+    sys.stdout.write("Setup chi2Image...")
+    sys.stdout.flush()
 
     pars = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88., 'nxy': 4096}
     Rmin, dR, nrad, inc, profile_mode, real_type = 0.1, 1., 500, 20., 'Gauss', 'float64'
@@ -105,11 +117,10 @@ def setup_sampleProfile(size, nsamples):
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
     x, _, w = generate_random_vis(nsamples, real_type)
 
-    dist = 126. * pc
+    dist = 130. * pc
 
-    nxy, minuv, maxuv = matrix_size(udat, vdat, maxuv_factor=3.)
+    _, _, maxuv = matrix_size(udat, vdat, maxuv_factor=3.)
     maxuv /= wle_m
-    duv = maxuv / nxy
     dxy = dist / maxuv
 
     # print(nxy, minuv, maxuv, duv, dxy/au)
@@ -119,10 +130,9 @@ def setup_sampleProfile(size, nsamples):
     # compute radial profile
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
 
-    # compute the sweeped image for galario sample
-    image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
+    print("...done")
     
-    return ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi, dRA, dDec, duv, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w
+    return ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc/180.*np.pi, dRA, dDec
 
 if __name__ == '__main__':
     str_headers = "\t".join(["size", "nsamples", "real", "OMP", "tpb", "Ttot", "Tavg", "Tstd", "Tmin"])
@@ -135,10 +145,10 @@ if __name__ == '__main__':
     nsamples = int(1e6)
 
     input_chi2 = setup_chi2(size, nsamples)
-    input_chi2Profile = setup_sampleProfile(size, nsamples)
+    input_chi2Profile = setup_chi2Profile(size, nsamples)
 
     if not options.TIMING:
-        input_sample = setup_sample(size, nsamples)
+        input_sample = setup_sampleImage(size, nsamples)
 
         acc_lib.sampleImage(*input_sample)
 
