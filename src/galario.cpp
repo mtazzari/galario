@@ -56,6 +56,14 @@ namespace {
         assert(nx % 2 == 0);  \
         assert(ny % 2 == 0);  \
     } while (0)
+
+    /**
+     * Convert intensities from Jy/steradians to Jy/pixels.
+     * The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
+     */
+    inline dreal convert_intensity(const dreal dxy, const dreal dist) {
+        return dxy*dxy/(dist*dist);
+    }
 }
 
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
@@ -919,7 +927,7 @@ __host__ __device__
 #endif
 inline void sweep_core(int const i, int const j, int const nr, const dreal* const ints,
                        dreal const Rmin, dreal const dR, const int rmax, int const nxy, int const rowsize,
-                       dreal const dxy, dreal const cos_inc, dreal* const __restrict__ image) {
+                       dreal const dxy, dreal const cos_inc, dreal const sr_to_px,  dreal* const __restrict__ image) {
 
     dreal const x = (rmax - j) * dxy;
     dreal const y = (rmax - i) * dxy;
@@ -938,7 +946,7 @@ inline void sweep_core(int const i, int const j, int const nr, const dreal* cons
     if (iR > nr-2) {
         image[base] = 0.0;
     } else {
-        image[base] = ints[iR] + (r - iR * dR - Rmin) * (ints[iR + 1] - ints[iR]) / dR;
+        image[base] = sr_to_px * (ints[iR] + (r - iR * dR - Rmin) * (ints[iR + 1] - ints[iR]) / dR);
     }
 }
 
@@ -952,7 +960,7 @@ __global__ void central_pixel_d(const int nxy, dcomplex* const __restrict__ imag
 
 __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR,
                         const dreal rmax,
-                        int const nxy, dreal const dxy, dreal const inc,
+                        int const nxy, dreal const dxy, dreal const inc, dreal const sr_to_px,
                         dcomplex* const __restrict__ image) {
 
     dreal const cos_inc = cos(inc);
@@ -970,7 +978,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
 
     for (auto i = x0; i < 2*rmax; i += sx) {
         for (auto j = y0; j < 2*rmax; j += sy) {
-            sweep_core(i, j, nr, ints, Rmin, dR, rmax, nxy, rowsize, dxy, cos_inc, real_image);
+            sweep_core(i, j, nr, ints, Rmin, dR, rmax, nxy, rowsize, dxy, cos_inc, sr_to_px, real_image);
         }
     }
 
@@ -979,7 +987,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
 /**
  * Allocate memory on device for `ints` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
  */
-void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
+void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex** addr_image_d) {
     GPUTimer t;
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
@@ -994,15 +1002,19 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     CCheck(cudaMalloc(&ints_d, nbytes_ints));
     CCheck(cudaMemcpy(ints_d, ints, nbytes_ints, cudaMemcpyHostToDevice));
 
+    // Convert intensities from Jy/steradians to Jy/pixels.
+    // The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
+    dreal const sr_to_px = convert_intensity(dxy, dist);
+
     // most of the image will stay 0, we only need the kernel on a few pixels near the center
     auto const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto const nblocks = (2*rmax) / tpb + 1;
-    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, *addr_image_d);
+    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, sr_to_px, *addr_image_d);
     CCheck(cudaDeviceSynchronize());
 
     // central pixel needs special treatment
-    auto const value = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
+    auto const value = sr_to_px * (ints[0] + Rmin * (ints[0] - ints[1]) / dR);
     central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
 
     CCheck(cudaFree(ints_d));
@@ -1012,7 +1024,7 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 #else
 
 void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
-             dreal const dxy, dreal const inc, dcomplex* const __restrict__ image) {
+                    dreal const dxy, dreal dist, dreal const inc, dcomplex* const __restrict__ image) {
     CPUTimer t;
 
     // start with zero image
@@ -1024,55 +1036,41 @@ void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dre
     dreal const cos_inc = cos(inc);
     int const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
+    // change units
+    dreal const sr_to_px = convert_intensity(dxy, dist);
+
     auto real_image = reinterpret_cast<dreal*>(image);
     auto const rowsize = 2*ncol;
 #pragma omp parallel for
     for (auto i = 0; i < 2*rmax; ++i) {
         for (auto j = 0; j < 2*rmax; ++j) {
-            sweep_core(i, j, nr, ints, Rmin, dR, rmax, nxy, rowsize, dxy, cos_inc, real_image);
+            sweep_core(i, j, nr, ints, Rmin, dR, rmax, nxy, rowsize, dxy, cos_inc, sr_to_px, real_image);
         }
     }
 
     // central pixel
     if (Rmin != 0.)
-        real_image[nxy/2*rowsize+nxy/2] = ints[0] + Rmin * (ints[0] - ints[1]) / dR;
+        real_image[nxy/2*rowsize+nxy/2] = sr_to_px * (ints[0] + Rmin * (ints[0] - ints[1]) / dR);
+
 
     t.Elapsed("create_image");
 }
 #endif
 
-/**
- * Convert intensities from Jy/steradians to Jy/pixels.
- * The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
- * Instead of multiplying every image pixel by the conversion factor during the sweeping,
- * we multiply the intensity profile in advance.
- * This assumes that the intensity profile is not used after the image creation with sweep.
- */
-void convert_intensity(const int nr, dreal* const ints, const dreal dxy, const dreal dist) {
-    CPUTimer t;
-    dreal const sr_to_px = dxy*dxy/(dist*dist);
-
-#pragma omp parallel for
-    for (auto j = 0; j < nr; ++j) {
-        ints[j] *= sr_to_px;
-    }
-    t.Elapsed("convert_intensity");
-}
 
 void galario_sweep(int nr, dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex* image) {
     CHECK_INPUT(nxy);
-    convert_intensity(nr, ints, dxy, dist);
 
 #ifdef __CUDACC__
     // image allocated inside sweep
     dcomplex *image_d;
-    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, dist, inc, &image_d);
 
     auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
     CCheck(cudaMemcpy(image, image_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(image_d));
 #else
-    create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, image);
+    create_image_h(nr, ints, Rmin, dR, nxy, dxy, dist, inc, image);
 #endif
 }
 
@@ -1247,13 +1245,10 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
 
     CHECK_INPUT(nxy);
 
-    // from steradians to pixels
-    convert_intensity(nr, ints, dxy, dist);
-
 #ifdef __CUDACC__
     dcomplex *image_d;
 
-    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, dist, inc, &image_d);
     // sweep_d<<<dim3(nxy/tpb+1, nxy/tpb+1), dim3(tpb, tpb)>>>(nr, ints, Rmin, dR, nxy, dxy, inc, image_d);
 
     dcomplex *fint_d;
@@ -1276,7 +1271,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
 
     // ensure data is initialized with zeroes
-    create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
+    create_image_h(nr, ints, Rmin, dR, nxy, dxy, dist, inc, data);
 
     sample_h(nxy, nxy, data, dRA, dDec, nd, duv, PA, u, v, fint);
     galario_free(data);
@@ -1526,11 +1521,8 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     copy_observations_d(nd, weights, &weights_d);
     t.Elapsed("chi2_profile::copy_observations");
 
-    // from steradians to pixels
-    convert_intensity(nr, ints, dxy, dist);
-
     dcomplex *image_d;
-    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, dist, inc, &image_d);
 
     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
