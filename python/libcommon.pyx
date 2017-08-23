@@ -201,27 +201,27 @@ def check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor):
     ----------
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
-        units: wavelength
+        **units**: wavelength
     nxy : int
         Size of the image along x and y direction.
-        units: pixel
+        **units**: pixel
     duv : float
         Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
-        units: wavelength
+        **units**: wavelength
     maxuv_factor : float
         Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
         the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
         The maximum (u, v)-distance covered is `maxuv_factor` times the maximum (u, v)-distance
         of the observed visibilities.
-        units: pure number
+        **units**: pure number
     minuv_factor : float
         Size of the field of view covered by the (u, v) plane grid w.r.t. the field
         of view covered by the image. Recommended to be larger than 3 for better results.
-        units: pure number
+        **units**: pure number
 
     """
     assert len(u) == len(v), "Wrong array length: u, v must have same length."
@@ -247,17 +247,17 @@ def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
     ----------
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
-        units: wavelength
+        **units**: wavelength
     dist : float
         Distance to the source.
-        units: cm
+        **units**: cm
     dxy : float, optional
         Image cell size, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
     maxuv_factor : float, optional
         See :func:`check_uvplane <.check_uvplane>`.
     minuv_factor : float, optional
@@ -267,11 +267,11 @@ def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
     -------
     nxy : int
         Size of the image along x and y direction.
-        units: pixel
+        **units**: pixel
     dxy : float
         Returned only if not provided in input.
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
 
     """
     uvdist = np.hypot(u, v)
@@ -305,19 +305,19 @@ def get_uvcell_size(nxy, dxy, dist):
     ----------
     dxy : float
         Image cell size, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
     nxy : int
         Size of the image.
-        units: pixel
+        **units**: pixel
     dist : float
         Distance to the object in the image
-        units: cm
+        **units**: cm
 
     Returns
     ------
     get_uvcell_size : float
         The (u, v) cell size
-        units: observing wavelength
+        **units**: observing wavelength
 
     """
     return dist / dxy / nxy
@@ -348,47 +348,47 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         Assume the x-axis (R.A.) increases from right (West) to left (East)
         and the y-axis (Dec.) increases from bottom (South) to top (North).
         `nxy` must be even.
-        units: Jy/pixel
+        **units**: Jy/pixel
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
-        units: wavelength
+        **units**: wavelength
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
     dist : float
         Distance to the source.
-        units: cm
+        **units**: cm
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        units: degree
+        **units**: degree
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
     minuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
 
     Returns
     -------
     vis : array_like, complex
         Synthetic visibilities sampled in the (u, v) locations given in `u` and `v`.
-        units: Jy
+        **units**: Jy
 
     """
     check_image(image)
@@ -430,60 +430,60 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
         Array containing the radial brightness profile of the model.
         The profile is assumed to be sampled on a linear radial grid starting
         at `Rmin` with spacing `dR`.
-        units: Jy/sr
+        **units**: Jy/sr
     Rmin : float
         Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-        units: cm
+        **units**: cm
     dR : float
         Size of the cell of the radial grid, assumed linear.
-        units: cm
+        **units**: cm
     nxy : int
         Side of the square model image, which is internally computed.
-        units: pixel
+        **units**: pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
     dist : float
         Distance to the source.
-        units: cm
+        **units**: cm
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
-        units: wavelength
+        **units**: wavelength
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        units: degree
+        **units**: degree
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        units: degree
+        **units**: degree
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
     minuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
 
     Returns
     -------
     vis : array_like, complex
         Synthetic visibilities sampled in the (u, v) locations given in `u` and `v`.
-        units: Jy
+        **units**: Jy
 
     See also
     --------
@@ -531,52 +531,52 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         Assume the x-axis (R.A.) increases from right (West) to left (East)
         and the y-axis (Dec.) increases from bottom (South) to top (North).
         `nxy` must be even.
-        units: Jy/pixel
+        **units**: Jy/pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
     dist : float
         Distance to the source.
-        units: cm
+        **units**: cm
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points where the FT has to be sampled.
         The length of `v` must be equal to the length of `u`.
-        units: wavelength
+        **units**: wavelength
     vis_obs_re : array_like, float
         Real part of the observed visibilities.
-        units: Jy
+        **units**: Jy
     vis_obs_im: array_like, float
         Imaginary part of the observed visibilities.
         The length of `vis_obs_im` must be equal to the length of `vis_obs_re`.
-        units: Jy
+        **units**: Jy
     vis_obs_w: array_like, float
         Weight associated to the observed visibilities.
         The length of `vis_obs_w` must be equal to the length of `vis_obs_re`.
-        units:
+        **units**:
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        units: degree
+        **units**: degree
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
     minuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
 
     Returns
     -------
@@ -633,65 +633,65 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
         Array containing the radial brightness profile of the model.
         The profile is assumed to be sampled on a linear radial grid starting
         at `Rmin` with spacing `dR`.
-        units: Jy/sr
+        **units**: Jy/sr
     Rmin : float
         Inner edge of the radial grid, i.e. the radius where the brightness is `intensity[0]`.
-        units: cm
+        **units**: cm
     dR : float
         Size of the cell of the radial grid, assumed linear.
-        units: cm
+        **units**: cm
     nxy : int
         Side of the square model image, which is internally computed.
-        units: pixel
+        **units**: pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
     dist : float
         Distance to the source.
-        units: cm
+        **units**: cm
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points where the FT has to be sampled.
         The length of `v` must be equal to the length of `u`.
-        units: wavelength
+        **units**: wavelength
     vis_obs_re : array_like, float
         Real part of the observed visibilities.
-        units: Jy
+        **units**: Jy
     vis_obs_im: array_like, float
         Imaginary part of the observed visibilities.
         The length of `vis_obs_im` must be equal to the length of `vis_obs_re`.
-        units: Jy
+        **units**: Jy
     vis_obs_w: array_like, float
         Weight associated to the observed visibilities.
         The length of `vis_obs_w` must be equal to the length of `vis_obs_re`.
-        units:
+        **units**:
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        units: arcsecond
+        **units**: arcsecond
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        units: degree
+        **units**: degree
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        units: degree
+        **units**: degree
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
     minuv_factor : float, optional
         See :func:`check_uvplane() <.check_uvplane>`.
-        units: pure number
+        **units**: pure number
 
     Returns
     -------
@@ -735,32 +735,32 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, inc=0.):
         Array containing the radial brightness profile of the model.
         The brightness profile is assumed to be sampled on a linear radial grid
         starting at `Rmin` and with spacing `dR`.
-        units: Jy/sr
+        **units**: Jy/sr
     Rmin : float
         Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-        units: cm
+        **units**: cm
     dR : float
         Size of the cell of the radial grid, assumed linear.
-        units: cm
+        **units**: cm
     nxy : int
         Side of the square model image.
-        units: pixel
+        **units**: pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        units: cm
+        **units**: cm
     dist : float
         Distance to the source.
-        units: cm
+        **units**: cm
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        units: degree
+        **units**: degree
 
     Returns
     -------
     image : (nxy, nxy) array_like, float
         Image of the surface brightness.
-        units: Jy/pixel
+        **units**: Jy/pixel
 
     """
     assert Rmin < dxy, "For the interpolation algorithm, Rmin must be smaller than dxy. " \
@@ -785,20 +785,20 @@ def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
     ----------
     PA : float
         Position Angle, defined East of North.
-        units: degree
+        **units**: degree
     dRA : float, optional
         R.A. offset.
-        units: arcsecond
+        **units**: arcsecond
     dDec : float, optional
         Dec. offset.
-        units: arcsecond
+        **units**: arcsecond
     u : array_like, float
         u coordinate of the visibility points.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points.
         The length of `v` must be equal to the length of `u`.
-        units: wavelength
+        **units**: wavelength
 
     Returns
     -------
@@ -839,20 +839,20 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
         Output of the R2C Fourier transform.
     duv : float
         Size of the cell in the (u, v) plane.
-        units: wavelength
+        **units**: wavelength
     u : array_like, float
         u coordinate of the visibility points where `r2cFT` has to be sampled.
-        units: wavelength
+        **units**: wavelength
     v : array_like, float
         v coordinate of the visibility points where `r2cFT` has to be sampled.
         The length of `v` must be equal to the length of `u`.
-        units: wavelength
+        **units**: wavelength
 
     Returns
     -------
     vis : array_like, complex
         Samples of the image in the given (u, v) locations.
-        units: Jy
+        **units**: Jy
 
     """
     vis = np.empty(len(u), dtype=complex_dtype, order='C')
@@ -872,25 +872,25 @@ def apply_phase_vis(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
     ----------
     dRA : float
         Right Ascension offset.
-        units: arcseconds
+        **units**: arcseconds
     dDec : float
         Declination offset.
-        units: arcseconds
+        **units**: arcseconds
     u : array_like, float
         u-coordinates of visibility points.
-        units: observing wavelength
+        **units**: observing wavelength
     v : array_like, float
         v-coordinates of visibility points.
-        units: observing wavelength
+        **units**: observing wavelength
     vis : array_like, complex
         complex visibilities, of form Real(Vis) + i*Imag(Vis).
-        units: Jy
+        **units**: Jy
 
     Returns
     -------
     vis_out : array_like, complex
         shifted complex visibilities
-        units: arbitrary, same as vis
+        **units**: arbitrary, same as vis
 
     """
     dRA *= arcsec
@@ -910,18 +910,18 @@ def reduce_chi2(dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs
     ----------
     vis_obs_re : array_like, float
         Real part of the observed visibilities.
-        units: Jy
+        **units**: Jy
     vis_obs_im: array_like, float
         Imaginary part of the observed visibilities.
         The length of `vis_obs_im` must be equal to the length of `vis_obs_re`.
-        units: Jy
+        **units**: Jy
     vis_obs_w: array_like, float
         Weight associated to the observed visibilities.
         The length of `vis_obs_w` must be equal to the length of `vis_obs_re`.
     vis : array_like, complex
         Complex model visibilities.
         The length of `vis` must be equal to the length of `vis_obs_re`.
-        units: Jy
+        **units**: Jy
 
     Returns
     -------
