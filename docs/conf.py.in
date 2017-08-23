@@ -14,6 +14,7 @@
 
 import sys
 import os
+import sphinx_py3doc_enhanced_theme
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -52,8 +53,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'galario'
-copyright = u'2017, Marco Tazzari, Frederik Beaujean'
-author = u'Marco Tazzari, Frederik Beaujean'
+copyright = u'2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi'
+author = u'Marco Tazzari, Frederik Beaujean, Leonardo Testi'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -98,7 +99,7 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'friendly'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -114,15 +115,22 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'alabaster'
+html_theme = "sphinx_py3doc_enhanced_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
-
+html_theme_options = {
+    'githuburl': 'https://github.com/mtazzari/galario/',
+    'bodyfont': '"Lucida Grande",Arial,sans-serif',
+    'headfont': '"Lucida Grande",Arial,sans-serif',
+    'codefont': 'monospace,sans-serif',
+    'linkcolor': '#0072AA',
+    'visitedlinkcolor': '#6363bb',
+    'extrastyling': False,
+}
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = [sphinx_py3doc_enhanced_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
