@@ -131,7 +131,7 @@ def setup_chi2Profile(nxy, nsamples):
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
 
     print("...done")
-    
+
     return ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc/180.*np.pi, dRA, dDec
 
 if __name__ == '__main__':
@@ -155,7 +155,7 @@ if __name__ == '__main__':
         acc_lib.chi2Image(*input_chi2)
 
     else:
-        omp_num_threads = os.environ.get('OMP_NUM_THREADS', 1)
+        omp_num_threads = os.environ.get('OMP_NUM_THREADS', 0)
 
         cycles = options.cycles
         number = 1
@@ -164,16 +164,16 @@ if __name__ == '__main__':
             t = timeit.Timer('from __main__ import input_chi2, acc_lib; acc_lib.chi2Image(*input_chi2)')
         else:
             t = timeit.Timer('from __main__ import input_chi2Profile, acc_lib; acc_lib.chi2Profile(*input_chi2Profile)')
-            
+
         if options.output:
             filename = options.output
         else:
             filename = "timings_"
             if options.USE_GPU:
-                filename += "GPU"
+                filename += "GPU_{}".format(options.tpb)
             else:
                 filename += "CPU_OMP_NUM_THREADS_{}".format(omp_num_threads)
-                filename += "_{}.txt".format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
+            filename += "_{}.txt".format(datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
 
         t_results = t.repeat(cycles, number)
         # drop 1st call: invovles lots of overhead
