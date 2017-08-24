@@ -6,10 +6,11 @@ System Requirements
 -------------------
 To compile `galario` you will need:
 
-* a C and C++ compiler such as `gcc` or `clang`
+* a C and C++ compiler such as `gcc` or `clang`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_.
 * `cmake <https://cmake.org>`_
 * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`.
 * [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_.
+* [optional] python for python binding to the CPU and GPU
 
 .. warning::
     On Mac OS, the GNU compilers must be manually downloaded and installed, e.g. following `these instructions <http://hpc.sourceforge.net>`_.
@@ -24,7 +25,7 @@ The following procedure will always compile and install the CPU version of `gala
 On a system with a CUDA-enabled GPU card, also the GPU version will be compiled and installed.
 To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <_build_details_cuda>` below.
 
- 1. clone the repository and create a directory where to build `galario`:
+ 1. Clone the repository and create a directory where to build `galario`:
 
     .. code-block:: bash
 
@@ -32,24 +33,35 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
         cd galario
         mkdir build && cd build
 
- 2. to make the compilation easier, let's work in a Python environment. `galario` works with both Python 2 and 3.
-    For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create a Python 3 environment with:
+ ..
+    2. to make the compilation easier, let's work in a Python environment. `galario` works with both Python 2 and 3.
+       For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create a Python 3 environment with:
+
+       .. code-block:: bash
+
+           conda create --name galario3 python=3 numpy cython pytest
+
+ 2. Use `cmake` to prepare the compilation and `make all` to compile. From within `galario/build/`:
 
     .. code-block:: bash
 
-        conda create --name galario3 python=3 numpy cython pytest
-
- 3. use `cmake` to prepare the compilation and `make all` to compile. From within `galario/build/`:
-
-    .. code-block:: bash
-
-        CC="/path/to/gcc" CXX="/path/to/g++" cmake -DCMAKE_PREFIX_PATH="${FFTW_HOME};${CONDA_PREFIX}" ../ && make all
-
-    where typically CC="/usr/local/bin/gcc" and CXX="/usr/local/bin/g++" but may be different on your system.
-    `FFT_HOME` should contain the path to the FFTW libraries installed on your system and
-    `CONDA_PREFIX` is automatically set to the conda environment `/anaconda/envs/galario3`.
+       cmake
 
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
+
+
+ 3. Use `make` to build
+
+    .. code-block:: bash
+
+        make
+
+..        CC="/path/to/gcc" CXX="/path/to/g++" cmake -DCMAKE_PREFIX_PATH="${FFTW_HOME};${CONDA_PREFIX}" ../ && make all
+       ..
+          where typically CC="/usr/local/bin/gcc" and CXX="/usr/local/bin/g++" but may be different on your system.
+          `FFT_HOME` should contain the path to the FFTW libraries installed on your system and
+          `CONDA_PREFIX` is automatically set to the conda environment `/anaconda/envs/galario3`.
+
 
 These instructions should be sufficient in most cases, but if you have problems or want more fine-grained control,
 check out the details below. If you find issues or are stuck in one of these steps, consider writing us an email
@@ -58,8 +70,8 @@ or opening an issue on the `GitHub <https://github.com/mtazzari/galario.git>`_ r
 
 .. _detailed_build_instructions:
 
-Build
------
+Configuration
+-------------
 
 With the default configuration
 
@@ -76,14 +88,16 @@ Before playing with the `cmake` options, it's best to remove the cache
 
     rm build/CMakeCache.txt
 
-Set the C++ compiler
+Set the C and C++ compiler
 
 .. code-block:: bash
 
-    export CC="/path/to/bin/gcc"
-    export CXX="/path/to/bin/g++"
+   export CC="/path/to/bin/gcc"
+   export CXX="/path/to/bin/g++"
+   cmake ..
 
-    cmake -DCMAKE_CXX_COMPILER=/path/to/g++ ..
+   # alternative
+   cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=/path/to/g++ ..
 
 Optimizations
 ~~~~~~~~~~~~~
@@ -100,7 +114,7 @@ To turn on even more aggressive optimization, pass the flags directly. For examp
 
     .. code-block:: bash
 
-        cmake -DCMAKE_CXX_FLAGS='-march=native -ffast-math'
+        cmake -DCMAKE_CXX_FLAGS='-march=native -ffast-math' ..
 
 Note that these further optimization might not work on any system.
 
@@ -108,7 +122,7 @@ To turn off optimizations:
 
 .. code-block:: bash
 
-    cmake -DCMAKE_BUILD_TYPE=Debug
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 .. _python_requirement:
 
@@ -123,12 +137,17 @@ libraries are found. In `build/`, do
 
     cmake -DPython_ADDITIONAL_VERSIONS=3.5 ..
 
-galario should work with both python 2 and 3. To create conda environments
+galario should work with both python 2 and 3. For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create conda environments with
 
 .. code-block:: bash
 
+    # python 2
     conda create --name galario2 python=2 numpy cython pytest
+    conda activate galario2
+
+    # or python3
     conda create --name galario3 python=3 numpy cython pytest
+    conda activate galario3
 
 To run the tests, install some more dependencies within the environment
 
@@ -162,10 +181,10 @@ present in `/usr/local/lib/`.
 To install FFTW follow the instructions at http://www.fftw.org.
 galario requires the following FFTW libraries:
 
-* libfftw3              # double precision
-* libfftw3f             # single precision
-* libfftw3_omp          # double precision with OpenMP
-* libfftw3f_omp         # single precision with OpenMP
+* `libfftw3`: double precision
+* `libfftw3f`: single precision
+* `libfftw3_omp`: double precision with OpenMP
+* `libfftw3f_omp`: single precision with OpenMP
 
 galario has been tested with FFTW 3.3.6.
 
@@ -357,10 +376,19 @@ the `build/` directory run:
 
 which creates output in `build/docs/html`. The `docs` are not build by default, only upon request.
 
-Since the `galario` library needs to be imported when building the documentation (the import would fail otherwise),
-run `conda install sphinx` within the conda environment in use. This ensures that the `sphinx` version matches the
-Python version used to compile `galario`.
-If you still have problems, remove the `CMakeCache.txt`, rerun `cmake`, and observe which location of `sphinx` is reported in
+Since the `galario` library needs to be imported when building the
+documentation (the import would fail otherwise), run
+
+.. code-block:: bash
+
+   conda install sphinx
+   pip install sphinx_py3doc_enhanced_theme
+
+within the conda environment in use. This ensures that the
+`sphinx` version matches the Python version used to compile
+`galario`.
+If you still have problems, remove the `CMakeCache.txt`, rerun
+`cmake`, and observe which location of `sphinx` is reported in
 `CMakeCache.txt`, for example:
 
 .. code-block:: bash
