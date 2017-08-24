@@ -23,7 +23,7 @@ more detailed instructions to fine-tune the build process.
 
 The following procedure will always compile and install the CPU version of `galario`.
 On a system with a CUDA-enabled GPU card, also the GPU version will be compiled and installed.
-To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <_build_details_cuda>` below.
+To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <build_details_cuda>` below.
 
  1. Clone the repository and create a directory where to build `galario`:
 
@@ -209,14 +209,14 @@ If you have no `sudo` rights to install FFTW libraries, then provide an installa
 .. note::
     Before building galario, `FFTW_HOME` has to be set equal to the installation directory of FFTW, e.g. with:
 
-    .. code-block::bash
+    .. code-block:: bash
 
         export FFTW_HOME="/usr/local/lib/"
 
     in the default case, or to the prefix specified during the FFTW installation.
     Also, you need to update the `LD_LIBRARY_PATH` to pick the FFTW libraries:
 
-    .. code-block::bash
+    .. code-block:: bash
 
         export LD_LIBRARY_PATH=$FFTW_HOME/lib:$LD_LIBRARY_PATH
 

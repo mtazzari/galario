@@ -135,20 +135,34 @@ def _cleanup():
 # ############################################################################ #
 
 def ngpus():
-    """ Returns how many GPUs are available on the machine. """
+    """
+    Return how many GPUs are available on the machine.
+
+    Returns
+    -------
+    ngpus : int
+        Number of GPUs available on the machine.
+
+    """
     return galario_ngpus()
 
 
 def use_gpu(int device_id):
     """
-    Pins the GPU with ID equal to `device_id` to be used for the computation.
+    Pin the GPU to be used for the computation.
 
+    Typical call signature::
+
+        use_gpu(device_id)
+
+    Parameters
+    ----------
     device_id : int
-        ID of the GPU.
+        ID of the GPU to be used for the computation.
 
     Notes
     -----
-    If more than one GPU is present, the `device_id` might not coincide with the `ID`
+    If more than one GPU is present, `device_id` might not coincide with the `ID`
     reported by the `nvidia-smi` command, which reflects the PCI order.
     If the system administrator does not provide instructions on how to set the `device_id`,
     we recommend to start from `device_id`=0 and simultaneously check which GPU is used with
@@ -158,8 +172,30 @@ def use_gpu(int device_id):
     galario_use_gpu(device_id)
 
 
-def threads_per_block(int num=0):
-    """ Sets the threads per block to be used. """
+def threads_per_block(int num=16):
+    """
+    Set the number of threads per block on each of the block dimensions to be used.
+
+    Typical call signature::
+
+        threads_per_block(num=16)
+
+    Parameters
+    ----------
+    num : int, optional
+        Number of threads per block on each of the block dimensions, default is 16.
+        1D kernels will be launched with `num` threads per block.
+        2D kernels will be launched with `num*num` threads per block.
+
+    Notes
+    -----
+    The CUDA documentation suggests starting with small `num` values, multiples of 2.
+    GPU cards with compute capability between 2 and 6.2 have maximum number of
+    threads per block of 1024, thus implying that the maximum `num` value is 32.
+
+    Check the maximum number of threads per block of your GPU here by running the `deviceQuery` command.
+
+    """
     return galario_threads_per_block(num)
 
 
@@ -196,6 +232,10 @@ def check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis=None, u=None, v=None):
 def check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor):
     """
     Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.
+
+    Typical call signature::
+
+        check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
 
     Parameters
     ----------
@@ -242,6 +282,10 @@ def check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor):
 def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
     """
     Compute the recommended image size given the (u, v) locations.
+
+    Typical call signature::
+
+        nxy, dxy = get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1)
 
     Parameters
     ----------
@@ -301,6 +345,10 @@ def get_uvcell_size(nxy, dxy, dist):
 
     Assumes that the image is a square matrix of side `nxy` with linear (x, y) coordinate axes.
 
+    Typical call signature::
+
+        duv = get_uvcell_size(nxy, dxy, dist)
+
     Parameters
     ----------
     dxy : float
@@ -339,7 +387,7 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
 
     Typical call signature::
 
-        vis = sampleImage(image, dxy, dist, u, v)
+        vis = sampleImage(image, dxy, dist, u, v, dRA=0, dDec=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
@@ -422,7 +470,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
 
     Typical call signature::
 
-        vis = sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, u, v)
+        vis = sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, u, v, dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
@@ -523,7 +571,7 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
 
     Typical call signature::
 
-        chi2 = chi2Image(image, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w)
+        chi2 = chi2Image(image, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w, dRA=0, dDec=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
@@ -626,7 +674,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
 
     Typical call signature::
 
-        chi2 = chi2Profile(intensity, Rmin, dR, nxy, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w)
+        chi2 = chi2Profile(intensity, Rmin, dR, nxy, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w, dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
@@ -730,6 +778,10 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, inc=0.):
     The image is created assuming that the x-axis (R.A.) increases
     from right (West) to left (East) and the y-axis (Dec.) increases
     from bottom (South) to top (North).
+
+    Typical call signature::
+
+        image = sweep(intensity, Rmin, dR, nxy, dxy, dist, inc=0)
 
     Parameters
     ----------
@@ -838,6 +890,10 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
     """
     Interpolate the R2C Fourier transform of a model image in (u, v) locations.
 
+    Typical call signature::
+
+        vis = interpolate(r2cFT, duv, u, v)
+
     Parameters
     ----------
     r2cFT : 2D array_like, float
@@ -872,6 +928,10 @@ def apply_phase_vis(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
     Apply phase to sampled visibility points as to translate the image in the real
     space by an offset dRA along Right Ascension (R.A.) and dDec along Declination.
     R.A. increases towards left (East), thus dRA>0 translates the image towards East.
+
+    Typical call signature::
+
+        vis_shifted = apply_phase_vis(dRA, dDec, u, v, vis)
 
     Parameters
     ----------
@@ -910,6 +970,10 @@ def apply_phase_vis(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
 def reduce_chi2(dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w, dcomplex[::1] vis):
     """
     Compute the chi square of observed and model visibilities.
+
+    Typical call signature::
+
+        chi2 = reduce_chi2(vis_obs_re, vis_obs_im, vis_obs_w, vis)
 
     Parameters
     ----------

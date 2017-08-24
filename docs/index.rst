@@ -33,8 +33,9 @@ relevant equations and the algorithm implementation.
 Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to
 `this <http://aspbooks.org/a/volumes/table_of_contents/180>`_ thorough reference.
 
-`galario` is actively developed on `GitHub <https://github.com/mtazzari/galario/>`_ and has been employed in
-:doc:`these published studies <studies>`.
+`galario` is actively developed on `GitHub <https://github.com/mtazzari/galario/>`_.
+
+.. and has been employed in :doc:`these published studies <studies>`.
 
 Instructions on how to build and install `galario` can be found :doc:`here <install>`.
 
@@ -114,10 +115,9 @@ Contents
     quickstart
     py-api
     C-api
-    studies
     license
-
 ..    cookbook
+..    studies
 
 Indices
 -------
