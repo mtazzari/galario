@@ -80,46 +80,47 @@ If `I(R)` is the radial brightness profile, the command is as simple as:
     from galario.double_cuda import sampleProfile
 
     vis = sampleProfile(I, Rmin, dR, nxy, dxy, dist, u, v)
+.. add an example with inc, PA, dRA, dDec?
 
 where `Rmin` and `dR` are the innermost radius and the cell size of the grid on which `I(R)` is computed. An analogous function
 `chi2Profile` allows one to compute directly the chi square.
 
 .. note::
-    If you work on a machine without a CUDA-enabled GPU, don't worry: you can use the CPU version
-    of `galario` by just removing the subscript `"_cuda"` from the imports above and still benefit from the openMP parallelization.
+    If you work on a machine **without** a CUDA-enabled GPU, don't worry: you can use the CPU version
+    of `galario` by just removing the subscript `"_cuda"` from the imports above and benefit from the openMP parallelization.
     All the function names and interfaces are the same for GPU and CPU version!
 
-More details on how to get started with `galario` are given in the :doc:`quickstart <quickstart>`. Be sure to checkout
-also the :doc:`cookbook <cookbook>` with many worked-though examples!
+More details on how to get started with `galario` are given in the :doc:`quickstart <quickstart>`.
 
-Contents:
+.. Be sure to checkout also the :doc:`cookbook <cookbook>` with many worked-though examples!
 
+License and Attribution
+-----------------------
+If you use `galario` for your research, please cite `Tazzari, Beaujean and Testi (2017) <LINK>`_ .
+The BibTeX entry for the paper is::
+
+    @ARTICLE{...}
+
+`galario` is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
+
+© Copyright 2017 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+
+Contents
+--------
 .. toctree::
     :maxdepth: 2
 
     install
     quickstart
-    cookbook
     py-api
     C-api
     studies
     license
 
+..    cookbook
 
-Indices and tables
-------------------
-
+Indices
+-------
 * :ref:`genindex`
 * :ref:`search`
 
-
-License and Attribution
------------------------
-© Copyright 2017 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-
-`galario` is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
-
-If you use `galario` for your research, please cite `Tazzari, Beaujean and Testi (2017) <LINK>`_ .
-The BibTeX entry for the paper is::
-
-    @ARTICLE{...}
