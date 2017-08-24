@@ -6,18 +6,19 @@ System Requirements
 -------------------
 To compile `galario` you will need:
 
- * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`.
- * the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ later than 8.0, for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_.
- * the GNU `gcc` and `g++` compilers, for CPU and GPU versions.
+* a C and C++ compiler such as `gcc` or `clang`
+* `cmake <https://cmake.org>`_
+* the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`.
+* [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_.
 
 .. warning::
     On Mac OS, the GNU compilers must be manually downloaded and installed, e.g. following `these instructions <http://hpc.sourceforge.net>`_.
-    The default `gcc`/`g++` compilers shipped with the OS are aliases for the `clang` compiler, which does does not currently support `openMP`.
+    The default `gcc`/`g++` commands shipped with the OS are aliases for the `clang` compiler that supports `openMP` only as of version 3.7 but unfortunately Apple usually ships an older version of `clang`.
 
 Quick steps to build and install
 --------------------------------
-Here a quick summary to compile and install `galario`, :ref:`below <detailed_build_instructions>`
-more detailed instructions in case you need.
+Here a quick summary to compile and install `galario` with default options, :ref:`below <detailed_build_instructions>` are
+more detailed instructions to fine-tune the build process.
 
 The following procedure will always compile and install the CPU version of `galario`.
 On a system with a CUDA-enabled GPU card, also the GPU version will be compiled and installed.
@@ -72,13 +73,15 @@ Before playing with the `cmake` options, it's best to remove the cache
 
     rm build/CMakeCache.txt
 
-### C++ compiler
+C++ compiler
+~~~~~~~~~~~~
 
 .. code-block:: bash
 
     cmake -DCMAKE_CXX_COMPILER=$GCC_BASE/bin/g++ ..
 
-### optimization
+optimization
+~~~~~~~~~~~~
 
 See
 
@@ -102,7 +105,8 @@ directly. For example for gcc
 
 
 
-### python
+python
+~~~~~~
 
 Specify a python version. This is useful if python 2.7 and 3.x are in
 the system and conflicting versions of the interpreter and the
@@ -142,7 +146,8 @@ whether the path to Python is correctly set to the path of the conda environment
 
 .. _fftw_requirement:
 
-### FFTW
+FFTW
+~~~~
 
 The FFTW libraries are required for the CPU version of galario.
 You can check if they are installed on your system by checking if **all** libraries listed below are
@@ -212,7 +217,8 @@ In case the openmp libraries are not in `${FFTW_HOME}/lib`
 
     cmake -DCMAKE_LIBRARY_PATH="${FFTW_OPENMP_LIBDIR}" ..
 
-### cuda
+cuda
+~~~~
 
 `cmake` tests for compilation on the gpu with cuda by default except on the mac
 where version conflicts between the nvidia compiler and the C++ compiler often lead to problems; see [https://github.com/mtazzari/galario/issues/30](issue #30).
@@ -229,7 +235,8 @@ To force searching for cuda, for example on the mac, do
 
     cmake -DGALARIO_FORCE_CUDA=1 ..
 
-### timing
+timing
+~~~~~~
 
 For testing purposes, the time in seconds taken by selected functions called from `galario_sample` is printed to `stdout`. This features is off by default and activated by
 
