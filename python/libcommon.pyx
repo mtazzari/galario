@@ -497,6 +497,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
         check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
 
     PA *= deg
+    inc *= deg
     dRA *= arcsec
     dDec *= arcsec
 
@@ -712,6 +713,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
         check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
 
     cdef dreal chi2
+    inc *= deg
     PA *= deg
     dRA *= arcsec
     dDec *= arcsec
@@ -765,7 +767,10 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, inc=0.):
     """
     assert Rmin < dxy, "For the interpolation algorithm, Rmin must be smaller than dxy. " \
                        "Currently Rmin={}\t dxy={}".format(Rmin, dxy)
+
+    inc *= deg
     image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
+
     _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, dist, inc, <void*>np.PyArray_DATA(image))
 
     # return a copy so is C-Continuous and can be used in sampleImage()

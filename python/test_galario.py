@@ -51,7 +51,7 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
     dist = 150.
     image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx, Dy, real_type)
 
-    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi)
+    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc)
 
     # plot images
     # import matplotlib.pyplot as plt
@@ -508,7 +508,7 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     image_ref_proto = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
 
     # we cannot use this now because the output is not C-contiguous
-    image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc/180.*np.pi)
+    image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc)
     assert_allclose(image_ref, image_ref_proto, rtol=rtol, atol=atol)
 
     # R2C
@@ -526,7 +526,7 @@ def test_galario_sampleProfile(Rmin, dR, nrad, inc, profile_mode, real_type, nsa
     fint_galarioImage = g_double.sampleImage(image_ref, dxy, dist, udat/wle_m, vdat/wle_m, dRA=dRA, dDec=dDec, PA=PA)
 
     # galario sampleProfile
-    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, inc=inc/180.*np.pi, dRA=dRA, dDec=dDec, PA=PA)
+    fint_galarioProfile = g_double.sampleProfile(ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
 
     assert_allclose(fint_shifted, fint_galarioImage, rtol=rtol, atol=atol)
     assert_allclose(fint_shifted, fint_galarioProfile, rtol=rtol, atol=atol)
@@ -575,12 +575,12 @@ def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rto
     image_ref = g_sweep_prototype(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
 
     # we cannot use this now because the output is not C-contiguous
-    # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc/180.*np.pi)
+    # image_ref = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc)
 
     # GPU
     chi2_chi2Image = acc_lib.chi2Image(image_ref, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
 
     # galario sampleProfile
-    chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc=inc/180.*np.pi, dRA=dRA, dDec=dDec)
+    chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
 
     assert_allclose(chi2_chi2Profile, chi2_chi2Image, rtol=rtol, atol=atol)
