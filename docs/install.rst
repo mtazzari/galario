@@ -22,6 +22,7 @@ more detailed instructions to fine-tune the build process.
 
 The following procedure will always compile and install the CPU version of `galario`.
 On a system with a CUDA-enabled GPU card, also the GPU version will be compiled and installed.
+To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <_build_details_cuda>` below.
 
  1. clone the repository and create a directory where to build `galario`:
 
@@ -32,7 +33,7 @@ On a system with a CUDA-enabled GPU card, also the GPU version will be compiled 
         mkdir build && cd build
 
  2. to make the compilation easier, let's work in a Python environment. `galario` works with both Python 2 and 3.
-    If you are using anaconda Python you can create the environment with:
+    For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create a Python 3 environment with:
 
     .. code-block:: bash
 
@@ -42,9 +43,11 @@ On a system with a CUDA-enabled GPU card, also the GPU version will be compiled 
 
     .. code-block:: bash
 
-        CC="/path/to/gcc" CXX="/path/to/g++" cmake ../ && make all
+        CC="/path/to/gcc" CXX="/path/to/g++" cmake -DCMAKE_PREFIX_PATH="${FFTW_HOME};${CONDA_PREFIX}" ../ && make all
 
-    where typically CC="/usr/local/bin/gcc" and CXX="/usr/local/bin/g++" but may vary depending on the system.
+    where typically CC="/usr/local/bin/gcc" and CXX="/usr/local/bin/g++" but may be different on your system.
+    `FFT_HOME` should contain the path to the FFTW libraries installed on your system and
+    `CONDA_PREFIX` is automatically set to the conda environment `/anaconda/envs/galario3`.
 
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
 
@@ -55,8 +58,8 @@ or opening an issue on the `GitHub <https://github.com/mtazzari/galario.git>`_ r
 
 .. _detailed_build_instructions:
 
-build instructions
-------------------
+Build
+-----
 
 With the default configuration
 
@@ -73,39 +76,43 @@ Before playing with the `cmake` options, it's best to remove the cache
 
     rm build/CMakeCache.txt
 
-C++ compiler
-~~~~~~~~~~~~
+Set the C++ compiler
 
 .. code-block:: bash
 
-    cmake -DCMAKE_CXX_COMPILER=$GCC_BASE/bin/g++ ..
+    export CC="/path/to/bin/gcc"
+    export CXX="/path/to/bin/g++"
 
-optimization
-~~~~~~~~~~~~
+    cmake -DCMAKE_CXX_COMPILER=/path/to/g++ ..
 
-See
+Optimizations
+~~~~~~~~~~~~~
+
+By default `galario` is built with all the optimizations ON. You can check this with:
 
 .. code-block:: bash
 
     cmake --help-variable CMAKE_BUILD_TYPE
 
-The default is `Release`. If you want debug symbols as well, use
-`RelWithDebInfo`. To turn off optimization
+The default built type is `Release`, which is the fastest. If you want debug symbols as well, use `RelWithDebInfo`.
+
+To turn on even more aggressive optimization, pass the flags directly. For example for g++:
+
+    .. code-block:: bash
+
+        cmake -DCMAKE_CXX_FLAGS='-march=native -ffast-math'
+
+Note that these further optimization might not work on any system.
+
+To turn off optimizations:
 
 .. code-block:: bash
 
     cmake -DCMAKE_BUILD_TYPE=Debug
 
-To turn on even more aggressive optimization, pass the flags
-directly. For example for gcc
+.. _python_requirement:
 
-.. code-block:: bash
-
-    cmake -DCMAKE_CXX_FLAGS='-march=native -ffast-math'
-
-
-
-python
+Python
 ~~~~~~
 
 Specify a python version. This is useful if python 2.7 and 3.x are in
@@ -162,108 +169,128 @@ galario requires the following FFTW libraries:
 
 galario has been tested with FFTW 3.3.6.
 
-On a Mac
-~~~~~~~~
-To compile FFTW on a Mac download the .tar.gz from FFTW website you have to explicitly
-enable the build of dynamic (shared) library with --enable-shared option, and run multiple times
-./configure && make && make install in order to create the libraries listed above:
+To compile FFTW, download the .tar.gz from FFTW website. On Mac OS, you have to explicitly
+enable the build of dynamic (shared) library with the `--enable-shared` option, while on Linux this `should` be the default.
+You can create the libraries listed above with the following lines:
 
 .. code-block:: bash
 
     cd fftw-<version>/
     mkdir d_p && cd d_p && \
-      CC=/usr/local/bin/gcc ../configure --enable-shared && make && sudo make install && cd ..
+      CC=/path/to/gcc ../configure --enable-shared && make && sudo make install && cd ..
     mkdir s_p && cd s_p && \
-      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-single && make && sudo make install && cd ..
+      CC=/path/to/gcc ../configure --enable-shared --enable-single && make && sudo make install && cd ..
     mkdir d_p_omp && cd d_p_omp && \
-      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-openmp && make && sudo make install && cd ..
+      CC=/path/to/gcc ../configure --enable-shared --enable-openmp && make && sudo make install && cd ..
     mkdir s_p_omp && cd s_p_omp && \
-      CC=/usr/local/bin/gcc ../configure --enable-shared --enable-single --enable-openmp && make && sudo make install && cd ..
+      CC=/path/to/gcc ../configure --enable-shared --enable-single --enable-openmp && make && sudo make install && cd ..
 
-If you have no sudo rights to install FFTW libraries, then provide a directory via `make install --prefix="/path/to/fftw"`.
-Before building galario, `FFTW_HOME` has to be set equal to the installation directory of FFTW, e.g. `FFTW_HOME="/usr/local/lib/"`
-in the default case, or to the prefix specified during the fftw installation.
+If you have no `sudo` rights to install FFTW libraries, then provide an installation directory via `make install --prefix="/path/to/fftw"`.
+
+.. note::
+    Before building galario, `FFTW_HOME` has to be set equal to the installation directory of FFTW, e.g. with:
+
+    .. code-block::bash
+
+        export FFTW_HOME="/usr/local/lib/"
+
+    in the default case, or to the prefix specified during the FFTW installation.
+    Also, you need to update the `LD_LIBRARY_PATH` to pick the FFTW libraries:
+
+    .. code-block::bash
+
+        export LD_LIBRARY_PATH=$FFTW_HOME/lib:$LD_LIBRARY_PATH
+
 
 To speedup building FFTW, you may add the -jN flag to the make commands above, e.g. `make -jN`, where N is an integer
 equal to the number of cores you want to use. E.g., on a 4-cores machine, you can do `make -j4`. To use -j4 as default, you can
-create an alias with
+create an alias with:
 
 .. code-block:: bash
 
     alias make="make -j4"
 
-To find FFTW3 in a nonstandard directory, say `$FFTW_HOME`, tell `cmake`
-about it
+To find FFTW3 in a nonstandard directory, say `$FFTW_HOME`, tell `cmake` about it:
 
 .. code-block:: bash
 
     cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME} ..
 
-For multiple directories, use a `;` between directories
+For multiple directories, use a `;` between directories:
 
 .. code-block:: bash
 
     cmake -DCMAKE_PREFIX_PATH=${FFTW_HOME};/opt/something/else ..
 
-In case the directory with the header files is not inferred correctly,
+In case the directory with the header files is not inferred correctly:
 
 .. code-block:: bash
 
     cmake -DCMAKE_CXX_FLAGS="-I${FFTW_HOME}/include" ..
 
+openMP
+~~~~~~
 In case the openmp libraries are not in `${FFTW_HOME}/lib`
 
 .. code-block:: bash
 
     cmake -DCMAKE_LIBRARY_PATH="${FFTW_OPENMP_LIBDIR}" ..
 
-cuda
+.. _build_details_cuda:
+
+CUDA
 ~~~~
+`cmake` tests for compilation on the GPU with cuda by default **except on Mac OS**,
+where version conflicts between the NVIDIA compiler and the C++ compiler often lead to problems (see `this issue <https://github.com/mtazzari/galario/issues/30>`_).
 
-`cmake` tests for compilation on the gpu with cuda by default except on the mac
-where version conflicts between the nvidia compiler and the C++ compiler often lead to problems; see [https://github.com/mtazzari/galario/issues/30](issue #30).
-
-To manually turn off cuda support, use
+To manually turn OFF CUDA compilation, disable the search for the CUDA package:
 
 .. code-block:: bash
 
     cmake -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=1 ..
 
-To force searching for cuda, for example on the mac, do
+On the opposite, to force searching for CUDA, for example on Mac OS, do:
 
 .. code-block:: bash
 
     cmake -DGALARIO_FORCE_CUDA=1 ..
 
-timing
-~~~~~~
 
-For testing purposes, the time in seconds taken by selected functions called from `galario_sample` is printed to `stdout`. This features is off by default and activated by
+Timing
+~~~~~~
+For testing purposes, you can activate the timing features embedded in the code that produce detailed printouts to `stdout` of various
+portions of the functions. The times are measured in milliseconds. This feature is OFF by default and can be activated while compiling
+passing the additional flag:
 
 .. code-block:: bash
 
     cmake -DGALARIO_TIMING=1 ..
 
-installation
-------------
+Install
+-------
 
-To specify where to install, do the conventional
+To specify a path where to install the C libraries of `galario` (e.g., if you do not have `sudo` rights to install it in `usr/local/lib`),
+do the conventional:
 
 .. code-block:: bash
 
-    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/lib ..
+    cmake -DCMAKE_INSTALL_PREFIX=/path/to/galario/lib ..
 
-and after building run
+and, after building, run:
 
 .. code-block:: bash
 
     make install
 
-Note that by default the C libraries and the python bindings are installed under
-the same prefix. If you want to install the python bindings elsewhere, there is
-an extra cache variable `GALARIO_PYTHON_PKG_DIR` that you can edit with `ccmake
-.` after running `cmake`. An active conda environment is used to initialize
-`GALARIO_PYTHON_PKG_DIR`. For example,
+This will install the C libraries of `galario` in `/path/to/galario/`.
+
+.. note::
+    By default the C libraries and the Python bindings are installed under the same prefix.
+    If you want to install the Python bindings elsewhere, there is an extra cache variable `GALARIO_PYTHON_PKG_DIR` that you can edit with
+    `ccmake .` after running `cmake`.
+
+
+If you are working inside an active conda environment, `GALARIO_PYTHON_PKG_DIR` is already initialized to the conda environment path, e.g.:
 
 .. code-block:: bash
 
@@ -276,61 +303,66 @@ will output the following in the install step
     -- Installing: /some/prefix/lib/libgalario.so
     -- Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py
 
-testing
--------
+From the environment `myenv` it is now possible to import `galario`.
 
-After building, just run `ctest -V --output-on-failure` in `build/`.
+Tests
+-----
 
-Every time `python/test_galario.py` is modified, it has to be copied over to the
-build directory: only when run there, `import pygalario` works. The copy is
-performed in the configure step, `cmake` detects changes so always run `make` first.
+After building, just run `ctest -V --output-on-failure` from within the `build/` directory.
+
+Every time `python/test_galario.py` is modified, it has to be copied over to the build directory: only when run there,
+`import pygalario` works. The copy is performed in the configure step, `cmake` detects changes so always run `make` first.
 
 `py.test` fails if it cannot collect any tests. This can be caused by C errors.
-To debug the testing, first find out the exact command of the test
+To debug the testing, first find out the exact command of the test:
 
 .. code-block:: bash
 
     make && ctest -V
 
 `py.test` captures the output from the test, in particular from C to stderr.
-Force it to show all output
+Force it to show all output:
 
 .. code-block:: bash
 
     make && python/py.test.sh -sv python_package/tests/test_galario.py
 
-By default, tests do not run on the GPU. Activate by calling
-`... py.test.sh --gpu=1 ...`. To select the parametrized test
-`test_sample`, `... py.test.sh -k sample`.
+By default, tests do not run on the GPU. Activate them by calling `... py.test.sh --gpu=1 ...`.
+To select a given parametrized test named `test_sample`, just run `... py.test.sh -k sample`.
 
 A cuda error such as
 
 .. code-block:: bash
 
-    [ERROR] Cuda call /home/beaujean/workspace/protoplanetary/galario/build2/src/cuda_lib.cu: 815
+    [ERROR] Cuda call /home/user/workspace/galario/build/src/cuda_lib.cu: 815
     invalid argument
 
-can mean that code cannot be executed on the GPU at all rather than that
-specific call being invalid. Check if `nvidia-smi` runs
+can mean that code cannot be executed on the GPU at all rather than that specific call being invalid.
+Check if `nvidia-smi` runs
 
 .. code-block:: bash
 
     $ nvidia-smi
     Failed to initialize NVML: Driver/library version mismatch
 
-documentation
+
+Documentation
 -------------
+This documentation should be available online `here <LINK>`. If you want to build the documentation locally, from within
+the `build/` directory run:
+
 .. code-block:: bash
 
     make docs
 
-creates output in `docs/html` under the build directory. Add content to
-`docs/index.rst` or the files linked to therein. The `docs` are not build by
-default, only upon request.
+which creates output in `build/docs/html`. The `docs` are not build by default, only upon request.
 
-Within a conda environment, `conda install sphinx` to have a `sphinx` version
-that matches the python version. As the `galario` library needs to be imported
-when building the docs, the import would fail otherwise. Remove the
-`CMakeCache.txt` and rerun `cmake`, and observe which location of `sphinx` is reported, for example
+Since the `galario` library needs to be imported when building the documentation (the import would fail otherwise),
+run `conda install sphinx` within the conda environment in use. This ensures that the `sphinx` version matches the
+Python version used to compile `galario`.
+If you still have problems, remove the `CMakeCache.txt`, rerun `cmake`, and observe which location of `sphinx` is reported in
+`CMakeCache.txt`, for example:
+
+.. code-block:: bash
 
     -- Found Sphinx: /home/myuser/.local/miniconda3/envs/galario3/bin/sphinx-build
