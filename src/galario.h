@@ -31,6 +31,7 @@ extern "C"
     /* Required for multithreading */
     void galario_init();
     void galario_cleanup();
+    void galario_threads(int num);
 
     /* GPU related functions */
     int galario_threads_per_block(int num
