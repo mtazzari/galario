@@ -10,7 +10,7 @@ include "galario_config.pxi"
 
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup',
-           'ngpus', 'use_gpu', 'threads_per_block',
+           'ngpus', 'use_gpu', 'threads_per_block', 'threads',
            'check_image', 'check_obs', 'check_uvplane', 'get_image_size', 'get_uvcell_size',
            'sampleImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
@@ -62,6 +62,7 @@ cdef extern from "galario_py.h":
 cdef extern from "galario.h":
     int  galario_threads_per_block(int num);
     void galario_init();
+    void galario_threads(int num);
     void galario_cleanup();
     void galario_free(void*);
     void galario_use_gpu(int device_id)
@@ -171,6 +172,8 @@ def use_gpu(int device_id):
     """
     galario_use_gpu(device_id)
 
+def threads(int num=1):
+    galario_threads(num)
 
 def threads_per_block(int num=16):
     """

@@ -256,6 +256,13 @@ int galario_threads_per_block(int x)
     return mynthreads;
 }
 
+void galario_threads(int num) {
+#ifdef _OPENMP
+    omp_set_dynamic(0);
+    omp_set_num_threads(num);
+#endif
+}
+
 void galario_init() {
 #ifdef __CUDACC__
     cublas_handle();
