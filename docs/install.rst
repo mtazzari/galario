@@ -6,14 +6,15 @@ System Requirements
 -------------------
 To compile `galario` you will need:
 
-* a C and C++ compiler such as `gcc` or `clang`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_.
+* a working internet connection (to download 1.5 MB of an external library)
+* a C and C++ compiler such as `gcc` or `clang`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
 * `cmake <https://cmake.org>`_
-* the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`.
-* [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_.
-* [optional] python for python binding to the CPU and GPU
+* the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`
+* [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_
+* [optional] Python for Python bindings to the CPU and GPU
 
 .. warning::
-    On Mac OS, the GNU compilers must be manually downloaded and installed, e.g. following `these instructions <http://hpc.sourceforge.net>`_.
+    If you want to use the GNU compilers on Mac OS, you need to manually download and install them, e.g. following `these instructions <http://hpc.sourceforge.net>`_.
     The default `gcc`/`g++` commands shipped with the OS are aliases for the `clang` compiler that supports `openMP` only as of version 3.7 but unfortunately Apple usually ships an older version of `clang`.
 
 Quick steps to build and install
@@ -48,6 +49,7 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
        cmake
 
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
+    It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
 
 
  3. Use `make` to build
@@ -67,6 +69,9 @@ These instructions should be sufficient in most cases, but if you have problems 
 check out the details below. If you find issues or are stuck in one of these steps, consider writing us an email
 or opening an issue on the `GitHub <https://github.com/mtazzari/galario.git>`_ repository.
 
+.. note::
+    If you compile `galario` only for the CPU, gcc/g++ >= 4.0 work fine. If you compile also the GPU version,
+    check in the |NVIDIA_docs| which gcc/g++ versions are compatible with the `nvcc` compiler shipped with your CUDA Toolkit.
 
 .. _detailed_build_instructions:
 
@@ -129,7 +134,7 @@ To turn off optimizations:
 Python
 ~~~~~~
 
-Specify a python version. This is useful if python 2.7 and 3.x are in
+Specify a Python version. This is useful if Python 2.7 and 3.x are in
 the system and conflicting versions of the interpreter and the
 libraries are found. In `build/`, do
 
@@ -394,3 +399,10 @@ If you still have problems, remove the `CMakeCache.txt`, rerun
 .. code-block:: bash
 
     -- Found Sphinx: /home/myuser/.local/miniconda3/envs/galario3/bin/sphinx-build
+
+
+.. LINKS opening in new tabs/windows
+
+.. |NVIDIA_docs| raw:: html
+
+   <a href="http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#system-requirements" target="_blank">NVIDIA Docs</a>
