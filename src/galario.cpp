@@ -35,7 +35,9 @@ namespace {
     }
 
     void flush_timing() {
-        std::cout << out().str() << std::flush;
+        // if nothing but the initial newline in there, nothing to show
+        if (out().tellp() > 1)
+            std::cout << out().str() << std::flush;
         // empty the stream
         out(true);
     }
