@@ -31,14 +31,13 @@ extern "C"
     /* Required for multithreading */
     void galario_init();
     void galario_cleanup();
-    void galario_threads(int num);
+    int galario_threads(int num
+#ifdef __cplusplus
+                                = 0
+#endif
+                                   );
 
     /* GPU related functions */
-    int galario_threads_per_block(int num
-#ifdef __cplusplus
-                                          = 0
-#endif
-                                             );
     int galario_ngpus();
     void galario_use_gpu(int device_id);
 #ifdef __cplusplus

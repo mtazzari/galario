@@ -32,7 +32,7 @@ par4 = {'wle_m': 0.00088, 'dRA': 0., 'dDec': 0., 'PA': 145., 'nxy': 1024}
 ngpus = g_double.ngpus()
 g_double.use_gpu(0) #max(0, ngpus-1))
 
-g_double.threads_per_block()
+g_double.threads()
 
 
 @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
