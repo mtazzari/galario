@@ -10,7 +10,7 @@ include "galario_config.pxi"
 
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup',
-           'ngpus', 'use_gpu', 'threads_per_block', 'threads',
+           'ngpus', 'use_gpu', 'threads',
            'check_image', 'check_obs', 'check_uvplane', 'get_image_size', 'get_uvcell_size',
            'sampleImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
@@ -60,10 +60,9 @@ cdef extern from "galario_py.h":
     void _galario_reduce_chi2(int nd, void* vis_obs_re, void* vis_obs_im, void* vis, void* vis_obs_w, dreal* chi2)
 
 cdef extern from "galario.h":
-    int  galario_threads_per_block(int num);
     void galario_init();
-    void galario_threads(int num);
     void galario_cleanup();
+    int  galario_threads(int num);
     void galario_free(void*);
     void galario_use_gpu(int device_id)
     int  galario_ngpus()
@@ -172,34 +171,44 @@ def use_gpu(int device_id):
     """
     galario_use_gpu(device_id)
 
-def threads(int num=1):
-    galario_threads(num)
+def threads(int num=0):
+    """Set and get the number of threads to be used in parallel sections of the code.
 
-def threads_per_block(int num=16):
-    """
-    Set the number of threads per block on each of the block dimensions to be used.
+    To set, pass `num>0`. To get the current setting, call without any argument.
 
-    Typical call signature::
+    Typical call signatures::
 
-        threads_per_block(num=16)
+        default_nthreads = threads() # in the first call, a default is preset
+        threads(num=16) # now change the default
 
     Parameters
     ----------
     num : int, optional
-        Number of threads per block on each of the block dimensions, default is 16.
-        1D kernels will be launched with `num` threads per block.
-        2D kernels will be launched with `num*num` threads per block.
+
+        On the *GPU*, `num` is the total number of threads per block, default:
+        256. 1D kernels are launched with `num` threads, and for 2D kernels, we
+        use square blocks where each dimension is `sqrt(num)`.
+
+        On the *CPU*, this sets the number of openMP threads. The default is
+        `omp_get_max_threads()` which can be set through the `OMP_NUM_THREADS`
+        environment variable. If compiled without openMP support, `num` is
+        ignored and this function always returns 1.
 
     Notes
     -----
-    The CUDA documentation suggests starting with small `num` values, multiples of 2.
-    GPU cards with compute capability between 2 and 6.2 have maximum number of
-    threads per block of 1024, thus implying that the maximum `num` value is 32.
 
-    Check the maximum number of threads per block of your GPU here by running the `deviceQuery` command.
+    The CUDA documentation suggests starting with multiples of 32. GPU cards
+    with compute capability between 2 and 6.2 have maximum number of threads
+    per block of 1024.
+
+    Check the maximum number of threads per block of your GPU here by running
+    the `deviceQuery` command.
+
+    On the CPU, it may useful to experiment with more threads than available
+    cores to see if hyperthreading provides any benefit.
 
     """
-    return galario_threads_per_block(num)
+    return galario_threads(num)
 
 
 # ############################################################################ #

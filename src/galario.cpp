@@ -2,7 +2,7 @@
 #include "galario_py.h"
 
 // full function makes code hard to read
-#define tpb galario_threads_per_block()
+#define tpb galario_threads()
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -248,19 +248,29 @@ namespace {
     #define FFTW(name) fftwf_ ## name
 #endif
 
-int galario_threads_per_block(int x)
-{
+int galario_threads(int num) {
+#ifdef __CUDACC__
+    // mynthreads^2 is used per block
     static int mynthreads = 16;
-    if (x > 0)
-        mynthreads = x;
-    return mynthreads;
-}
-
-void galario_threads(int num) {
-#ifdef _OPENMP
-    omp_set_dynamic(0);
-    omp_set_num_threads(num);
+    // `num`: number of threads per block for 2D operations
+    if (num > 0)
+        mynthreads = int(std::sqrt(num));
+#else
+    #if defined(_OPENMP)
+        /* fix the number of openmp threads. disabling dynamic to respect the user's
+           wish as much as possible */
+        static int mynthreads = omp_get_max_threads();
+        if (num > 0) {
+            mynthreads = num;
+            omp_set_dynamic(0);
+            omp_set_num_threads(num);
+        }
+    #else
+        // no threads, `num` ignored
+        static int mynthreads = 1;
+    #endif
 #endif
+    return mynthreads;
 }
 
 void galario_init() {
@@ -269,7 +279,6 @@ void galario_init() {
 #else
     #ifdef _OPENMP
     FFTWCheck(fftw_init_threads());
-    fftw_plan_with_nthreads(omp_get_max_threads());
     #endif
 #endif
 }
@@ -380,6 +389,7 @@ void fft_d(int nx, int ny, dcomplex* data_d) {
 void fft_h(int nx, int ny, dcomplex* data) {
     dreal* input = reinterpret_cast<dreal*>(data);
     FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
+    fftw_plan_with_nthreads(galario_threads());
     FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, ny, input, output, FFTW_ESTIMATE);
     FFTW(execute)(p);
 

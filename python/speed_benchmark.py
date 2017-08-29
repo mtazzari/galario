@@ -139,7 +139,7 @@ def setup_chi2Profile(nxy, nsamples):
 
 def do_timing(options, input_data, gpu=False, tpb=None, omp_num_threads=None):
     if gpu:
-        acc_lib_cuda.threads_per_block(tpb)
+        acc_lib_cuda.threads(tpb)
     else:
         acc_lib_cpu.threads(omp_num_threads)
 
