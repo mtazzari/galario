@@ -30,6 +30,8 @@ p.add_argument("--cycles", action="store", dest="cycles", default=5, type=int,
              help="Number of cycles in calls to test")
 p.add_argument("--size", action="store", dest="size", default=4096, type=int,
              help="Square input image size")
+p.add_argument("--nsamples", action="store", dest="nsamples", default=int(1e6), type=int,
+             help="Number of uv points")
 p.add_argument("--tpb", type=int, nargs='+', help="Threads per block on the GPU", default=[16])
 p.add_argument("--ompnthreads", type=int, nargs='+', help="$OMP_NUM_THREADS", default=[1])
 p.add_argument("--dtype", action="store", dest="dtype", default='float64',
@@ -60,10 +62,7 @@ if options.USE_GPU:
 from galario import double as acc_lib_cpu
 
 
-def setup_sampleImage(nxy, nsamples):
-
-    sys.stdout.write("Setup sampleImage...")
-    sys.stdout.flush()
+def setup_chi2Image(nxy, nsamples):
 
     # these number can be freely changed for this speed test
     dRA = -3.1
@@ -73,40 +72,21 @@ def setup_sampleImage(nxy, nsamples):
     dist = 130. * pc
     maxuv_generator = 3e3
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype='float64')
+    x, _, w = generate_random_vis(nsamples, options.dtype)
 
     _, _, maxuv = matrix_size(udat, vdat)
     dxy = dist / maxuv
 
-    # generate the samples
-    maxuv = 3.e3
-    udat, vdat = create_sampling_points(nsamples, maxuv/2.2, dtype=options.dtype)
-
     # create model image (it happens to have 0 imaginary part)
     image_ref = create_reference_image(size=nxy, kernel='gaussian', dtype=options.dtype)
 
-    print("...done")
-    return image_ref, dxy, dist, udat, vdat, dRA, dDec, PA
-
-
-def setup_chi2(size, nsamples):
-
-    sys.stdout.write("Setup chi2Image...")
-    sys.stdout.flush()
-
-    image_ref, dxy, dist, udat, vdat, dRA, dDec, PA = setup_sampleImage(size, nsamples)
-    x, _, w = generate_random_vis(nsamples, options.dtype)
-
-    print("...done")
-
     return image_ref, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA, dDec
+
 
 def setup_chi2Profile(nxy, nsamples):
 
-    sys.stdout.write("Setup chi2Profile...")
-    sys.stdout.flush()
-
     pars = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88., 'nxy': 4096}
-    Rmin, dR, nrad, inc, profile_mode, real_type = 0.1, 1., 500, 20., 'Gauss', 'float64'
+    Rmin, dR, nrad, inc, profile_mode = 0.1, 1., 500, 20., 'Gauss'
     Rmin *= au
     dR *= au
 
@@ -117,23 +97,20 @@ def setup_chi2Profile(nxy, nsamples):
 
     # generate the samples
     maxuv_generator = 3e3
-    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
-    x, _, w = generate_random_vis(nsamples, real_type)
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=options.dtype)
+    x, _, w = generate_random_vis(nsamples, options.dtype)
 
     dist = 130. * pc
 
-    _, _, maxuv = matrix_size(udat, vdat, maxuv_factor=3.)
+    _, _, maxuv = matrix_size(udat, vdat)
     maxuv /= wle_m
     dxy = dist / maxuv
 
-    # print(nxy, minuv, maxuv, duv, dxy/au)
     # compute the matrix size and maxuv
     # nxy, dxy = g_double.get_image_size(dist, udat/wle_m, vdat/wle_m)
 
     # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
-
-    print("...done")
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.)
 
     return ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc/180.*np.pi, dRA, dDec
 
@@ -188,10 +165,10 @@ def do_timing(options, input_data, gpu=False, tpb=0, omp_num_threads=0):
 if __name__ == '__main__':
 
     size = options.size
-    nsamples = int(1e6)
+    nsamples = options.nsamples
 
     if options.image:
-        input_data = setup_chi2(size, nsamples)
+        input_data = setup_chi2Image(size, nsamples)
     else:
         input_data = setup_chi2Profile(size, nsamples)
 
