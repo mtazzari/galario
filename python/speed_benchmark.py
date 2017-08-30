@@ -54,8 +54,8 @@ if options.USE_GPU:
         acc_lib_cuda.use_gpu(options.gpu_id)
 
     else:
-        print("Option --gpu not valid. galario.HAVE_CUDA is {}. Terminating.".format(galario.HAVE_CUDA))
-        exit(1)
+        print("Option --gpu not valid. galario.HAVE_CUDA is {}.".format(galario.HAVE_CUDA))
+        options.USE_GPU = False
 
 from galario import double as acc_lib_cpu
 
