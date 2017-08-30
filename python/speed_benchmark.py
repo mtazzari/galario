@@ -137,7 +137,7 @@ def setup_chi2Profile(nxy, nsamples):
 
     return ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc/180.*np.pi, dRA, dDec
 
-def do_timing(options, input_data, gpu=False, tpb=None, omp_num_threads=None):
+def do_timing(options, input_data, gpu=False, tpb=0, omp_num_threads=0):
     if gpu:
         acc_lib_cuda.threads(tpb)
     else:
