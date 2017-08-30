@@ -254,9 +254,9 @@ int galario_threads(int num) {
 #ifdef __CUDACC__
     // mynthreads^2 is used per block
     static int mynthreads = 16;
-    // `num`: number of threads per block for 2D operations
+    // `num^2`: number of threads per block for 2D operations
     if (num > 0)
-        mynthreads = int(std::sqrt(num));
+        mynthreads = num;
 #else
     #if defined(_OPENMP)
         /* fix the number of openmp threads. disabling dynamic to respect the user's
@@ -1521,7 +1521,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
 #else
     CPUTimer t;
 
-    auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd)); t.Elapsed("chi2_profile::fftw_alloc");
+    auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd)); t.Elapsed("chi2_imag::fftw_alloc");
     galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
 
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
@@ -1529,6 +1529,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     t = CPUTimer(); galario_free(fint); t.Elapsed("chi2_imag::free_fint");
 #endif
     t_start.Elapsed("chi2_image_tot");
+    flush_timing();
 }
 
 void _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {

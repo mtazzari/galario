@@ -172,7 +172,8 @@ def use_gpu(int device_id):
     galario_use_gpu(device_id)
 
 def threads(int num=0):
-    """Set and get the number of threads to be used in parallel sections of the code.
+    """
+    Set and get the number of threads to be used in parallel sections of the code.
 
     To set, pass `num>0`. To get the current setting, call without any argument.
 
@@ -185,9 +186,9 @@ def threads(int num=0):
     ----------
     num : int, optional
 
-        On the *GPU*, `num` is the total number of threads per block, default:
-        256. 1D kernels are launched with `num` threads, and for 2D kernels, we
-        use square blocks where each dimension is `sqrt(num)`.
+        On the *GPU*, the kernels are launched with `num*num` threads per block.
+        1D kernels are launched with linear blocks of size `num*num`.
+        2D Kernels are launched with square blocks of size `num*num`.
 
         On the *CPU*, this sets the number of openMP threads. The default is
         `omp_get_max_threads()` which can be set through the `OMP_NUM_THREADS`
@@ -196,12 +197,11 @@ def threads(int num=0):
 
     Notes
     -----
+    The CUDA documentation suggests starting with `num*num`>=64 and multiples of 32,
+    e.g. 128, 256. GPU cards with compute capability between 2 and 6.2 have
+    maximum number of threads per block of 1024, which is achieved for `num=32`.
 
-    The CUDA documentation suggests starting with multiples of 32. GPU cards
-    with compute capability between 2 and 6.2 have maximum number of threads
-    per block of 1024.
-
-    Check the maximum number of threads per block of your GPU here by running
+    Check the maximum number of threads per block of your GPU by running
     the `deviceQuery` command.
 
     On the CPU, it may useful to experiment with more threads than available
