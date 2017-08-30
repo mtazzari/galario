@@ -10,18 +10,18 @@ else
     output=$1
 fi
 
-# recreate file
-echo "" > $output
-cycles=20
+# recreate empty file
+:> $output
+cycles=10
 
 openmp_threads="1 2 4 8 16 32 48 64"
-threads_per_block="8 16 32"
+threads_per_block="32 64 128 256 512 1024"
 sizes="512 1024 2048 4096 8192 16384"
 
 # quick testing
 # openmp_threads="1 16"
-# threads_per_block="4 8"
-# sizes="1024"
+# threads_per_block="128 256"
+# sizes="512 1024"
 
 python speed_benchmark.py --output_header --output=$output;
 
