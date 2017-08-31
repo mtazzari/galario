@@ -42,6 +42,8 @@ p.add_argument("--output_header", action="store_true", dest="output_header",
              help="Only create output file and print header, then quit.")
 p.add_argument("--image", action="store_true", default=False,
              help="If True computes from Image, else computes from profile.")
+p.add_argument("--use-py", action="store_true", dest="use_py",default=False,
+             help="If True uses Python implementation of sample/chi2 Profile/Image.")
 p.add_argument("--no-verbose", action="store_true", default=False,
                help="Print timing to stdout")
 
@@ -132,9 +134,15 @@ def do_timing(options, input_data, gpu=False, tpb=0, omp_num_threads=0):
     acc_lib = 'acc_lib_cuda' if gpu else 'acc_lib_cpu'
 
     if options.image:
-        t = timeit.Timer('from __main__ import input_data, {}; {}.chi2Image(*input_data)'.format(acc_lib, acc_lib))
+        if options.use_py:
+            t = timeit.Timer('from __main__ import input_data, py_chi2Image; py_chi2Image(*input_data)')
+        else:
+            t = timeit.Timer('from __main__ import input_data, {}; {}.chi2Image(*input_data)'.format(acc_lib, acc_lib))
     else:
-        t = timeit.Timer('from __main__ import input_data, {}; {}.chi2Profile(*input_data)'.format(acc_lib, acc_lib))
+        if options.use_py:
+            t = timeit.Timer('from __main__ import input_data, py_chi2Profile; py_chi2Profile(*input_data)')
+        else:
+            t = timeit.Timer('from __main__ import input_data, {}; {}.chi2Profile(*input_data)'.format(acc_lib, acc_lib))
 
     if options.output:
         filename = options.output
