@@ -4,17 +4,137 @@
 from __future__ import (division, print_function, absolute_import, unicode_literals)
 
 import numpy as np
-from scipy.interpolate import interp1d
+import pyfftw
 
-from galario import arcsec, pc, au
+from scipy.interpolate import interp1d, RectBivariateSpline
+from galario import arcsec, pc, au, deg
 
-__all__ = ["radial_profile", "g_sweep_prototype", "sweep_ref", "create_reference_image", "create_sampling_points", "uv_idx",
+__all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image",
+           "radial_profile", "g_sweep_prototype", "sweep_ref",
+           "create_reference_image", "create_sampling_points", "uv_idx",
            "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
            "matrix_size", "Fourier_shift_static",
            "apply_phase_array", "generate_random_vis",
            "unique_part", "assert_allclose", "apply_rotation"]
 
 
+def py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=0., dRA=0., dDec=0.):
+    """
+    Python implementation of sampleImage.
+
+    """
+    nxy = reference_image.shape[0]
+
+    PA *= deg
+    dRA *= 2.*np.pi * arcsec
+    dDec *= 2.*np.pi * arcsec
+    du = dist / nxy / dxy
+
+    # Real to Complex transform
+    fft_r2c_shifted = np.fft.fftshift(
+                        pyfftw.interfaces.numpy_fft.rfft2(
+                            np.fft.fftshift(reference_image)), axes=0)
+
+    # apply rotation
+    cos_PA = np.cos(PA)
+    sin_PA = np.sin(PA)
+
+    urot = udat * cos_PA - vdat * sin_PA
+    vrot = udat * sin_PA + vdat * cos_PA
+
+    dRArot = dRA * cos_PA - dDec * sin_PA
+    dDecrot = dRA * sin_PA + dDec * cos_PA
+
+    # interpolation indices
+    uroti = np.abs(urot)/du
+    vroti = nxy/2. + vrot/du
+    uneg = urot < 0.
+    vroti[uneg] = nxy/2 - vrot[uneg]/du
+
+    # coordinates of FT
+    u_axis = np.linspace(0., nxy // 2, nxy // 2 + 1)
+    v_axis = np.linspace(0., nxy - 1, nxy)
+
+    # We use RectBivariateSpline to do only linear interpolation, which is faster
+    # than interp2d for our case of a regular grid.
+    # RectBivariateSpline does not work for complex input, so we need to run it twice.
+    f_re = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.real, kx=1, ky=1, s=0)
+    ReInt = f_re.ev(vroti, uroti)
+    f_im = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.imag, kx=1, ky=1, s=0)
+    ImInt = f_im.ev(vroti, uroti)
+
+    # correct for Real to Complex frequency mapping
+    uneg = urot < 0.
+    ImInt[uneg] *= -1.
+
+    # apply the phase change
+    theta = urot*dRArot + vrot*dDecrot
+    vis = (ReInt + 1j*ImInt) * (np.cos(theta) + 1j*np.sin(theta))
+
+    return vis
+
+
+def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=0., PA=0, dRA=0., dDec=0.):
+    """
+    Python implementation of sampleProfile.
+
+    """
+    inc *= deg
+    inc_cos = np.cos(inc)
+
+    nrad = len(intensity)
+    gridrad = np.linspace(Rmin, Rmin + dR * (nrad - 1), nrad)
+
+    ncol, nrow = nxy, nxy
+    # create the mesh grid
+    x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol)) * dxy * ncol
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow)) * dxy * nrow
+
+    # we shrink the x axis, since PA is the angle East of North of the
+    # the plane of the disk (orthogonal to the angular momentum axis)
+    # PA=0 is a disk with vertical orbital node (aligned along North-South)
+    x_axis, y_axis = np.meshgrid(x / inc_cos, y)
+    x_meshgrid = np.sqrt(x_axis ** 2. + y_axis ** 2.)
+
+    # convert to Jansky
+    sr_to_px = (dxy/dist)**2.
+    intensity *= sr_to_px
+    f = interp1d(gridrad, intensity, kind='linear', fill_value=0.,
+                 bounds_error=False, assume_sorted=True)
+    intensmap = f(x_meshgrid)
+
+    f_center = interp1d(gridrad, intensity, kind='linear', fill_value='extrapolate',
+                 bounds_error=False, assume_sorted=True)
+    intensmap[int(nrow/2), int(ncol/2)] = f_center(0.)
+
+    vis = py_sampleImage(intensmap, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+
+    return vis
+
+
+def py_chi2Image(reference_image, dxy, dist, udat, vdat, vis_obs_re, vis_obs_im, weights, PA=0., dRA=0., dDec=0.):
+    """
+    Python implementation of chi2Image.
+
+    """
+    vis = py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+
+    chi2 = np.sum(((vis.real - vis_obs_re)**2. + (vis.imag - vis_obs_im)**2.)*weights)
+
+    return chi2
+
+
+
+def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, vis_obs_re, vis_obs_im, weights, inc=0., PA=0, dRA=0., dDec=0.):
+    """
+    Python implementation of chi2Profile.
+
+    """
+    vis = py_sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, PA=PA, dRA=dRA, dDec=dDec)
+
+    chi2 = np.sum(((vis.real - vis_obs_re)**2. + (vis.imag - vis_obs_im)**2.)*weights)
+
+    return chi2
 
 def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_width=100):
     """ Compute a radial brightness profile. Returns int in Jy/sr """
@@ -67,7 +187,7 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, dist, inc, dtype_image='floa
     return image
 
 
-def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx, Dy, dtype_image='float64'):
+def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx=0., Dy=0., dtype_image='float64'):
     """
     Compute the intensity map (i.e. the image) given the radial profile I(R)=ints.
     We assume an axisymmetric profile.
