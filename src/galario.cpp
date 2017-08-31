@@ -1361,7 +1361,7 @@ void diff_weighted_h
     for (auto idx = 0; idx < nd; ++idx) {
         diff_weighted_core(idx, nd, fobs_re, fobs_im, fint, weights);
     }
-    t.Elapsed("diff_weighted");
+    t.Elapsed("reduce_chi2::diff_weighted");
 }
 #endif
 
@@ -1375,20 +1375,20 @@ void reduce_chi2_d
 
     /* compute weighted difference */
     diff_weighted_d<<<nd / nthreads + 1, nthreads>>>(nd, fobs_re, fobs_im, fint, weights);
-    t.Elapsed("reduce_chi2_d::diff_weighted_d");
+    t.Elapsed("reduce_chi2::diff_weighted");
 
     // only device pointers! maybe not ... check with jiri
     // compute the Euclidean norm
-    CUBLASNRM2(cublas_handle(), nd, fint, 1, chi2); t.Elapsed("reduce_chi2_d::CUBLASNRM2");
+    CUBLASNRM2(cublas_handle(), nd, fint, 1, chi2);
     // but we want the square of the norm
     *chi2 *= *chi2;
-
-    t_start.Elapsed("reduce_chi2");
+    t.Elapsed("reduce_chi2::reduction");
+    t_start.Elapsed("reduce_chi2_tot");
 }
 #endif
 
 void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dcomplex* fint, const dreal* weights, dreal* chi2) {
-     CPUTimer t;
+     CPUTimer t_start;
 #ifdef __CUDACC__
 
     /* allocate and copy */
@@ -1427,18 +1427,20 @@ void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dco
 #else
      diff_weighted_h(nd, fobs_re, fobs_im, fint, weights);
 
-    // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
-    // compute the Euclidean norm
-    dreal y = 0.;
+     CPUTimer t;
+     // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
+     // compute the Euclidean norm
+     dreal y = 0.;
 #pragma omp parallel for reduction(+:y)
-    for (auto i = 0; i < nd; ++i) {
-        dcomplex const x = fint[i];
-        dcomplex const x_conj = CMPLXCONJ(fint[i]);
-        y += real(CMPLXMUL(x, x_conj));
-    }
-    *chi2 = y;
+     for (auto i = 0; i < nd; ++i) {
+         dcomplex const x = fint[i];
+         dcomplex const x_conj = CMPLXCONJ(fint[i]);
+         y += real(CMPLXMUL(x, x_conj));
+     }
+     *chi2 = y;
+     t.Elapsed("reduce_chi2::reduction");
 #endif
-    t.Elapsed("reduce_chi2_tot");
+     t_start.Elapsed("reduce_chi2_tot");
 }
 
 void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2) {
