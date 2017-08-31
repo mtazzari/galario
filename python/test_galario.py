@@ -584,3 +584,73 @@ def test_chi2Profile(Rmin, dR, nrad, inc, profile_mode, nsamples, real_type, rto
     chi2_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
 
     assert_allclose(chi2_chi2Profile, chi2_chi2Image, rtol=rtol, atol=atol)
+
+
+# single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
+@pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
+                         # [(1000, 'float32', 'complex64',  1e-3,  1e-4, g_single, par1),
+                         #  [(1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par1),
+                          # (1000, 'float32', 'complex64',  1e-3,  1e-3, g_single, par2), ## large x0, y0 induce larger errors
+                          # (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par2),
+                          # (1000, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
+                          # (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par3),
+                          [(1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par4)],
+                         ids=["{}".format(i) for i in range(1)])
+def test_sample_python(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
+    # go for fairly low precision when we add up many large numbers, we loose precision
+    # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
+
+    wle_m = pars['wle_m']
+    dRA = pars['dRA']
+    dDec = pars['dDec']
+    PA = pars['PA']
+    nxy = pars['nxy']
+
+    # generate the samples
+    maxuv_generator = 3.e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+
+    # compute the matrix nxy and maxuv
+    _, minuv, maxuv = matrix_size(udat/wle_m, vdat/wle_m)
+    udat, vdat = np.ones(nsamples), np.zeros(nsamples)
+
+    # nxy = 2048 size can be freely set (if larger than the minimum size determined by matrix_size)
+    # print(nxy)
+    du = maxuv/nxy
+
+    # create model image (it happens to have 0 imaginary part)
+    reference_image = create_reference_image(nxy, -10., 30., dtype=real_type)
+
+    # CPU version
+    dRArot, dDecrot, urot, vrot = apply_rotation(PA, dRA, dDec, udat, vdat)
+
+    # R2C (pyfftw)
+    fft_r2c_shifted = np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(reference_image)), axes=0)
+    uroti_new, vroti_new = uv_idx_r2c(urot/wle_m, vrot/wle_m, du, nxy/2.)
+
+    print(fft_r2c_shifted.shape)
+    from scipy.interpolate import interp2d, RectBivariateSpline
+
+    u_axis = np.linspace(0., nxy//2, nxy//2 + 1, dtype=real_type) * du
+    v_axis = (np.linspace(0., nxy - 1, nxy, dtype=real_type) - nxy / 2.) * du
+
+    # uu, vv = np.meshgrid(u_axis, v_axis)
+    # f_re = interp2d(uu, vv, fft_r2c_shifted.real, kind='linear')
+    f_re = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.real, kx=1, ky=1, s=0)
+    ReInt = f_re.ev(urot/wle_m, vrot/wle_m)
+    print(ReInt)
+    # f_im = interp2d(u_axis, v_axis, fft_r2c_shifted.imag, kind='linear')
+
+    # ImInt = f_im(urot/wle_m, vrot/wle_m)
+
+    ReInt_old = int_bilin_MT(fft_r2c_shifted.real, uroti_new, vroti_new)
+    # ImInt_old = int_bilin_MT(fft_r2c_shifted.imag, uroti_new, vroti_new)
+    print(ReInt_old)
+
+    assert_allclose(ReInt_old, ReInt , rtol=rtol, atol=atol)
+    # assert_allclose(ImInt_old, ImInt , rtol=rtol, atol=atol)
+
+    # uneg = urot < 0.
+    # ImInt[uneg] *= -1.
+    # fint = ReInt + 1j*ImInt
+    # fint_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, fint, dRArot, dDecrot)
