@@ -46,7 +46,7 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
 
     .. code-block:: bash
 
-       cmake
+       cmake ..
 
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
     It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
@@ -117,9 +117,9 @@ The default built type is `Release`, which is the fastest. If you want debug sym
 
 To turn on even more aggressive optimization, pass the flags directly. For example for g++:
 
-    .. code-block:: bash
+.. code-block:: bash
 
-        cmake -DCMAKE_CXX_FLAGS='-march=native -ffast-math' ..
+    cmake -DCMAKE_CXX_FLAGS='-march=native -ffast-math' ..
 
 Note that these further optimization might not work on any system.
 
