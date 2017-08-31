@@ -12,8 +12,7 @@ from galario import arcsec, pc, au, deg
 __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image",
            "radial_profile", "g_sweep_prototype", "sweep_ref",
            "create_reference_image", "create_sampling_points", "uv_idx",
-           "pixel_coordinates", "uv_idx_r2c", "int_bilin_MT",
-           "matrix_size", "Fourier_shift_static",
+           "uv_idx_r2c", "int_bilin_MT", "matrix_size",
            "apply_phase_array", "generate_random_vis",
            "unique_part", "assert_allclose", "apply_rotation"]
 
@@ -304,14 +303,6 @@ def uv_idx_r2c(udat, vdat, du, half_size):
     return indu, indv
 
 
-def pixel_coordinates(maxuv, nx, dtype='float64'):
-    """
-    Compute the array that maps the pixels of the image to real uv-coordinates.
-    The array contains the coordinate of the pixel centers (not the edges!).
-
-    """
-    return (np.linspace(0., nx-1, nx, dtype=dtype) - nx/2.) * maxuv/np.float(nx)
-
 def int_bilin_MT(f, x, y):
     # assume x, y are in pixel
     fint = np.zeros(len(x))
@@ -347,48 +338,6 @@ def matrix_size(udat, vdat, **kwargs):
     Nuv = kwargs.get('force_nx', int(2**np.ceil(np.log2(minpix))))
 
     return Nuv, minuv, maxuv
-
-
-def Fourier_shift_static(ft_centered, x0, y0, wle, maxuv):
-    """
-    Performs a translation in the real space by applying a phase shift in the Fourier space.
-    This function applies the shift to 2D arrays (i.e. images).
-
-    Parameters
-    ----------
-    ft_centered: 2D float array, complex64
-        Fourier transform
-    x0, y0: floats, arcsec
-        Shifts in the real space.
-
-    Returns
-    -------
-    v_shifted: 2D float array, complex64
-        Phase-shifted Fourier transform
-
-    """
-    nx = ft_centered.shape[0]
-    # convert x0, y0 from arcsec to pixel
-
-    sec2pixel = arcsec/wle
-    x0 *= sec2pixel
-    y0 *= sec2pixel
-
-    # construct the phase change
-    spatial_freq = maxuv*np.fft.fftshift(np.fft.fftfreq(nx))*2.*np.pi
-    uu, vv = np.meshgrid(spatial_freq, spatial_freq)
-    uv_grid = uu*x0 + vv*y0
-    cos_theta = np.cos(uv_grid)
-    sin_theta = np.sin(uv_grid)
-
-    # apply the phase change
-    re_ft_c, im_ft_c = ft_centered.real, ft_centered.imag
-    re_v_shifted = re_ft_c*cos_theta - im_ft_c*sin_theta
-    imag_v_shifted = im_ft_c*cos_theta + re_ft_c*sin_theta
-
-    v_shifted = re_v_shifted+1j*imag_v_shifted
-
-    return v_shifted
 
 
 def apply_phase_array(u, v, fint, x0, y0):
