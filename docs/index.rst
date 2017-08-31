@@ -93,7 +93,7 @@ where `Rmin` and `dR` are the innermost radius and the cell size of the grid on 
 
 More details on how to get started with `galario` are given in the :doc:`quickstart <quickstart>`.
 
-.. Be sure to checkout also the :doc:`cookbook <cookbook>` with many worked-though examples!
+.. Be sure to checkout also the :doc:`cookbook <cookbook>` with many worked examples!
 
 License and Attribution
 -----------------------

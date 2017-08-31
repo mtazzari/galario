@@ -35,24 +35,34 @@ g_double.use_gpu(0) #max(0, ngpus-1))
 g_double.threads()
 
 
-@pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type",
-                          [(0.1, 3.5, 500, 1024, 8.2, 20., 0., 0., 'Gauss', 'float64'),
-                           (2., 0.3, 1000, 2048, 3., 44.23, 0., 0., 'Cos-Gauss', 'float64'),
-                           (0.1, 3.5, 50, 256, 8.2, 20., 0., 0., 'Gauss', 'float64'),
-                           (0.1, 3.5, 1000, 16, 8.2, 20., 0., 0., 'Gauss', 'float64')],
-                          ids=["{}".format(i) for i in range(4)])
-def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, real_type):
+########################################################
+#                                                      #
+#                      TESTS                           #
+#                                                      #
+########################################################
 
+@pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type",
+                          [(0.1, 3.5, 500, 1024, 8.2, 20., 'Gauss', 'float64'),
+                           (2., 0.3, 1000, 2048, 3., 44.23, 'Cos-Gauss', 'float64'),
+                           (0.1, 3.5, 50, 256, 8.2, 20., 'Gauss', 'float64'),
+                           (0.1, 3.5, 1000, 16, 8.2, 20., 'Gauss', 'float64')],
+                          ids=["{}".format(i) for i in range(4)])
+def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type):
+    """
+    Test the image creation algorithm, `sweep`.
+
+    """
     # compute radial profile
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
 
     nrow, ncol = nxy, nxy
-
     dist = 150.
-    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx, Dy, real_type)
+
+    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, dist, inc, dtype_image=real_type)
 
     image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc)
 
+    # uncomment for debugging
     # plot images
     # import matplotlib.pyplot as plt
     # plt.figure()
@@ -72,24 +82,20 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, Dx, Dy, profile_mode, re
     # plt.savefig("./profile_intensity_ref.pdf")
     # plt.clf()
 
-    # checks that galario sweep works
     assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
 
 
-# single precision difference can be -1.152496e-01 vs 1.172152e+00 for large 1000x1000 images!!
-@pytest.mark.parametrize("nsamples, real_type, complex_type, rtol, atol, acc_lib, pars",
-                         # [(1000, 'float32', 'complex64',  1e-3,  1e-4, g_single, par1),
-                          [(1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par1),
-                          # (1000, 'float32', 'complex64',  1e-3,  1e-3, g_single, par2), ## large x0, y0 induce larger errors
-                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par2),
-                          # (1000, 'float32', 'complex64',  1e-3,  1e-5, g_single, par3),
-                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par3),
-                          (1000, 'float64', 'complex128', 1e-14, 1e-11, g_double, par4)],
+@pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
+                          [(1000, 'float64', 1e-14, 1e-11, g_double, par1),
+                          (1000, 'float64',  1e-14, 1e-11, g_double, par2),
+                          (1000, 'float64',  1e-14, 1e-11, g_double, par3),
+                          (1000, 'float64',  1e-14, 1e-11, g_double, par4)],
                          ids=["{}".format(i) for i in range(4)])
-def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
-    # go for fairly low precision when we add up many large numbers, we loose precision
-    # TODO: perhaps implement the test with more realistic values of chi2 ~ 1
+def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
+    """
+    Test the (current) R2C implementation against the (old) C2C one.
 
+    """
     wle_m = pars['wle_m']
     dRA = pars['dRA']
     dDec = pars['dDec']
@@ -102,8 +108,6 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 
     # compute the matrix nxy and maxuv
     _, minuv, maxuv = matrix_size(udat/wle_m, vdat/wle_m)
-    # nxy = 2048 size can be freely set (if larger than the minimum size determined by matrix_size)
-    # print(nxy)
     du = maxuv/nxy
 
     # create model image (it happens to have 0 imaginary part)
@@ -121,53 +125,31 @@ def test_sample_R2C(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars
 
     #  1) C2C (numpy)
     fft_c2c_shifted = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image.copy())))
-    uroti_old, vroti_old = uv_idx(urot/wle_m, vrot/wle_m, du, nxy/2.)
-    ReInt_old = int_bilin_MT(fft_c2c_shifted.real, uroti_old, vroti_old)
-    ImInt_old = int_bilin_MT(fft_c2c_shifted.imag, uroti_old, vroti_old)
-    fint_old = ReInt_old + 1j*ImInt_old
-    fint_old_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, fint_old, dRArot, dDecrot)
-
-    #  2) R2C (pyfftw)
-    fft_r2c_shifted = np.fft.fftshift(pyfftw.interfaces.numpy_fft.rfft2(np.fft.fftshift(reference_image)), axes=0)
-    uroti_new, vroti_new = uv_idx_r2c(urot/wle_m, vrot/wle_m, du, nxy/2.)
-    ReInt = int_bilin_MT(fft_r2c_shifted.real, uroti_new, vroti_new)
-    ImInt = int_bilin_MT(fft_r2c_shifted.imag, uroti_new, vroti_new)
-    uneg = urot < 0.
-    ImInt[uneg] *= -1.
-    fint = ReInt + 1j*ImInt
-    fint_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, fint, dRArot, dDecrot)
+    uroti_c2c, vroti_c2c = uv_idx(urot/wle_m, vrot/wle_m, du, nxy/2.)
+    ReInt_c2c = int_bilin_MT(fft_c2c_shifted.real, uroti_c2c, vroti_c2c)
+    ImInt_c2c = int_bilin_MT(fft_c2c_shifted.imag, uroti_c2c, vroti_c2c)
+    vis_c2c = ReInt_c2c + 1j*ImInt_c2c
+    vis_c2c_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, vis_c2c, dRArot, dDecrot)
 
     # CPU/GPU version (galario)
     dist = 30
     dxy = dist/nxy/du
-    fint_galario = acc_lib.sampleImage(ref_real, dxy, dist, udat/wle_m, vdat/wle_m, dRA=dRA, dDec=dDec, PA=PA)
+    vis_galario = acc_lib.sampleImage(ref_real, dxy, dist, udat/wle_m, vdat/wle_m, dRA=dRA, dDec=dDec, PA=PA)
 
-    uneg = urot < 0.
-    upos = urot > 0.
-    assert_allclose(fint_old.real, fint.real, rtol, atol)
-    assert_allclose(fint_old[upos].real, fint[upos].real, rtol, atol)
-    assert_allclose(fint_old[uneg].real, fint[uneg].real, rtol, atol)
-
-    assert_allclose(fint_old.imag, fint.imag, rtol, atol)
-
-    assert_allclose(fint_old_shifted.real, fint_shifted.real, rtol, atol)
-    assert_allclose(fint_old_shifted.imag, fint_shifted.imag, rtol, atol)
-
-    assert_allclose(fint_galario.real, fint_old_shifted.real, rtol, atol)
-    assert_allclose(fint_galario.imag, fint_old_shifted.imag, rtol, atol)
+    assert_allclose(vis_galario.real, vis_c2c_shifted.real, rtol, atol)
+    assert_allclose(vis_galario.imag, vis_c2c_shifted.imag, rtol, atol)
 
 
-########################################################
-#                                                      #
-#                      TESTS                           #
-#                                                      #
-########################################################
 # single precision less precise if code compiled with `-ffast-math`, otherwise rtol=1e-7 passes
 @pytest.mark.parametrize("size, real_type, complex_type, rtol, atol, acc_lib",
                          [(1024, 'float32', 'complex64',  2e-4,  1e-5, g_single),
                           (1024, 'float64', 'complex128', 1e-16, 1e-8, g_double)],
                          ids=["SP", "DP"])
 def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
+    """
+    Test the interpolation of the output FT.
+    
+    """
     nsamples = 10000
     maxuv = 1000.
 
@@ -180,7 +162,6 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     vdat = vdat.astype(real_type)
 
     # no rotation
-    uv = pixel_coordinates(maxuv, size)
     du = maxuv/size
     uroti, vroti = uv_idx_r2c(udat, vdat, du, size/2.)
 
@@ -207,7 +188,10 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
                           (1024, 'float64', 1.e-16, 1e-8, g_double)],
                          ids=["SP", "DP"])
 def test_FFT(size, real_type, rtol, atol, acc_lib):
+    """
+    Test the Real to Complex FFTW/cuFFT against numpy Complex to Complex.
 
+    """
     reference_image = create_reference_image(size=size, dtype=real_type)
 
     ft = np.fft.fft2(reference_image)
@@ -229,7 +213,10 @@ def test_FFT(size, real_type, rtol, atol, acc_lib):
                           (1024, 'float64', 1.e-16, g_double)],
                          ids=["SP", "DP"])
 def test_shift_axes01(size, real_type, tol, acc_lib):
+    """
+    Test the 1st shift to be applied to the input image before the FFT.
 
+    """
     # just a create a runtime-typical image with a big offset disk
     reference_image = create_reference_image(size=size, x0=size/10., y0=-size/10.,
                                             sigma_x=3.*size, sigma_y=2.*size, dtype=real_type)
@@ -250,7 +237,10 @@ def test_shift_axes01(size, real_type, tol, acc_lib):
                           (1024, 'complex128', 1.e-16, g_double)],
                          ids=["SP", "DP"])
 def test_shift_axis0(size, complex_type, tol, acc_lib):
+    """
+    Test the 2nd shift to be applied to the output of the FFT.
 
+    """
     #  the reference image has the shape of the typical output of FFTW R2C,
     #  but acc_lib.fftshift_axis0() works for every matrix size.
     reference_image = np.random.random((size, int(size/2)+1)).astype(complex_type)
@@ -274,7 +264,10 @@ def test_shift_axis0(size, complex_type, tol, acc_lib):
                               "SP_par2", "DP_par2",
                               "SP_par3", "DP_par3"])
 def test_apply_phase_vis(real_type, complex_type, rtol, atol, acc_lib, pars):
+    """
+    Test apply phase to visibilities
 
+    """
     dRA = pars.get('dRA', 0.4)
     dDec = pars.get('dDec', 10.)
 
@@ -296,19 +289,112 @@ def test_apply_phase_vis(real_type, complex_type, rtol, atol, acc_lib, pars):
     assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
 
 
-
 @pytest.mark.parametrize("nsamples, real_type, tol, acc_lib",
                          [(1000, 'float32', 1.e-6, g_single),
                           (1000, 'float64', 1.e-15, g_double)],
                          ids=["SP", "DP"])
 def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
+    """
+    Test chi2 reduction
 
+    """
     x, y, w = generate_random_vis(nsamples, real_type)
     chi2_ref = np.sum(((x.real - y.real) ** 2. + (x.imag - y.imag)**2.) * w)
 
     chi2_loc = acc_lib.reduce_chi2(x.real.copy(order='C'), x.imag.copy(order='C'), w, y.copy())
 
     assert_allclose(chi2_ref, chi2_loc, rtol=tol)
+
+
+@pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
+                          [(int(1e3), 'float64', 1e-14, 1e-10, g_double, par1),
+                          (int(1e3), 'float64', 1e-14, 1e-10, g_double, par2),
+                          (int(1e3), 'float64', 1e-14, 1e-10, g_double, par3),
+                          (int(1e3), 'float64', 1e-14, 1e-10, g_double, par4)],
+                         ids=["{}".format(i) for i in range(4)])
+def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
+    """
+    Main test function: tests Python vs galario implementation of sampleImage,
+    sampleProfile, chi2Image, chi2Profile.
+    It also cross-checks all the galario results between themselves and provides
+    timing if -s option is passed.
+
+    """
+    wle_m = pars['wle_m']
+    dRA = pars['dRA']
+    dDec = pars['dDec']
+    PA = pars['PA']
+    nxy = pars['nxy']
+
+    # generate the samples
+    maxuv_generator = 3.e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
+    udat /= wle_m
+    vdat /= wle_m
+
+    _, minuv, maxuv = matrix_size(udat, vdat)
+
+    dist = 140.  # distance to the source
+    dxy = dist / maxuv  # dist / (nxy * dxy
+    # compute the matrix nxy and maxuv
+
+    # create intensity profile and model image
+    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/2., dxy/3., 500, 20., 'Gauss', 'float64',
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
+    reference_image = sweep_ref(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
+
+    import time
+
+    # test sampleImage
+    t0 = time.time()
+    vis_py_sampleImage = py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    t1 = time.time()
+    vis_g_sampleImage = acc_lib.sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    t2 = time.time()
+
+    assert_allclose(vis_py_sampleImage.real, vis_g_sampleImage.real, rtol=rtol, atol=atol)
+    assert_allclose(vis_py_sampleImage.imag, vis_g_sampleImage.imag, rtol=rtol, atol=atol)
+    print("\nsampleImage:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t1-t0, t2-t1, (t1-t0)/(t2-t1)))
+
+    # test sampleProfile
+    t3 = time.time()
+    vis_sampleProfilepy = py_sampleProfile(ints.copy(), Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    t4 = time.time()
+    vis_g_sampleProfile = acc_lib.sampleProfile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    t5 = time.time()
+
+    # check galario vs python implementation
+    assert_allclose(vis_g_sampleProfile.real, vis_sampleProfilepy.real, rtol=rtol, atol=atol)
+    assert_allclose(vis_g_sampleProfile.imag, vis_sampleProfilepy.imag, rtol=rtol, atol=atol)
+    print("sampleProfile:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t4-t3, t5-t4, (t4-t3)/(t5-t4)))
+
+    # cross-check galario sampleProfile vs sampleImage
+    assert_allclose(vis_g_sampleImage, vis_g_sampleProfile, rtol=rtol, atol=atol)
+
+    # test chi2Image
+    x, _, w = generate_random_vis(nsamples, real_type)
+
+    t6 = time.time()
+    chi2_pychi2Image = py_chi2Image(reference_image, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
+    t7 = time.time()
+    chi2_g_chi2Image = acc_lib.chi2Image(reference_image, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
+    t8 = time.time()
+
+    # test chi2Profile
+    chi2_pychi2Profile = py_chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    t9 = time.time()
+    chi2_g_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    t10 = time.time()
+    print("chi2Image:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t7-t6, t8-t7, (t7-t6)/(t8-t7)))
+    print("chi2Profile:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t9-t8, t10-t9, (t9-t8)/(t10-t9)))
+
+    # check galario vs python implementation
+    assert_allclose(chi2_pychi2Profile, chi2_g_chi2Profile, rtol=rtol, atol=1.e-8)
+    assert_allclose(chi2_pychi2Image, chi2_g_chi2Image, rtol=rtol, atol=1.e-8)
+
+    # cross-check galario chi2Profile vs chi2Image
+    assert_allclose(chi2_g_chi2Profile, chi2_g_chi2Image, rtol=rtol, atol=atol)
+
 
 
 # huge inaccuracy in single precision for larger images
@@ -329,11 +415,9 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     # compute the matrix size and maxuv
     size, minuv, maxuv = matrix_size(udat, vdat)
-    uv = pixel_coordinates(maxuv, size)
 
     # create model complex image (it happens to have 0 imaginary part)
     reference_image = create_reference_image(size=size, dtype=real_type)
-    ref_real = reference_image.copy()
 
     ###
     # shift real
@@ -350,7 +434,6 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ###
     # FFT
     ###
-
     py_fft = np.fft.fft2(py_shift_real)
     # use the real input!
     acc_fft = acc_lib._fft2d(py_shift_real)
@@ -414,93 +497,4 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # # atol = 0.5
     # assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
     # assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
-
-
-
-
-@pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
-                          [(int(1e2), 'float64', 1e-14, 1e-11, g_double, par1),
-                          (int(1e2), 'float64', 1e-14, 1e-11, g_double, par2),
-                          (int(1e2), 'float64', 1e-14, 1e-11, g_double, par3),
-                          (int(1e2), 'float64', 1e-14, 1e-11, g_double, par4)],
-                         ids=["{}".format(i) for i in range(4)])
-def test_py_vs_galario_sample_vs_chi2_Image_vs_Profile(nsamples, real_type, rtol, atol, acc_lib, pars):
-    """
-    Test Python vs galario implementation of sampleImage and sampleProfile.
-
-    """
-    wle_m = pars['wle_m']
-    dRA = pars['dRA']
-    dDec = pars['dDec']
-    PA = pars['PA']
-    nxy = pars['nxy']
-
-    # generate the samples
-    maxuv_generator = 3.e3
-    udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
-    udat /= wle_m
-    vdat /= wle_m
-
-    _, minuv, maxuv = matrix_size(udat, vdat)
-
-    dist = 140.  # distance to the source
-    dxy = dist / maxuv  # dist / (nxy * dxy
-    # compute the matrix nxy and maxuv
-
-    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/2., dxy/3., 500, 20., 'Gauss', 'float64',
-
-    # create intensity profile and model image
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
-    reference_image = sweep_ref(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
-
-    import time
-
-    # test sampleImage
-    t0 = time.time()
-    vis_py_sampleImage = py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
-    t1 = time.time()
-    vis_g_sampleImage = acc_lib.sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
-    t2 = time.time()
-
-    assert_allclose(vis_py_sampleImage.real, vis_g_sampleImage.real, rtol=rtol, atol=atol)
-    assert_allclose(vis_py_sampleImage.imag, vis_g_sampleImage.imag, rtol=rtol, atol=atol)
-    print("\nsampleImage:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t1-t0, t2-t1, (t1-t0)/(t2-t1)))
-
-    # test sampleProfile
-    t3 = time.time()
-    vis_sampleProfilepy = py_sampleProfile(ints.copy(), Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
-    t4 = time.time()
-    vis_g_sampleProfile = acc_lib.sampleProfile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
-    t5 = time.time()
-
-    # check galario vs python implementation
-    assert_allclose(vis_g_sampleProfile.real, vis_sampleProfilepy.real, rtol=rtol, atol=atol)
-    assert_allclose(vis_g_sampleProfile.imag, vis_sampleProfilepy.imag, rtol=rtol, atol=atol)
-    print("sampleProfile:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t4-t3, t5-t4, (t4-t3)/(t5-t4)))
-
-    # cross-check galario sampleProfile vs sampleImage
-    assert_allclose(vis_g_sampleImage, vis_g_sampleProfile, rtol=rtol, atol=atol)
-
-    # test chi2Profile
-    x, _, w = generate_random_vis(nsamples, real_type)
-
-    t6 = time.time()
-    chi2_pychi2Image = py_chi2Image(reference_image, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
-    t7 = time.time()
-    chi2_g_chi2Image = acc_lib.chi2Image(reference_image, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
-    t8 = time.time()
-
-    chi2_pychi2Profile = py_chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
-    t9 = time.time()
-    chi2_g_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
-    t10 = time.time()
-    print("chi2Image:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t7-t6, t8-t7, (t7-t6)/(t8-t7)))
-    print("chi2Profile:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t9-t8, t10-t9, (t9-t8)/(t10-t9)))
-
-    # check galario vs python implementation
-    assert_allclose(chi2_pychi2Profile, chi2_g_chi2Profile, rtol=rtol, atol=1.e-8)
-    assert_allclose(chi2_pychi2Image, chi2_g_chi2Image, rtol=rtol, atol=1.e-8)
-
-    # cross-check galario chi2Profile vs chi2Image
-    assert_allclose(chi2_g_chi2Profile, chi2_g_chi2Image, rtol=rtol, atol=atol)
 
