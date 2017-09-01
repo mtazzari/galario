@@ -482,7 +482,8 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
 
     Typical call signature::
 
-        vis = sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, u, v, dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
+        vis = sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, u, v,
+                            dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
@@ -583,7 +584,8 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
 
     Typical call signature::
 
-        chi2 = chi2Image(image, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w, dRA=0, dDec=0, PA=0, uvcheck=False)
+        chi2 = chi2Image(image, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
+                         dRA=0, dDec=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
@@ -686,7 +688,8 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
 
     Typical call signature::
 
-        chi2 = chi2Profile(intensity, Rmin, dR, nxy, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w, dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
+        chi2 = chi2Profile(intensity, Rmin, dR, nxy, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
+                           dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
