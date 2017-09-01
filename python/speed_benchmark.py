@@ -82,12 +82,12 @@ def setup_chi2Image(nxy, nsamples):
     # create model image (it happens to have 0 imaginary part)
     image_ref = create_reference_image(size=nxy, kernel='gaussian', dtype=options.dtype)
 
-    return image_ref, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA, dDec
+    return image_ref, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA, dDec, PA
 
 
 def setup_chi2Profile(nxy, nsamples):
 
-    pars = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88., 'nxy': 4096}
+    pars = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88.}
     Rmin, dR, nrad, inc, profile_mode = 0.1, 1., 500, 20., 'Gauss'
     Rmin *= au
     dR *= au
@@ -114,7 +114,7 @@ def setup_chi2Profile(nxy, nsamples):
     # compute radial profile
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.)
 
-    return ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, inc/180.*np.pi, dRA, dDec
+    return ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
 
 def do_timing(options, input_data, gpu=False, tpb=0, omp_num_threads=0):
     if gpu:
