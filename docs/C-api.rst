@@ -2,6 +2,11 @@
 
 .. default-domain:: c
 
+.. default-role:: code
+
+.. |galario| replace:: **galario**
+
+
 ====================
 Using galario from C
 ====================

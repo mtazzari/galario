@@ -149,7 +149,7 @@ def ngpus():
 
 def use_gpu(int device_id):
     """
-    Pin the GPU to be used for the computation.
+    Select the GPU to be used for the computation.
 
     Typical call signature::
 
@@ -165,8 +165,8 @@ def use_gpu(int device_id):
     If more than one GPU is present, `device_id` might not coincide with the `ID`
     reported by the `nvidia-smi` command, which reflects the PCI order.
     If the system administrator does not provide instructions on how to set the `device_id`,
-    we recommend to start from `device_id`=0 and simultaneously check which GPU is used with
-    `watch -n0.1 nvidia-smi` .
+    we recommend to start from `device_id=0` and simultaneously check which GPU is used with
+    `watch -n0.1 nvidia-smi`.
 
     """
     galario_use_gpu(device_id)
@@ -186,7 +186,7 @@ def threads(int num=0):
     ----------
     num : int, optional
 
-        On the *GPU*, the kernels are launched with `num*num` threads per block.
+        On the *GPU*, `num` is the square root of the number of threads per block to be used.
         1D kernels are launched with linear blocks of size `num*num`.
         2D Kernels are launched with square blocks of size `num*num`.
 
@@ -315,9 +315,9 @@ def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
         Image cell size, assumed equal and uniform in both x and y direction.
         **units**: cm
     maxuv_factor : float, optional
-        See :func:`check_uvplane <.check_uvplane>`.
+        See :func:`.check_uvplane`.
     minuv_factor : float, optional
-        See :func:`check_uvplane <.check_uvplane>`.
+        See :func:`.check_uvplane`.
 
     Returns
     -------
@@ -438,10 +438,10 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
     minuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
 
     Returns
@@ -477,7 +477,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
     The brightness profile `intensity` is used to build a 2D image of the model, which is
     then Fourier transformed and sampled in the (u, v) locations given in the `u` and `v` arrays.
 
-    The image is created as in :func:`sweep() <.sweep>` assuming that the x-axis (R.A.) increases
+    The image is created as in :func:`.sweep` assuming that the x-axis (R.A.) increases
     from right (West) to left (East) and the y-axis (Dec.) increases from bottom (South) to top (North).
 
     Typical call signature::
@@ -534,10 +534,10 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
     minuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
 
     Returns
@@ -548,7 +548,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
 
     See also
     --------
-    :func:`sweep() <.sweep>`
+    :func:`.sweep`
 
     """
     assert Rmin < dxy, "For the interpolation of the image center, expect Rmin < dxy, but got Rmin={}, dxy={}".format(Rmin, dxy)
@@ -574,13 +574,14 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
     """
     Compute the chi square of a model image given the observed visibilities.
 
-    The chi square is computed from the observed and synthetic visibilities as::
+    The chi square is computed from the observed and synthetic visibilities as:
 
-        chi2 = sum(w * ((vis_obs_re-vis_re)^2 + (vis_obs_im-vis_im)^2))
+    .. math::
 
-    where vis_re, vis_im are the real and imaginary part of the synthetic visibilities
-    that are computed internally.
-    The synthetic visibilities as in :func:`sampleImage <.sampleImage>`.
+        \chi^2 = \sum_{j=1}^N w_j * [(Re V_{obs\ j}-Re V_{mod\ j})^2 + (Im V_{obs\ j}-Im V_{mod\ j})^2]
+
+    where :math:`V_{mod}` are the synthetic visibilities, which are computed internally
+    as in :func:`.sampleImage`.
 
     Typical call signature::
 
@@ -635,10 +636,10 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
     minuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
 
     Returns
@@ -648,7 +649,7 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
 
     See also
     --------
-    :func:`sampleImage() <.sampleImage>`
+    :func:`.sampleImage`
 
     """
     check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
@@ -677,14 +678,15 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
     Compute the chi square of a model with an axisymmetric brightness profile
     given the observed visibilities.
 
-    The image is created from the intensity profile as in :func:`sweep <.sweep>`.
-    The synthetic visibilities are computed as in :func:`sampleProfile <.sampleProfile>`.
-    The chi square is computed from the observed and synthetic visibilities as::
+    The image is created from the intensity profile as in :func:`.sweep`.
+    The chi square is computed from the observed and synthetic visibilities as:
 
-        chi2 = sum(w * ((vis_obs_re-vis_re)^2 + (vis_obs_im-vis_im)^2))
+    .. math::
 
-    where vis_re, vis_im are the real and imaginary part of the synthetic visibilities
-    that are computed internally.
+        \chi^2 = \sum_{j=1}^N w_j * [(Re V_{obs\ j}-Re V_{mod\ j})^2 + (Im V_{obs\ j}-Im V_{mod\ j})^2]
+
+    where :math:`V_{mod}` are the synthetic visibilities, which are computed internally
+    as in :func:`.sampleProfile`.
 
     Typical call signature::
 
@@ -751,10 +753,10 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
     maxuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
     minuv_factor : float, optional
-        See :func:`check_uvplane() <.check_uvplane>`.
+        See :func:`.check_uvplane`.
         **units**: pure number
 
     Returns
@@ -764,7 +766,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
 
     See also
     --------
-    :func:`sampleProfile() <.sampleProfile>`, :func:`sweep() <.sweep>`
+    :func:`.sampleProfile`, :func:`.sweep`
 
     """
     check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
