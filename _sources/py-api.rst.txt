@@ -1,5 +1,7 @@
 .. http://www.sphinx-doc.org/en/stable/domains.html#the-python-domain
+.. default-role:: code
 
+.. |galario| replace:: **galario**
 
 Python API reference
 ====================
@@ -13,8 +15,8 @@ Python API reference
 
 Computing synthetic visibilities
 --------------------------------
-The :func:`sampleImage() <galario.double.sampleImage>` and :func:`sampleProfile() <galario.double.sampleProfile>` functions
-allow to compute synthetic visibilities.
+To compute the synthetic visibilities of a model use the :func:`sampleImage() <galario.double.sampleImage>` and
+:func:`sampleProfile() <galario.double.sampleProfile>` functions.
 
 .. autofunction:: galario.double.sampleImage
 .. autofunction:: galario.double.sampleProfile
@@ -32,13 +34,28 @@ allow to compute synthetic visibilities.
 
 Computing directly the chi square
 ---------------------------------
-The :func:`chi2Image() <galario.double.chi2Image>` and :func:`chi2Profile() <galario.double.chi2Profile>` functions
-allow to compute directly the chi square.
+To compute the :math:`\chi^2` of a model use the :func:`chi2Image() <galario.double.chi2Image>` and
+:func:`chi2Profile() <galario.double.chi2Profile>` functions.
 
 .. autofunction:: galario.double.chi2Image
 .. autofunction:: galario.double.chi2Profile
 
-Useful functions
-----------------
+GPU related
+-----------
+.. py:data:: galario.HAVE_CUDA
+
+    Global variable (bool).
+    It is `True` if the GPU libraries (`galario.double_cuda` and `galario.single_cuda`) are available, `False` otherwise.
+    On a machine without a CUDA-enabled GPU it is always `False`.
+
+.. autofunction:: galario.double.ngpus
+.. autofunction:: galario.double.use_gpu
+
+Other useful functions
+----------------------
+.. autofunction:: galario.double.threads
+.. autofunction:: galario.double.get_image_size
 .. autofunction:: galario.double.check_uvplane
 .. autofunction:: galario.double.sweep
+.. autofunction:: galario.double.apply_phase_vis
+
