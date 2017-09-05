@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Using galario from C &#8212; galario 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="Python API reference" href="py-api.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">galario 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+        <div class="badge">
+            <a href="https://github.com/mtazzari/galario/">Fork me on GitHub</a>
+            <img src="_static/right-red@2x.png">
+        </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="using-galario-from-c">
+<h1>Using galario from C<a class="headerlink" href="#using-galario-from-c" title="Permalink to this headline">¶</a></h1>
+<p>The core of galario is accessible from C, all functions are in the header <cite>galario.h</cite>. Of course it can be used from most other languages as well, in particular C++.</p>
+<div class="section" id="a-small-example">
+<h2>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this headline">¶</a></h2>
+<p>Here is a small test program that performs the FFT in 2D on an image with random values</p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm"> * A simple test to make sure we can include, link, and run galario from pure C.</span>
+<span class="cm"> */</span>
+<span class="cp">#include</span> <span class="cpf">&quot;galario.h&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;complex.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#define nx 128</span>
+<span class="cp">#define ny 128</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+     <span class="n">galario_init</span><span class="p">();</span>
+     <span class="n">dreal</span> <span class="n">realdata</span><span class="p">[</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">];</span>
+     <span class="n">dcomplex</span><span class="o">*</span> <span class="n">res</span> <span class="o">=</span> <span class="n">galario_copy_input</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">realdata</span><span class="p">);</span>
+     <span class="n">galario_fft2d</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">res</span><span class="p">);</span>
+     <span class="n">galario_free</span><span class="p">(</span><span class="n">res</span><span class="p">);</span>
+     <span class="n">galario_cleanup</span><span class="p">();</span>
+
+     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After successfully installing galario to <cite>/path/to/galario</cite>, a simple
+test program running galario on the CPU with <cite>openMP</cite> and double
+precision can be built with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">gcc</span> <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">galario</span><span class="o">/</span><span class="n">include</span> <span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">galario</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lgalario</span> <span class="o">-</span><span class="n">DDOUBLE_PRECISION</span> <span class="n">galario_test</span><span class="o">.</span><span class="n">c</span> <span class="o">-</span><span class="n">o</span> <span class="n">galario_test</span>
+</pre></div>
+</div>
+<p>To use single precision, simply do not define the preprocessor symbol <cite>-DDOUBLE_PRECISION</cite> and link in the appropriate library with <cite>-lgalario_single</cite>. A mismatch between the library and the preprocessor symbol causes undefined behavior but usually a segmentation fault causes the program to abort at runtime.</p>
+<p>If galario was installed with <cite>cuda</cite> support, link in <cite>-lgalario_cuda</cite> or <cite>-lgalario_single_cuda</cite>.</p>
+</div>
+<div class="section" id="example-walk-through">
+<h2>Example walk-through<a class="headerlink" href="#example-walk-through" title="Permalink to this headline">¶</a></h2>
+<p>A small walk through the example’s <cite>main</cite> function line by line:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">galario_init</span><span class="p">();</span>
+<span class="o">...</span>
+<span class="n">galario_cleanup</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Before any computation is done inside galario, the library has to be initialized. Similarly, any data created during initialization should be cleaned at the end of <cite>main</cite>.</p>
+<p>To create the input image, define an array:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dreal</span> <span class="n">realdata</span><span class="p">[</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>The data type <cite>dreal</cite> can refer to either <cite>float</cite> or <cite>double</cite>, depending on the preprocessor symbol <cite>DOUBLE_PRECISION</cite>. galario assumes the input is a real image but the output of the FFT is complex. galario provides a helper function to allocate an array of the proper size and to copy over the input image:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dcomplex</span><span class="o">*</span> <span class="n">res</span> <span class="o">=</span> <span class="n">galario_copy_input</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">realdata</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The actual FFT is done in-place, and the result is stored in <cite>res</cite>. The data layout is described in the <a class="reference external" href="http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data">FFTW manual</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">galario_fft2d</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">res</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>To deallocate <cite>res</cite>, we use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">galario_free</span><span class="p">(</span><span class="n">res</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>In general, any array created by galario and handed back to the user must be deallocated using <cite>galario_free</cite>.</p>
+</div>
+</div>
+<div class="section" id="c-api-reference">
+<h1>C API reference<a class="headerlink" href="#c-api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="sample-and-chi2-functions">
+<h2>Sample and chi2 functions<a class="headerlink" href="#sample-and-chi2-functions" title="Permalink to this headline">¶</a></h2>
+<p>These are four main functions that should serve the standard use of galario.</p>
+<dl class="function">
+<dt>
+<code class="descname">void galario_sample_profile(int nr, dreal* const ints,</code></dt>
+<dt>
+<code class="descname">dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,</code></dt>
+<dt>
+<code class="descname">dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u,</code></dt>
+<dt>
+<code class="descname">const dreal *v, dcomplex *fint);</code></dt>
+<dd><p>Compute visibilities for a model defined by a radial profile.</p>
+<p>Most parameters are described in detail in the python function <code class="xref py py-func docutils literal"><span class="pre">sampleProfile()</span></code>. Here we focus on the parameters that are not present in the python function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nr</strong> – The number of points of the radial profile.</li>
+<li><strong>ints</strong> – The intensities of the radial profile. Size: <cite>nr</cite></li>
+<li><strong>Rmin</strong> – Inner edge of radial grid.</li>
+<li><strong>dR</strong> – Radial-grid cell size.</li>
+<li><strong>dxy</strong> – Image cell size.</li>
+<li><strong>nxy</strong> – Number of image pixels in x- and y-direction.</li>
+<li><strong>dist</strong> – Distance to source.</li>
+<li><strong>inc</strong> – Inclination.</li>
+<li><strong>dRa</strong> – Rectascension offset.</li>
+<li><strong>dDec</strong> – Dec. offset.</li>
+<li><strong>duv</strong> – The size of a pixel, uniform in u- and v-direction. Units: same as <cite>u, v</cite>.</li>
+<li><strong>PA</strong> – Position angle.</li>
+<li><strong>nd</strong> – Number of visibility points.</li>
+<li><strong>u</strong> – u coordinate of visibility points.</li>
+<li><strong>v</strong> – v coordinate of visibility points.</li>
+<li><strong>fint</strong> – Interpolated visibilities at the points <cite>u, v</cite>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_sample_image(int nx, int ny, const dreal* image,</code></dt>
+<dt>
+<code class="descname">dreal dRA, dreal dDec, dreal duv, dreal PA,</code></dt>
+<dt>
+<code class="descname">int nd, const dreal* u, const dreal* v, dcomplex* fint);</code></dt>
+<dd><p>Compute visibilities for a model defined by a real image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>nx</strong> – The number of points of <cite>image</cite> in x-direction</li>
+<li><strong>ny</strong> – The number of points of <cite>image</cite> in y-direction</li>
+<li><strong>image</strong> – A rectangular image of size <cite>nx*ny</cite>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>For the other parameters, see <code class="xref c c-func docutils literal"><span class="pre">galario_sample_profile()</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_chi2_profile(int nr, dreal* const ints,</code></dt>
+<dt>
+<code class="descname">dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,</code></dt>
+<dt>
+<code class="descname">dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u,</code></dt>
+<dt>
+<code class="descname">const dreal *v, const dreal* fobs_re, const dreal* fobs_im,</code></dt>
+<dt>
+<code class="descname">const dreal* weights, dreal* chi2);</code></dt>
+<dd><p>Compute the chi2 between observed visibilities and the
+interpolation based on a radial profile and return in <cite>chi2</cite>.</p>
+<p>For details, see <code class="xref py py-func docutils literal"><span class="pre">chi2Profile()</span></code>.</p>
+<p>All parameters are identical to <code class="xref c c-func docutils literal"><span class="pre">galario_sample_profile()</span></code>
+except that the model visibilities are not returned but directly
+compared to weighted observations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fobs_re</strong> – The real part of the visibilities. Size: <cite>nd</cite>.</li>
+<li><strong>fobs_im</strong> – The imaginary part of the visibilities. Size: <cite>nd</cite>.</li>
+<li><strong>weights</strong> – The weights of the observations. Size: <cite>nd</cite>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_chi2_image(int nx, int ny, const dreal* image,</code></dt>
+<dt>
+<code class="descname">dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u,</code></dt>
+<dt>
+<code class="descname">const dreal* v, const dreal* fobs_re, const dreal* fobs_im,</code></dt>
+<dt>
+<code class="descname">const dreal* weights, dreal* chi2);</code></dt>
+<dd><p>Compute the chi2 between observed visibilities and the
+interpolation based on the input <cite>image</cite> and return in <cite>chi2</cite>.</p>
+<p>For details, see <code class="xref py py-func docutils literal"><span class="pre">chi2Image()</span></code>, <code class="xref c c-func docutils literal"><span class="pre">galario_sample_image()</span></code>
+and <code class="xref c c-func docutils literal"><span class="pre">galario_chi2_profile()</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="management-functions">
+<h2>Management functions<a class="headerlink" href="#management-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt>
+<code class="descname">void galario_init();</code></dt>
+<dd><p>Initialize memory and environment for galario.</p>
+<p>Call this function before any computation is performed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_cleanup();</code></dt>
+<dd><p>Free memory and clean up environment created by
+<code class="xref c c-func docutils literal"><span class="pre">galario_init()</span></code>. Call after all computations in galario.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">int galario_threads(int num = 0);</code></dt>
+<dd><p>Set the number of <cite>openMP</cite> threads that galario uses in parallel
+regions to <cite>num</cite>. The default of 0 doesn’t change the number of
+threads. Return the current number of threads.</p>
+<p>By default, use the settings in the <cite>openMP</cite> runtime that can be
+affected for example by setting the <cite>OMP_NUM_THREADS</cite> variable.</p>
+<p>For the cuda version, this sets the number of threads per block in cuda kernels.</p>
+<p>For details, see the python function <code class="xref py py-func docutils literal"><span class="pre">threads()</span></code>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">int galario_ngpus();</code></dt>
+<dd><p>Get the number of available GPUs.</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_use_gpu(int device_id);</code></dt>
+<dd><p>Set the GPU to be used for the computations.</p>
+<p>For details, see the python function <code class="xref py py-func docutils literal"><span class="pre">use_gpu()</span></code>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="individual-operations">
+<h2>Individual operations<a class="headerlink" href="#individual-operations" title="Permalink to this headline">¶</a></h2>
+<p>The following functions provide low-level access to individual operations performed by the <cite>sample</cite> and <cite>chi2</cite> functions. A standard user will likely have little use for them. Refer to the python API documentation of the wrappers for details on the individual functions.</p>
+<dl class="function">
+<dt>
+<code class="descname">void galario_sweep(int nr, dreal* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex* image);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int nd, const dreal* u, const dreal* v, dreal* urot, dreal* vrot);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">dcomplex* galario_copy_input(int nx, int ny, const dreal* image);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_free(void*);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_fft2d(int nx, int ny, dcomplex* image);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_fftshift(int nx, int ny, dcomplex* image);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_fftshift_axis0(int nx, int ny, dcomplex* matrix);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_interpolate(int nrow, int ncol, const dcomplex *image, int nd, const dreal *u, const dreal *v,</code></dt>
+<dt>
+<code class="descname">const dreal duv, dcomplex *fint);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* fint);</code></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt>
+<code class="descname">void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2);</code></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Using galario from C</a><ul>
+<li><a class="reference internal" href="#a-small-example">A small example</a></li>
+<li><a class="reference internal" href="#example-walk-through">Example walk-through</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c-api-reference">C API reference</a><ul>
+<li><a class="reference internal" href="#sample-and-chi2-functions">Sample and chi2 functions</a></li>
+<li><a class="reference internal" href="#management-functions">Management functions</a></li>
+<li><a class="reference internal" href="#individual-operations">Individual operations</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="py-api.html"
+                        title="previous chapter">Python API reference</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="license.html"
+                        title="next chapter">License</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/C-api.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="license.html" title="License"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="py-api.html" title="Python API reference"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>
