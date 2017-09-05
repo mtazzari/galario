@@ -21,11 +21,13 @@ configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/conf.py.in"
     "${BINARY_BUILD_DIR}/conf.py"
     @ONLY)
+
 # sphinx requires a _static directory, even if it's empty
 file(MAKE_DIRECTORY "${BINARY_BUILD_DIR}/_static")
 
-# github pages imposes jekyll theme by default. Prevent that.
-file(WRITE "${SPHINX_HTML_DIR}/.nojekyll" "")
+# github pages imposes jekyll theme by default. To avoid that, we need
+# a `.nojekyll` file in the gh-pages branch file(WRITE
+# "${SPHINX_HTML_DIR}/.nojekyll" "")
 
 add_custom_target(docs ALL
     ${SPHINX_EXECUTABLE}
