@@ -113,17 +113,17 @@ the <a class="reference internal" href="py-api.html#galario.double.threads" titl
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">double</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">N_OMP</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal"><span class="pre">N_OMP</span></code> is the number of threads to be used. Calling <code class="code docutils literal"><span class="pre">double.threads(1)</span></code> ensures a serial execution of <strong>galario</strong> (OpenMP is not used).</p>
+<p>where <code class="code docutils literal"><span class="pre">N_OMP</span></code> is the number of threads to be used. Calling <code class="code docutils literal"><span class="pre">double.threads(1)</span></code> ensures a serial execution of <strong>galario</strong>.</p>
 <p>By default, if <code class="code docutils literal"><span class="pre">double.threads(N_OMP)</span></code> is not called by the user, <strong>galario</strong> does not set the number of OpenMP threads to be used.
-This means that, at runtime, OpenMP will set the number of threads dynamically.</p>
+This means that, at runtime, OpenMP is free to set the number of threads dynamically. Some OpenMP implementations default to one thread, others to as many threads as there are physical cores.</p>
 <p>It is possible to retrieve the number of threads used by galario by calling <code class="code docutils literal"><span class="pre">double.threads()</span></code> without argument.</p>
 <blockquote>
 <div><div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>Setting <code class="code docutils literal"><span class="pre">N_OMP</span></code> larger than the number of <strong>physical</strong> cores available on the machine forces the CPUs to use the HyperThreading technology,
-which in some cases might significantly degrade the performances.</p>
+<p>Setting <code class="code docutils literal"><span class="pre">N_OMP</span></code> larger than the number of <strong>physical</strong> cores, one can use  the HyperThreading technology,
+which can give anything from a moderate boost to a significant performance penalty. This depends on the image size, the memory latency and bandwidth, and other parameters. Experiment around what works best.</p>
 <p>In most cases, a considerable speedup can be obtained by setting <code class="code docutils literal"><span class="pre">N_OMP</span></code> equal to the number of <strong>physical</strong> cores, which for matrix sizes up to 4k x 4k
-attains an almost linear scaling.</p>
+yields an almost linear scaling in our benchmark results.</p>
 <p class="last"><strong>Suggestion</strong>: if <strong>galario</strong> is to be used in a code that already uses <strong>MPI</strong> to parallelize the tasks over multiple processes,
 setting <code class="code docutils literal"><span class="pre">double.threads(1)</span></code> might turn out to give a better overall performance.</p>
 </div>
