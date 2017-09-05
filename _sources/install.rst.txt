@@ -11,7 +11,7 @@ To compile `galario` you will need:
 * `cmake <https://cmake.org>`_
 * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`
 * [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_
-* [optional] Python for Python bindings to the CPU and GPU
+* [optional] Python and numpy for Python bindings to the CPU and GPU
 
 .. warning::
     If you want to use the GNU compilers on Mac OS, you need to manually download and install them, e.g. following `these instructions <http://hpc.sourceforge.net>`_.
@@ -134,9 +134,14 @@ To turn off optimizations:
 Python
 ~~~~~~
 
-Specify a Python version. This is useful if Python 2.7 and 3.x are in
-the system and conflicting versions of the interpreter and the
-libraries are found. In `build/`, do
+To build the python bindings, we require python 2.7 or 3.x, `numpy`,
+`cython`, and `pytest`. To run the tests, we additionally need
+`pyfftw` and `scipy>0.14`. To build the docs, we need `sphinx` and the
+`sphinx_py3doc_enhanced_theme`.
+
+Specify a Python version if Python 2.7 and 3.x are in the system and
+conflicting versions of the interpreter and the libraries are found
+and reported by `cmake`. In `build/`, do
 
 .. code-block:: bash
 
@@ -156,7 +161,7 @@ galario should work with both python 2 and 3. For example, if you are using the 
 
 To run the tests, install some more dependencies within the environment
 
-.. code-block:: bash
+h.. code-block:: bash
 
     conda config --add channels conda-forge
     conda install pyfftw scipy
@@ -182,7 +187,8 @@ FFTW
 
 The FFTW libraries are required for the CPU version of galario.
 You can check if they are installed on your system by checking if **all** libraries listed below are
-present in `/usr/local/lib/`.
+present, for example in `/usr/lib` or `/usr/local/lib/`.
+
 To install FFTW follow the instructions at http://www.fftw.org.
 galario requires the following FFTW libraries:
 

@@ -64,7 +64,7 @@
 <li><a class="reference external" href="https://cmake.org">cmake</a></li>
 <li>the <a class="reference external" href="http://www.fftw.org">FFTW libraries</a>, for the CPU version: more details are given <a class="reference internal" href="#fftw-requirement"><span class="std std-ref">below</span></a></li>
 <li>[optional] the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">CUDA toolkit</a> &gt;=8.0 for the GPU version: it can be easily installed from the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">NVIDIA website</a></li>
-<li>[optional] Python for Python bindings to the CPU and GPU</li>
+<li>[optional] Python and numpy for Python bindings to the CPU and GPU</li>
 </ul>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -154,9 +154,13 @@ cmake -DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc -DCMAKE_CXX_COMPILE
 </div>
 <div class="section" id="python">
 <span id="python-requirement"></span><h3>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
-<p>Specify a Python version. This is useful if Python 2.7 and 3.x are in
-the system and conflicting versions of the interpreter and the
-libraries are found. In <cite>build/</cite>, do</p>
+<p>To build the python bindings, we require python 2.7 or 3.x, <cite>numpy</cite>,
+<cite>cython</cite>, and <cite>pytest</cite>. To run the tests, we additionally need
+<cite>pyfftw</cite> and <cite>scipy&gt;0.14</cite>. To build the docs, we need <cite>sphinx</cite> and the
+<cite>sphinx_py3doc_enhanced_theme</cite>.</p>
+<p>Specify a Python version if Python 2.7 and 3.x are in the system and
+conflicting versions of the interpreter and the libraries are found
+and reported by <cite>cmake</cite>. In <cite>build/</cite>, do</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>cmake -DPython_ADDITIONAL_VERSIONS<span class="o">=</span><span class="m">3</span>.5 ..
 </pre></div>
 </div>
@@ -171,10 +175,10 @@ conda activate galario3
 </pre></div>
 </div>
 <p>To run the tests, install some more dependencies within the environment</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>conda config --add channels conda-forge
-conda install pyfftw scipy
-</pre></div>
-</div>
+<p>h.. code-block:: bash</p>
+<blockquote>
+<div>conda config –add channels conda-forge
+conda install pyfftw scipy</div></blockquote>
 <p>cmake may get confused with the conda python and the system
 python. This is a general problem
 <a class="reference external" href="https://cmake.org/Bug/view.php?id=14809">https://cmake.org/Bug/view.php?id=14809</a></p>
@@ -190,8 +194,8 @@ whether the path to Python is correctly set to the path of the conda environment
 <span id="fftw-requirement"></span><h3>FFTW<a class="headerlink" href="#fftw" title="Permalink to this headline">¶</a></h3>
 <p>The FFTW libraries are required for the CPU version of galario.
 You can check if they are installed on your system by checking if <strong>all</strong> libraries listed below are
-present in <cite>/usr/local/lib/</cite>.
-To install FFTW follow the instructions at <a class="reference external" href="http://www.fftw.org">http://www.fftw.org</a>.
+present, for example in <cite>/usr/lib</cite> or <cite>/usr/local/lib/</cite>.</p>
+<p>To install FFTW follow the instructions at <a class="reference external" href="http://www.fftw.org">http://www.fftw.org</a>.
 galario requires the following FFTW libraries:</p>
 <ul class="simple">
 <li><cite>libfftw3</cite>: double precision</li>
