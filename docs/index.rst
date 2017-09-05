@@ -115,10 +115,10 @@ Contents
 
     install
     quickstart
+    cookbook
     py-api
     C-api
     license
-..    cookbook
 ..    studies
 
 Indices
