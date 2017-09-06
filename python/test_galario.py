@@ -6,12 +6,10 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 import os
 import pytest
-import pyfftw
 
 from utils import *
 
 import galario
-from galario import au, pc
 
 if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
     from galario import double_cuda as g_double

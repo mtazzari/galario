@@ -4,7 +4,6 @@
 from __future__ import (division, print_function, absolute_import, unicode_literals)
 
 import numpy as np
-import pyfftw
 
 from scipy.interpolate import interp1d, RectBivariateSpline
 from galario import arcsec, pc, au, deg
@@ -31,7 +30,7 @@ def py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=0., dRA=0., dDec=0
 
     # Real to Complex transform
     fft_r2c_shifted = np.fft.fftshift(
-                        pyfftw.interfaces.numpy_fft.rfft2(
+                        np.fft.rfft2(
                             np.fft.fftshift(reference_image)), axes=0)
 
     # apply rotation

@@ -138,7 +138,7 @@ Python
 
 To build the python bindings, we require python 2.7 or 3.x, `numpy`,
 `cython`, and `pytest`. To run the tests, we additionally need
-`pyfftw` and `scipy>0.14`. To build the docs, we need `sphinx` and the
+`scipy>0.14`. To build the docs, we need `sphinx` and the
 `sphinx_py3doc_enhanced_theme`.
 
 Specify a Python version if Python 2.7 and 3.x are in the system and
