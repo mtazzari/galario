@@ -84,20 +84,20 @@ the :func:`threads() <galario.double.threads>` function:
 
     double.threads(N_OMP)
 
-where `N_OMP` is the number of threads to be used. Calling `double.threads(1)` ensures a serial execution of |galario| (OpenMP is not used).
+where `N_OMP` is the number of threads to be used. Calling `double.threads(1)` ensures a serial execution of |galario|.
 
 By default, if `double.threads(N_OMP)` is not called by the user, |galario| does not set the number of OpenMP threads to be used.
-This means that, at runtime, OpenMP will set the number of threads dynamically.
+This means that, at runtime, OpenMP is free to set the number of threads dynamically. Some OpenMP implementations default to one thread, others to as many threads as there are physical cores.
 
 It is possible to retrieve the number of threads used by galario by calling `double.threads()` without argument.
 
     .. note::
 
-        Setting `N_OMP` larger than the number of **physical** cores available on the machine forces the CPUs to use the HyperThreading technology,
-        which in some cases might significantly degrade the performances.
+        Setting `N_OMP` larger than the number of **physical** cores, one can use  the HyperThreading technology,
+        which can give anything from a moderate boost to a significant performance penalty. This depends on the image size, the memory latency and bandwidth, and other parameters. Experiment around what works best.
 
         In most cases, a considerable speedup can be obtained by setting `N_OMP` equal to the number of **physical** cores, which for matrix sizes up to 4k x 4k
-        attains an almost linear scaling.
+        yields an almost linear scaling in our benchmark results.
 
         **Suggestion**: if |galario| is to be used in a code that already uses **MPI** to parallelize the tasks over multiple processes,
         setting `double.threads(1)` might turn out to give a better overall performance.
@@ -115,4 +115,3 @@ where `N` is the square root of the number of threads for block to be used. By d
 
 This is an advanced feature, for most cases the default value should be sufficient. More details are given in the
 documentation of :func:`threads() <galario.double.threads>`.
-
