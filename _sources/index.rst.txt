@@ -2,9 +2,6 @@
    sphinx-quickstart on Wed May 24 13:32:58 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
-.. default-role:: code
-
-.. |galario| replace:: **galario**
 
 =======
 galario
@@ -72,7 +69,7 @@ you can use directly:
 
     from galario.double_cuda import chi2Image
 
-    chi2 = chi2Image(image, dxy, dist, u, v, V_obs.real, V_obs.image, w)
+    chi2 = chi2Image(image, dxy, dist, u, v, V_obs.real, V_obs.imag, w)
 
 If you want to compare the observations with a model characterized by an **axisymmetric brightness profile**, |galario| offers
 dedicated functions that exploit the symmetry of the model to accelerate the image creation.

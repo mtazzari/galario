@@ -1,7 +1,4 @@
 .. http://www.sphinx-doc.org/en/stable/domains.html#the-python-domain
-.. default-role:: code
-
-.. |galario| replace:: **galario**
 
 Python API reference
 ====================

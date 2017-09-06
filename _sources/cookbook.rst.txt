@@ -2,8 +2,6 @@
 .. role:: bash(code)
    :language: bash
 
-.. |galario| replace:: **galario**
-
 ==================
 |galario| Cookbook
 ==================

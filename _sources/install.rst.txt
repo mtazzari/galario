@@ -1,10 +1,10 @@
 ==================================
-How to build and install `galario`
+How to build and install |galario|
 ==================================
 
 System Requirements
 -------------------
-To compile `galario` you will need:
+To compile |galario| you will need:
 
 * a working internet connection (to download 1.5 MB of an external library)
 * a C and C++ compiler such as `gcc` or `clang`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
@@ -15,18 +15,18 @@ To compile `galario` you will need:
 
 .. warning::
     If you want to use the GNU compilers on Mac OS, you need to manually download and install them, e.g. following `these instructions <http://hpc.sourceforge.net>`_.
-    The default `gcc`/`g++` commands shipped with the OS are aliases for the `clang` compiler that supports `openMP` only as of version 3.7 but unfortunately Apple usually ships an older version of `clang`.
+    The default `gcc`/`g++` commands shipped with the OS are aliases for the `clang` compiler that supports openMP only as of version 3.7 but unfortunately Apple usually ships an older version of `clang`.
 
 Quick steps to build and install
 --------------------------------
-Here a quick summary to compile and install `galario` with default options, :ref:`below <detailed_build_instructions>` are
+Here a quick summary to compile and install |galario| with default options, :ref:`below <detailed_build_instructions>` are
 more detailed instructions to fine-tune the build process.
 
-The following procedure will always compile and install the CPU version of `galario`.
+The following procedure will always compile and install the CPU version of |galario|.
 On a system with a CUDA-enabled GPU card, also the GPU version will be compiled and installed.
 To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <build_details_cuda>` below.
 
- 1. Clone the repository and create a directory where to build `galario`:
+ 1. Clone the repository and create a directory where to build |galario|:
 
     .. code-block:: bash
 
@@ -34,13 +34,15 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
         cd galario
         mkdir build && cd build
 
- ..
-    2. to make the compilation easier, let's work in a Python environment. `galario` works with both Python 2 and 3.
-       For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create a Python 3 environment with:
+ 2. to make the compilation easier, let's work in a Python environment. |galario| works with both Python 2 and 3.
 
-       .. code-block:: bash
+    For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create and
+    activate a Python 3 environment with:
 
-           conda create --name galario3 python=3 numpy cython pytest
+    .. code-block:: bash
+
+        conda create --name galario3 python=3 numpy cython pytest
+        source activate galario3
 
  2. Use `cmake` to prepare the compilation and `make all` to compile. From within `galario/build/`:
 
@@ -70,7 +72,7 @@ check out the details below. If you find issues or are stuck in one of these ste
 or opening an issue on the `GitHub <https://github.com/mtazzari/galario.git>`_ repository.
 
 .. note::
-    If you compile `galario` only for the CPU, gcc/g++ >= 4.0 work fine. If you compile also the GPU version,
+    If you compile |galario| only for the CPU, gcc/g++ >= 4.0 work fine. If you compile also the GPU version,
     check in the |NVIDIA_docs| which gcc/g++ versions are compatible with the `nvcc` compiler shipped with your CUDA Toolkit.
 
 .. _detailed_build_instructions:
@@ -107,7 +109,7 @@ Set the C and C++ compiler
 Optimizations
 ~~~~~~~~~~~~~
 
-By default `galario` is built with all the optimizations ON. You can check this with:
+By default |galario| is built with all the optimizations ON. You can check this with:
 
 .. code-block:: bash
 
@@ -136,7 +138,7 @@ Python
 
 To build the python bindings, we require python 2.7 or 3.x, `numpy`,
 `cython`, and `pytest`. To run the tests, we additionally need
-`pyfftw` and `scipy>0.14`. To build the docs, we need `sphinx` and the
+`scipy>0.14`. To build the docs, we need `sphinx` and the
 `sphinx_py3doc_enhanced_theme`.
 
 Specify a Python version if Python 2.7 and 3.x are in the system and
@@ -161,10 +163,10 @@ galario should work with both python 2 and 3. For example, if you are using the 
 
 To run the tests, install some more dependencies within the environment
 
-h.. code-block:: bash
+.. code-block:: bash
 
     conda config --add channels conda-forge
-    conda install pyfftw scipy
+    conda install scipy
 
 cmake may get confused with the conda python and the system
 python. This is a general problem
@@ -299,7 +301,7 @@ passing the additional flag:
 Install
 -------
 
-To specify a path where to install the C libraries of `galario` (e.g., if you do not have `sudo` rights to install it in `usr/local/lib`),
+To specify a path where to install the C libraries of |galario| (e.g., if you do not have `sudo` rights to install it in `usr/local/lib`),
 do the conventional:
 
 .. code-block:: bash
@@ -312,7 +314,7 @@ and, after building, run:
 
     make install
 
-This will install the C libraries of `galario` in `/path/to/galario/`.
+This will install the C libraries of |galario| in `/path/to/galario/`.
 
 .. note::
     By default the C libraries and the Python bindings are installed under the same prefix.
@@ -333,7 +335,7 @@ will output the following in the install step
     -- Installing: /some/prefix/lib/libgalario.so
     -- Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py
 
-From the environment `myenv` it is now possible to import `galario`.
+From the environment `myenv` it is now possible to import |galario|.
 
 Tests
 -----
@@ -387,7 +389,7 @@ the `build/` directory run:
 
 which creates output in `build/docs/html`. The `docs` are not build by default, only upon request.
 
-Since the `galario` library needs to be imported when building the
+Since the |galario| library needs to be imported when building the
 documentation (the import would fail otherwise), run
 
 .. code-block:: bash
@@ -397,7 +399,7 @@ documentation (the import would fail otherwise), run
 
 within the conda environment in use. This ensures that the
 `sphinx` version matches the Python version used to compile
-`galario`.
+|galario|.
 If you still have problems, remove the `CMakeCache.txt`, rerun
 `cmake`, and observe which location of `sphinx` is reported in
 `CMakeCache.txt`, for example:
