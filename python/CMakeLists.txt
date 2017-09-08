@@ -81,4 +81,4 @@ setup_pytest("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/py.test.
 # https://github.com/UCL/GreatCMakeCookOff/issues/56
 #
 # need to run in binary_dir so import of pygalario works
-add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${galario_test}")
+add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${galario_test}" NOINSTALL)
