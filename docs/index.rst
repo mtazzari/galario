@@ -3,18 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=======
-galario
-=======
+=========
+|galario|
+=========
 
-**GPU Accelerated Library for Analysing Radio Interferometry Observations**
+**GPU Accelerated Library for Analysing Radio Interferometer Observations**
 ---------------------------------------------------------------------------
 
-|galario| exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
-predictions to the observations of radio interferometers. Namely, it speeds up the computation of the synthetic visibilities
+|galario| is a toolkit that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
+predictions to radio interferometer observations. Namely, it speeds up the computation of the synthetic visibilities
 given a model image (or an axisymmetric brightness profile) and their comparison to the observations.
 
-It is licensed under LGPLv3 and along with the GPU accelerated version based on the
+Along with the GPU accelerated version based on the
 `CUDA Toolkit <https://developer.nvidia.com/cuda-toolkit>`_ offers a CPU counterpart accelerated with
 `openMP <http://www.openmp.org>`_.
 Modern radio interferometers like
@@ -31,9 +31,8 @@ relevant equations and the algorithm implementation.
 Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to
 `this <http://aspbooks.org/a/volumes/table_of_contents/180>`_ thorough reference.
 
-|galario| is actively developed on `GitHub <https://github.com/mtazzari/galario/>`_.
-
-.. and has been employed in :doc:`these published studies <studies>`.
+|galario| is actively developed on `GitHub <https://github.com/mtazzari/galario/>`_
+and has already been employed in :doc:`these published studies <studies>`.
 
 Instructions on how to build and install |galario| can be found :doc:`here <install>`.
 
@@ -44,20 +43,16 @@ Basic Usage
 .. |v_j| replace:: :math:`v_j`
 .. |w_j| replace:: :math:`w_j`
 
-Let's say you have an observational dataset of `N` visibility points located at :math:`(u_j, v_j)`, with :math:`j=1...N` and |u_j|, |v_j|
-expressed in units of the observing wavelength. :math:`V_{obs\ j}` is the :math:`j`-th complex visibility with associated theoretical weight |w_j|.
-If you want to compute the visibilities of a model `image` in the same :math:`(u_j, v_j)` locations of the observations,
+Let's say you have an observational dataset of `M` visibility points located at :math:`(u_j, v_j)`, with :math:`j=1...M` and |u_j|, |v_j|
+expressed in units of the observing wavelength. :math:`V_{obs\ j}` (Jy) is the :math:`j`-th complex visibility with associated theoretical weight |w_j|.
+If you want to compute the visibilities of a model `image` (Jy/px) with pixel size `dxy` (rad) in the same :math:`(u_j, v_j)` locations of the observations,
 you can easily do it with the GPU accelerated |galario|:
 
 .. code-block:: python
 
-    from galario import pc, au
     from galario.double_cuda import sampleImage
 
-    dist = 240. * pc  # distance to the source [cm]
-    dxy = 10. * au    # spatial size of the pixel in the model image [cm]
-
-    vis = sampleImage(image, dxy, dist, u, v)
+    vis = sampleImage(image, dxy, u, v)
 
 where `vis` is a complex array of length :math:`N` containing the real (`vis.real`) and imaginary (`vis.imag`) part of the synthetic visibilities.
 
@@ -68,20 +63,20 @@ you can use directly:
 
     from galario.double_cuda import chi2Image
 
-    chi2 = chi2Image(image, dxy, dist, u, v, V_obs.real, V_obs.imag, w)
+    chi2 = chi2Image(image, dxy, u, v, V_obs.real, V_obs.imag, w)
 
 If you want to compare the observations with a model characterized by an **axisymmetric brightness profile**, |galario| offers
 dedicated functions that exploit the symmetry of the model to accelerate the image creation.
-If :math:`I(R)` is the radial brightness profile, the command is as simple as:
+If :math:`I(R)` (Jy/sr) is the radial brightness profile, the command is as simple as:
 
 .. code-block:: python
 
     from galario.double_cuda import sampleProfile
 
-    vis = sampleProfile(I, Rmin, dR, nxy, dxy, dist, u, v)
+    vis = sampleProfile(I, Rmin, dR, nxy, dxy, u, v)
 .. add an example with inc, PA, dRA, dDec?
 
-where `Rmin` and `dR` are the innermost radius and the cell size of the grid on which :math:`I(R)` is computed. An analogous function
+where `Rmin` and `dR` are expressed in radians and are the innermost radius and the cell size of the grid on which :math:`I(R)` is computed. An analogous function
 `chi2Profile` allows one to compute directly the chi square.
 
 .. note::
@@ -89,7 +84,7 @@ where `Rmin` and `dR` are the innermost radius and the cell size of the grid on 
     of |galario| by just removing the subscript `"_cuda"` from the imports above and benefit from the openMP parallelization.
     All the function names and interfaces are the same for GPU and CPU version!
 
-More details on how to get started with |galario| are given in the :doc:`quickstart <quickstart>`.
+.. More details on how to get started with |galario| are given in the :doc:`quickstart <quickstart>`.
 
 Be sure to checkout also the :doc:`cookbook <cookbook>` with many useful code snippets!
 
@@ -110,12 +105,12 @@ Contents
     :maxdepth: 2
 
     install
-    quickstart
     cookbook
     py-api
     C-api
+    studies
     license
-..    studies
+..     quickstart
 
 Indices
 -------
