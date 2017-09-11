@@ -16,7 +16,7 @@ __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image
            "unique_part", "assert_allclose", "apply_rotation"]
 
 
-def py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=0., dRA=0., dDec=0.):
+def py_sampleImage(reference_image, dxy, udat, vdat, PA=0., dRA=0., dDec=0.):
     """
     Python implementation of sampleImage.
 
@@ -26,7 +26,7 @@ def py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=0., dRA=0., dDec=0
     PA *= deg
     dRA *= 2.*np.pi * arcsec
     dDec *= 2.*np.pi * arcsec
-    du = dist / nxy / dxy
+    du = 1. / nxy / dxy
 
     # Real to Complex transform
     fft_r2c_shifted = np.fft.fftshift(
@@ -72,7 +72,7 @@ def py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=0., dRA=0., dDec=0
     return vis
 
 
-def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=0., PA=0, dRA=0., dDec=0.):
+def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, inc=0., PA=0, dRA=0., dDec=0.):
     """
     Python implementation of sampleProfile.
 
@@ -95,7 +95,7 @@ def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=0., PA
     x_meshgrid = np.sqrt(x_axis ** 2. + y_axis ** 2.)
 
     # convert to Jansky
-    sr_to_px = (dxy/dist)**2.
+    sr_to_px = dxy**2.
     intensity *= sr_to_px
     f = interp1d(gridrad, intensity, kind='linear', fill_value=0.,
                  bounds_error=False, assume_sorted=True)
@@ -105,17 +105,17 @@ def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=0., PA
                  bounds_error=False, assume_sorted=True)
     intensmap[int(nrow/2), int(ncol/2)] = f_center(0.)
 
-    vis = py_sampleImage(intensmap, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    vis = py_sampleImage(intensmap, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
 
     return vis
 
 
-def py_chi2Image(reference_image, dxy, dist, udat, vdat, vis_obs_re, vis_obs_im, weights, PA=0., dRA=0., dDec=0.):
+def py_chi2Image(reference_image, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, PA=0., dRA=0., dDec=0.):
     """
     Python implementation of chi2Image.
 
     """
-    vis = py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    vis = py_sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
 
     chi2 = np.sum(((vis.real - vis_obs_re)**2. + (vis.imag - vis_obs_im)**2.)*weights)
 
@@ -123,12 +123,12 @@ def py_chi2Image(reference_image, dxy, dist, udat, vdat, vis_obs_re, vis_obs_im,
 
 
 
-def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, vis_obs_re, vis_obs_im, weights, inc=0., PA=0, dRA=0., dDec=0.):
+def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, inc=0., PA=0, dRA=0., dDec=0.):
     """
     Python implementation of chi2Profile.
 
     """
-    vis = py_sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, PA=PA, dRA=dRA, dDec=dDec)
+    vis = py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, inc=inc, PA=PA, dRA=dRA, dDec=dDec)
 
     chi2 = np.sum(((vis.real - vis_obs_re)**2. + (vis.imag - vis_obs_im)**2.)*weights)
 
@@ -148,7 +148,7 @@ def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_wid
     return ints
 
 
-def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, dist, inc, dtype_image='float64'):
+def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     """ Prototype of the sweep function for galario. """
     assert Rmin <= dxy, "Rmin must be smaller or equal than dxy"
     image = np.zeros((nrow, ncol), dtype=dtype_image)
@@ -179,13 +179,13 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, dist, inc, dtype_image='floa
     if Rmin != 0.:
         image[irow_center, icol_center] = I[0] + Rmin * (I[0] - I[1]) / dR
 
-    sr_to_px = (dxy/dist)**2.
+    sr_to_px = dxy**2.
     image *= sr_to_px
 
     return image
 
 
-def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx=0., Dy=0., dtype_image='float64'):
+def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='float64'):
     """
     Compute the intensity map (i.e. the image) given the radial profile I(R)=ints.
     We assume an axisymmetric profile.
@@ -230,8 +230,7 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, dist, inc, Dx=0., Dy=0., dtype_image
     intensmap[int(nrow/2), int(ncol/2)] = f_center(0.)
 
     # convert to Jansky
-    sr_to_px = (dxy/dist)**2.
-    intensmap *= sr_to_px
+    intensmap *= dxy**2.
 
     return intensmap.astype(dtype_image)
 
