@@ -21,8 +21,7 @@ Modern radio interferometers like
 `ALMA <http://www.almaobservatory.org/en/home/>`_,
 `VLA <https://science.nrao.edu/facilities/vla>`_,
 `NOEMA <http://www.iram-institute.org/EN/noema-project.php?ContentID=9&rub=9&srub=0&ssrub=0&sssrub=0>`_
-and the future ones like
-`SKA <http://skatelescope.org>`_ are pushing the computational efforts needed to model the observations to the extreme.
+are pushing the computational efforts needed to model the observations to the extreme.
 The unprecedented sensitivity and resolution achieved by these observatories require comparing model predictions
 with huge amount of data points that sample a wide range of spatial frequencies.
 In this context, |galario| provides a fast library useful for comparing a model to observations directly in the Fourier plane.

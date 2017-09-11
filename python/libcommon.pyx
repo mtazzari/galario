@@ -241,13 +241,13 @@ def check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis=None, u=None, v=None):
     return True
 
 
-def check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor):
+def check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv):
     """
     Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.
 
     Typical call signature::
 
-        check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
+        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
 
     Parameters
     ----------
@@ -264,25 +264,25 @@ def check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor):
     duv : float
         Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
         **units**: wavelength
-    maxuv_factor : float
+    f_maxuv : float
         Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
         the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
-        The maximum (u, v)-distance covered is `maxuv_factor` times the maximum (u, v)-distance
+        The maximum (u, v)-distance covered is `f_maxuv` times the maximum (u, v)-distance
         of the observed visibilities.
         **units**: pure number
-    minuv_factor : float
+    f_minuv : float
         Size of the field of view covered by the (u, v) plane grid w.r.t. the field
         of view covered by the image. Recommended to be larger than 3 for better results.
         **units**: pure number
 
     """
     assert len(u) == len(v), "Wrong array length: u, v must have same length."
-    assert maxuv_factor > 2., "Expected maxuv_factor > 2 to ensure correct Nyquist sampling."
-    assert minuv_factor > 3., "Expected minuv_factor > 3 to ensure the image covers the field of view of the data."
+    assert f_maxuv > 2., "Expected f_maxuv > 2 to ensure correct Nyquist sampling."
+    assert f_minuv > 3., "Expected f_minuv > 3 to ensure the image covers the field of view of the data."
 
     uvdist = np.hypot(u, v)
-    min_uv = np.min(uvdist)/minuv_factor
-    max_uv = np.max(uvdist) * 2. * maxuv_factor
+    min_uv = np.min(uvdist)/f_minuv
+    max_uv = np.max(uvdist) * 2. * f_maxuv
     # the factor of 2 comes from the fact that the FFT sample frequencies from -0.5 to 0.5 times max_uv
 
     assert duv <= min_uv, "The image does not cover the full field of view of the observations: try increasing nxy or dxy."
@@ -291,13 +291,13 @@ def check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor):
     return True
 
 
-def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
+def get_image_size(u, v, dxy=None, f_max=2.2, f_min=3.1):
     """
     Compute the recommended image size given the (u, v) locations.
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1)
+        nxy, dxy = get_image_size(u, v, dxy=None, f_maxuv=2.2, f_minuv=3.1)
 
     Parameters
     ----------
@@ -308,15 +308,12 @@ def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
         **units**: wavelength
-    dist : float
-        Distance to the source.
-        **units**: cm
     dxy : float, optional
         Image cell size, assumed equal and uniform in both x and y direction.
-        **units**: cm
-    maxuv_factor : float, optional
+        **units**: rad
+    f_max : float, optional
         See :func:`.check_uvplane`.
-    minuv_factor : float, optional
+    f_min : float, optional
         See :func:`.check_uvplane`.
 
     Returns
@@ -332,18 +329,18 @@ def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
     """
     uvdist = np.hypot(u, v)
 
-    min_uv = np.min(uvdist)/minuv_factor
+    min_uv = np.min(uvdist) / f_min
     if not dxy:
-        max_uv = np.max(uvdist) * 2. * maxuv_factor
-        dxy = dist/max_uv
+        max_uv = np.max(uvdist) * 2. * f_max
+        dxy = 1/max_uv
     else:
-        max_uv = dist/dxy
+        max_uv = 1/dxy
 
     nxy = int(2 ** np.ceil(np.log2(max_uv/min_uv)))
 
-    duv = get_uvcell_size(nxy, dxy, dist)
+    duv = get_uvcell_size(nxy, dxy)
 
-    check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
+    check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     if not dxy:
         return nxy, dxy
@@ -351,7 +348,7 @@ def get_image_size(u, v, dist, dxy=None, maxuv_factor=2.2, minuv_factor=3.1):
         return nxy
 
 
-def get_uvcell_size(nxy, dxy, dist):
+def get_uvcell_size(nxy, dxy):
     """
     Computes the cell size in the (u, v) space given the size of the image.
 
@@ -359,19 +356,16 @@ def get_uvcell_size(nxy, dxy, dist):
 
     Typical call signature::
 
-        duv = get_uvcell_size(nxy, dxy, dist)
+        duv = get_uvcell_size(nxy, dxy)
 
     Parameters
     ----------
     dxy : float
         Image cell size, assumed equal and uniform in both x and y direction.
-        **units**: cm
+        **units**: rad
     nxy : int
         Size of the image.
         **units**: pixel
-    dist : float
-        Distance to the object in the image
-        **units**: cm
 
     Returns
     ------
@@ -380,7 +374,7 @@ def get_uvcell_size(nxy, dxy, dist):
         **units**: observing wavelength
 
     """
-    return dist / dxy / nxy
+    return 1 / (dxy*nxy)
 
 
 # ############################################################################ #
@@ -389,8 +383,8 @@ def get_uvcell_size(nxy, dxy, dist):
 #                                                                              #
 # ############################################################################ #
 
-def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., uvcheck=False, minuv_factor=3.1, maxuv_factor=2.2):
+def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
+                dRA=0., dDec=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -399,7 +393,7 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
 
     Typical call signature::
 
-        vis = sampleImage(image, dxy, dist, u, v, dRA=0, dDec=0, PA=0, uvcheck=False)
+        vis = sampleImage(image, dxy, u, v, dRA=0, dDec=0, PA=0, uvcheck=False)
 
     Parameters
     ----------
@@ -418,10 +412,7 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         **units**: wavelength
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        **units**: cm
-    dist : float
-        Distance to the source.
-        **units**: cm
+        **units**: rad
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
@@ -437,10 +428,10 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    maxuv_factor : float, optional
+    f_maxuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    minuv_factor : float, optional
+    f_minuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -454,10 +445,10 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
     check_image(image)
     nxy = image.shape[0]
 
-    duv = get_uvcell_size(nxy, dxy, dist)
+    duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
+        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
 
     PA *= deg
     dRA *= arcsec
@@ -469,8 +460,8 @@ def sampleImage(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
     return vis
 
 
-def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dreal[::1] v,
-                  dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, minuv_factor=3.1, maxuv_factor=2.2):
+def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
+                  dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
     """
     Compute the synthetic visibilities of a model with an axisymmetric brightness profile.
 
@@ -482,7 +473,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
 
     Typical call signature::
 
-        vis = sampleProfile(intensity, Rmin, dR, nxy, dxy, dist, u, v,
+        vis = sampleProfile(intensity, Rmin, dR, nxy, dxy, u, v,
                             dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
 
     Parameters
@@ -494,19 +485,16 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
         **units**: Jy/sr
     Rmin : float
         Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-        **units**: cm
+        **units**: rad
     dR : float
         Size of the cell of the radial grid, assumed linear.
-        **units**: cm
+        **units**: rad
     nxy : int
         Side of the square model image, which is internally computed.
         **units**: pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        **units**: cm
-    dist : float
-        Distance to the source.
-        **units**: cm
+        **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
         **units**: wavelength
@@ -533,10 +521,10 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    maxuv_factor : float, optional
+    f_maxuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    minuv_factor : float, optional
+    f_minuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -552,10 +540,10 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
 
     """
     assert Rmin < dxy, "For the interpolation of the image center, expect Rmin < dxy, but got Rmin={}, dxy={}".format(Rmin, dxy)
-    duv = get_uvcell_size(nxy, dxy, dist)
+    duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
+        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
 
     PA *= deg
     inc *= deg
@@ -563,14 +551,14 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, 
     dDec *= arcsec
 
     vis = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+    _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, 1., inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
     return vis
 
 
-def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
+def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
               dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-              dRA=0., dDec=0., PA=0., uvcheck=False, minuv_factor=3.1, maxuv_factor=2.2):
+              dRA=0., dDec=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
     """
     Compute the chi square of a model image given the observed visibilities.
 
@@ -585,7 +573,7 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
 
     Typical call signature::
 
-        chi2 = chi2Image(image, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
+        chi2 = chi2Image(image, dxy, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
                          dRA=0, dDec=0, PA=0, uvcheck=False)
 
     Parameters
@@ -598,10 +586,7 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         **units**: Jy/pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        **units**: cm
-    dist : float
-        Distance to the source.
-        **units**: cm
+        **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
         **units**: wavelength
@@ -635,10 +620,10 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    maxuv_factor : float, optional
+    f_maxuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    minuv_factor : float, optional
+    f_minuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -656,10 +641,10 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
     check_image(image)
     nxy = image.shape[0]
 
-    duv = get_uvcell_size(nxy, dxy, dist)
+    duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
+        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
 
     cdef dreal chi2
     PA *= deg
@@ -671,9 +656,9 @@ def chi2Image(dreal[:,::1] image, dxy, dist, dreal[::1] u, dreal[::1] v,
     return chi2
 
 
-def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dreal[::1] v,
+def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
                 dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-                dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, minuv_factor=3.1, maxuv_factor=2.2):
+                dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
     """
     Compute the chi square of a model with an axisymmetric brightness profile
     given the observed visibilities.
@@ -690,7 +675,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
 
     Typical call signature::
 
-        chi2 = chi2Profile(intensity, Rmin, dR, nxy, dxy, dist, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
+        chi2 = chi2Profile(intensity, Rmin, dR, nxy, dxy, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
                            dRA=0, dDec=0, inc=0, PA=0, uvcheck=False)
 
     Parameters
@@ -702,19 +687,16 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
         **units**: Jy/sr
     Rmin : float
         Inner edge of the radial grid, i.e. the radius where the brightness is `intensity[0]`.
-        **units**: cm
+        **units**: rad
     dR : float
         Size of the cell of the radial grid, assumed linear.
-        **units**: cm
+        **units**: rad
     nxy : int
         Side of the square model image, which is internally computed.
         **units**: pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        **units**: cm
-    dist : float
-        Distance to the source.
-        **units**: cm
+        **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
         **units**: wavelength
@@ -752,10 +734,10 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    maxuv_factor : float, optional
+    f_maxuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    minuv_factor : float, optional
+    f_minuv : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -772,10 +754,10 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
     check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
     assert Rmin < dxy, "For the interpolation of the image center, expect Rmin < dxy, but got Rmin={}, dxy={}".format(Rmin, dxy)
 
-    duv = get_uvcell_size(nxy, dxy, dist)
+    duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, maxuv_factor, minuv_factor)
+        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
 
     cdef dreal chi2
     inc *= deg
@@ -783,12 +765,12 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, dreal[::1] u, dr
     dRA *= arcsec
     dDec *= arcsec
 
-    _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
+    _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, 1., inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
 
     return chi2
 
 
-def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, inc=0.):
+def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
     """
     Create a 2D model image from an axisymmetric brightness profile.
 
@@ -798,7 +780,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, inc=0.):
 
     Typical call signature::
 
-        image = sweep(intensity, Rmin, dR, nxy, dxy, dist, inc=0)
+        image = sweep(intensity, Rmin, dR, nxy, dxy, inc=0)
 
     Parameters
     ----------
@@ -809,19 +791,16 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, inc=0.):
         **units**: Jy/sr
     Rmin : float
         Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-        **units**: cm
+        **units**: rad
     dR : float
         Size of the cell of the radial grid, assumed linear.
-        **units**: cm
+        **units**: rad
     nxy : int
         Side of the square model image.
         **units**: pixel
     dxy : float
         Size of the image cell, assumed equal and uniform in both x and y direction.
-        **units**: cm
-    dist : float
-        Distance to the source.
-        **units**: cm
+        **units**: rad
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
@@ -840,7 +819,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, dist, inc=0.):
     inc *= deg
     image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
 
-    _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, dist, inc, <void*>np.PyArray_DATA(image))
+    _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, 1, inc, <void*>np.PyArray_DATA(image))
 
     # return a copy so is C-Continuous and can be used in sampleImage()
     return image.view(dtype=real_dtype)[:, :-2].copy()

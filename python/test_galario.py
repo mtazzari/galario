@@ -54,11 +54,10 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
 
     nrow, ncol = nxy, nxy
-    dist = 150.
 
-    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, dist, inc, dtype_image=real_type)
+    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
-    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, dist, inc)
+    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc)
 
     # uncomment for debugging
     # plot images
@@ -130,9 +129,8 @@ def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
     vis_c2c_shifted = apply_phase_array(urot/wle_m, vrot/wle_m, vis_c2c, dRArot, dDecrot)
 
     # CPU/GPU version (galario)
-    dist = 30
-    dxy = dist/nxy/du
-    vis_galario = acc_lib.sampleImage(ref_real, dxy, dist, udat/wle_m, vdat/wle_m, dRA=dRA, dDec=dDec, PA=PA)
+    dxy = 1./nxy/du
+    vis_galario = acc_lib.sampleImage(ref_real, dxy, udat/wle_m, vdat/wle_m, dRA=dRA, dDec=dDec, PA=PA)
 
     assert_allclose(vis_galario.real, vis_c2c_shifted.real, rtol, atol)
     assert_allclose(vis_galario.imag, vis_c2c_shifted.imag, rtol, atol)
@@ -332,22 +330,20 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
 
     _, minuv, maxuv = matrix_size(udat, vdat)
 
-    dist = 140.  # distance to the source
-    dxy = dist / maxuv  # dist / (nxy * dxy
-    # compute the matrix nxy and maxuv
+    dxy = 1. / maxuv # pixel size (rad)
 
     # create intensity profile and model image
     Rmin, dR, nrad, inc, profile_mode, real_type = dxy/2., dxy/3., 500, 20., 'Gauss', 'float64',
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
-    reference_image = sweep_ref(ints, Rmin, dR, nxy, nxy, dxy, dist, inc, dtype_image=real_type)
+    reference_image = sweep_ref(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
 
     import time
 
     # test sampleImage
     t0 = time.time()
-    vis_py_sampleImage = py_sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    vis_py_sampleImage = py_sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
     t1 = time.time()
-    vis_g_sampleImage = acc_lib.sampleImage(reference_image, dxy, dist, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    vis_g_sampleImage = acc_lib.sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
     t2 = time.time()
 
     assert_allclose(vis_py_sampleImage.real, vis_g_sampleImage.real, rtol=rtol, atol=atol)
@@ -356,9 +352,9 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
 
     # test sampleProfile
     t3 = time.time()
-    vis_sampleProfilepy = py_sampleProfile(ints.copy(), Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    vis_sampleProfilepy = py_sampleProfile(ints.copy(), Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
     t4 = time.time()
-    vis_g_sampleProfile = acc_lib.sampleProfile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    vis_g_sampleProfile = acc_lib.sampleProfile(ints, Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
     t5 = time.time()
 
     # check galario vs python implementation
@@ -373,15 +369,15 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     x, _, w = generate_random_vis(nsamples, real_type)
 
     t6 = time.time()
-    chi2_pychi2Image = py_chi2Image(reference_image, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
+    chi2_pychi2Image = py_chi2Image(reference_image, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
     t7 = time.time()
-    chi2_g_chi2Image = acc_lib.chi2Image(reference_image, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
+    chi2_g_chi2Image = acc_lib.chi2Image(reference_image, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
     t8 = time.time()
 
     # test chi2Profile
-    chi2_pychi2Profile = py_chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    chi2_pychi2Profile = py_chi2Profile(ints, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
     t9 = time.time()
-    chi2_g_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    chi2_g_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
     t10 = time.time()
     print("chi2Image:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t7-t6, t8-t7, (t7-t6)/(t8-t7)))
     print("chi2Profile:\tpy: {}\tgalario:{}\tSpeedup:{:4.1f}x".format(t9-t8, t10-t9, (t9-t8)/(t10-t9)))
