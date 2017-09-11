@@ -66,7 +66,7 @@ These are four main functions that should serve the standard use of galario.
 
 .. function::
    void galario_sample_profile(int nr, dreal* const ints,
-   dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
+   dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc,
    dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u,
    const dreal *v, dcomplex *fint);
 
@@ -81,7 +81,6 @@ These are four main functions that should serve the standard use of galario.
    :param dR: Radial-grid cell size.
    :param dxy: Image cell size.
    :param nxy: Number of image pixels in x- and y-direction.
-   :param dist: Distance to source.
    :param inc: Inclination.
    :param dRa: Rectascension offset.
    :param dDec: Dec. offset.
@@ -109,7 +108,7 @@ These are four main functions that should serve the standard use of galario.
 
 .. function::
    void galario_chi2_profile(int nr, dreal* const ints,
-   dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
+   dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc,
    dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u,
    const dreal *v, const dreal* fobs_re, const dreal* fobs_im,
    const dreal* weights, dreal* chi2);
@@ -187,7 +186,7 @@ Individual operations
 The following functions provide low-level access to individual operations performed by the `sample` and `chi2` functions. A standard user will likely have little use for them. Refer to the python API documentation of the wrappers for details on the individual functions.
 
 .. function::
-   void galario_sweep(int nr, dreal* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex* image);
+   void galario_sweep(int nr, dreal* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image);
 
 .. function::
    void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int nd, const dreal* u, const dreal* v, dreal* urot, dreal* vrot);
