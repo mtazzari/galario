@@ -71,18 +71,17 @@ def setup_chi2Image(nxy, nsamples):
     dDec = 2.5
     PA = 80.
 
-    dist = 130. * pc
     maxuv_generator = 3e3
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype='float64')
     x, _, w = generate_random_vis(nsamples, options.dtype)
 
     _, _, maxuv = matrix_size(udat, vdat)
-    dxy = dist / maxuv
+    dxy = 1 / maxuv
 
     # create model image (it happens to have 0 imaginary part)
     image_ref = create_reference_image(size=nxy, kernel='gaussian', dtype=options.dtype)
 
-    return image_ref, dxy, dist, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA, dDec, PA
+    return image_ref, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA, dDec, PA
 
 
 def setup_chi2Profile(nxy, nsamples):
@@ -102,19 +101,17 @@ def setup_chi2Profile(nxy, nsamples):
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=options.dtype)
     x, _, w = generate_random_vis(nsamples, options.dtype)
 
-    dist = 130. * pc
-
     _, _, maxuv = matrix_size(udat, vdat)
     maxuv /= wle_m
-    dxy = dist / maxuv
+    dxy = 1 / maxuv
 
     # compute the matrix size and maxuv
-    # nxy, dxy = g_double.get_image_size(dist, udat/wle_m, vdat/wle_m)
+    # nxy, dxy = g_double.get_image_size(udat/wle_m, vdat/wle_m)
 
     # compute radial profile
     ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.)
 
-    return ints, Rmin, dR, nxy, dxy, dist, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
+    return ints, Rmin, dR, nxy, dxy, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
 
 def do_timing(options, input_data, gpu=False, tpb=0, omp_num_threads=0):
     if gpu:

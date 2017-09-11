@@ -43,11 +43,11 @@ ELSE:
 
 cdef extern from "galario_py.h":
     # Main user functions
-    void _galario_sample_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
+    void _galario_sample_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
     void _galario_sample_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
-    void _galario_chi2_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* vis_obs_w, dreal* chi2)
+    void _galario_chi2_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* vis_obs_w, dreal* chi2)
     void _galario_chi2_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* vis_obs_w, dreal* chi2)
-    void _galario_sweep(int nr, void* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image)
+    void _galario_sweep(int nr, void* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image)
     void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* u, void* v, void* urot, void* vrot)
 
     # Interface for the experts
@@ -551,7 +551,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
     dDec *= arcsec
 
     vis = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, 1., inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+    _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
     return vis
 
@@ -765,7 +765,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     dRA *= arcsec
     dDec *= arcsec
 
-    _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, 1., inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
+    _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
 
     return chi2
 
@@ -819,7 +819,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
     inc *= deg
     image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
 
-    _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, 1, inc, <void*>np.PyArray_DATA(image))
+    _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
 
     # return a copy so is C-Continuous and can be used in sampleImage()
     return image.view(dtype=real_dtype)[:, :-2].copy()

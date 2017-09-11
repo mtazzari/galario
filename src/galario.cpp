@@ -59,13 +59,6 @@ namespace {
         assert(ny % 2 == 0);  \
     } while (0)
 
-    /**
-     * Convert intensities from Jy/steradians to Jy/pixels.
-     * The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
-     */
-    inline dreal convert_intensity(const dreal dxy, const dreal dist) {
-        return dxy*dxy/(dist*dist);
-    }
 }
 
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
@@ -1020,7 +1013,7 @@ __global__ void sweep_d(int const nr, const dreal* const ints, dreal const Rmin,
 /**
  * Allocate memory on device for `ints` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
  */
-void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex** addr_image_d) {
+void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
     GPUTimer t, t_start;
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
@@ -1038,7 +1031,7 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
     // Convert intensities from Jy/steradians to Jy/pixels.
     // The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
-    dreal const sr_to_px = convert_intensity(dxy, dist);
+    dreal const sr_to_px = dxy*dxy;
 
     // most of the image will stay 0, we only need the kernel on a few pixels near the center
     auto const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
@@ -1059,8 +1052,8 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
 #else
 
-void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dreal const dR, int const nxy,
-                    dreal const dxy, dreal dist, dreal const inc, dcomplex* const __restrict__ image) {
+void create_image_h(int const nr, const dreal *const ints, dreal const Rmin, dreal const dR, int const nxy, dreal const dxy,
+                    dreal const inc, dcomplex *const image) {
     CPUTimer t;
 
     // start with zero image
@@ -1073,7 +1066,7 @@ void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dre
     int const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     // change units
-    dreal const sr_to_px = convert_intensity(dxy, dist);
+    dreal const sr_to_px = dxy*dxy;
 
     auto real_image = reinterpret_cast<dreal*>(image);
     auto const rowsize = 2*ncol;
@@ -1094,24 +1087,24 @@ void create_image_h(int const nr, const dreal* const ints, dreal const Rmin, dre
 #endif
 
 
-void galario_sweep(int nr, dreal* const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, dcomplex* image) {
+void galario_sweep(int nr, dreal *const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex *image) {
     CHECK_INPUT(nxy);
 
 #ifdef __CUDACC__
     // image allocated inside sweep
     dcomplex *image_d;
-    create_image_d(nr, ints, Rmin, dR, nxy, dxy, dist, inc, &image_d);
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
     auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
     CCheck(cudaMemcpy(image, image_d, nbytes, cudaMemcpyDeviceToHost));
     CCheck(cudaFree(image_d));
 #else
-    create_image_h(nr, ints, Rmin, dR, nxy, dxy, dist, inc, image);
+    create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, image);
 #endif
 }
 
-void _galario_sweep(int nr, void* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal dist, dreal inc, void* image) {
-    galario_sweep(nr, static_cast<dreal*>(ints), Rmin, dR, nxy, dxy, dist, inc, static_cast<dcomplex*>(image));
+void _galario_sweep(int nr, void *ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void *image) {
+    galario_sweep(nr, static_cast<dreal *>(ints), Rmin, dR, nxy, dxy, inc, static_cast<dcomplex *>(image));
 }
 
 #ifdef __CUDACC__
@@ -1275,8 +1268,8 @@ void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dr
  * return result in `fint`
  *
  */
-void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                           dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
+void galario_sample_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
+                            dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     CPUTimer t_start;
 
     CHECK_INPUT(nxy);
@@ -1284,7 +1277,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
 #ifdef __CUDACC__
     dcomplex *image_d;
 
-    create_image_d(nr, ints, Rmin, dR, nxy, dxy, dist, inc, &image_d);
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
     dcomplex *fint_d;
     int nbytes_fint = sizeof(dcomplex) * nd;
@@ -1306,7 +1299,7 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
     auto data = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nxy*ncol));
 
     // ensure data is initialized with zeroes
-    create_image_h(nr, ints, Rmin, dR, nxy, dxy, dist, inc, data);
+    create_image_h(nr, ints, Rmin, dR, nxy, dxy, inc, data);
 
     sample_h(nxy, nxy, data, dRA, dDec, nd, duv, PA, u, v, fint);
     galario_free(data);
@@ -1315,9 +1308,10 @@ void galario_sample_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dr
 }
 
 
-void _galario_sample_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint) {
-    galario_sample_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd,
-                          static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dcomplex *>(fint));
+void _galario_sample_profile(int nr, void *ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
+                             dreal duv, dreal PA, int nd, void *u, void *v, void *fint) {
+    galario_sample_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
+                           static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dcomplex *>(fint));
 }
 
 
@@ -1540,9 +1534,9 @@ void _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, 
                  static_cast<dreal*>(weights), chi2);
 }
 
-void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                          dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v,
-                          const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
+void galario_chi2_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
+                          dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *fobs_re,
+                          const dreal *fobs_im, const dreal *weights, dreal *chi2) {
     CPUTimer t_start;
     CHECK_INPUT(nxy);
 #ifdef __CUDACC__
@@ -1560,7 +1554,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     t.Elapsed("chi2_profile::copy_observations");
 
     dcomplex *image_d;
-    create_image_d(nr, ints, Rmin, dR, nxy, dxy, dist, inc, &image_d);
+    create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
@@ -1577,7 +1571,7 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     CPUTimer t;
 
     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd); t.Elapsed("chi2_profile::malloc_fint");
-    galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd, u, v, fint);
+    galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd, u, v, fint);
     galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
     t = CPUTimer(); free(fint); t.Elapsed("chi2_profile::free_fint");
 #endif
@@ -1585,10 +1579,10 @@ void galario_chi2_profile(int nr,  dreal* const ints, dreal Rmin, dreal dR, drea
     flush_timing();
 }
 
-void _galario_chi2_profile(int nr, void* ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal dist, dreal inc,
-                           dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v,
-                           void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
-    galario_chi2_profile(nr, static_cast<dreal*>(ints), Rmin, dR, dxy, nxy, dist, inc, dRA, dDec, duv, PA, nd,
-                         static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(fobs_re),
-                         static_cast<dreal*>(fobs_im), static_cast<dreal*>(weights), chi2);
+void _galario_chi2_profile(int nr, void *ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
+                           dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights,
+                           dreal *chi2) {
+    galario_chi2_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
+                         static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dreal *>(fobs_re),
+                         static_cast<dreal *>(fobs_im), static_cast<dreal *>(weights), chi2);
 }
