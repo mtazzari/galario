@@ -10,7 +10,7 @@
 **GPU Accelerated Library for Analysing Radio Interferometer Observations**
 ---------------------------------------------------------------------------
 
-|galario| is a toolkit that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
+|galario| is a library that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
 predictions to radio interferometer observations. Namely, it speeds up the computation of the synthetic visibilities
 given a model image (or an axisymmetric brightness profile) and their comparison to the observations.
 
@@ -52,9 +52,11 @@ you can easily do it with the GPU accelerated |galario|:
 
     from galario.double_cuda import sampleImage
 
-    vis = sampleImage(image, dxy, u, v)
+    vis = sampleImage(image, dxy, u, v, dRA=dRA, dDec=dDec, PA=PA)
 
 where `vis` is a complex array of length :math:`N` containing the real (`vis.real`) and imaginary (`vis.imag`) part of the synthetic visibilities.
+dRA, dDec and PA are optional parameters: if specified, translate the image in Right Ascension and Declination direction
+by dRA (rad) and dDec (rad), respectively, and to rotate it by a Position Angle PA (rad) (East of North).
 
 If you are doing a **fit** and the only number you are interested in is the **chi square** needed for the likelihood computation,
 you can use directly:

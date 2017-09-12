@@ -7,8 +7,8 @@ galario
 [![Build Status](https://travis-ci.org/mtazzari/galario.svg?branch=master)](https://travis-ci.org/mtazzari/galario)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-**galario** exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
-predictions to the observations of radio interferometers. Namely, it speeds up the computation of the synthetic visibilities
+**galario** is a library that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
+predictions to radio interferometer observations. Namely, it speeds up the computation of the synthetic visibilities
 given a model image (or an axisymmetric brightness profile) and their comparison to the observations.
 
 Check out the [documentation](https://mtazzari.github.io/galario/) and the [installation instructions](https://mtazzari.github.io/galario/install.html).
