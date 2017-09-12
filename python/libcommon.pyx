@@ -278,7 +278,7 @@ def check_uvplane(u, v, nxy, duv, f_max, f_min):
     """
     assert len(u) == len(v), "Wrong array length: u, v must have same length."
     assert f_max > 2., "Expected f_max > 2 to ensure correct Nyquist sampling."
-    assert f_min > 3., "Expected f_min > 3 to ensure the image covers the field of view of the data."
+    assert f_min > 1., "Expected f_min > 1 to ensure the image covers the maximum recoverable scale of the data."
 
     uvdist = np.hypot(u, v)
     min_uv = np.min(uvdist)/f_min
@@ -291,13 +291,13 @@ def check_uvplane(u, v, nxy, duv, f_max, f_min):
     return True
 
 
-def get_image_size(u, v, dxy=None, f_max=2.2, f_min=3.1):
+def get_image_size(u, v, dxy=None, f_max=2.5, f_min=3.):
     """
     Compute the recommended image size given the (u, v) locations.
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, dxy=None, f_max=2.2, f_min=3.1)
+        nxy, dxy = get_image_size(u, v, dxy=None, f_max=2.5, f_min=3.)
 
     Parameters
     ----------
@@ -384,7 +384,7 @@ def get_uvcell_size(nxy, dxy):
 # ############################################################################ #
 
 def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
+                dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3., f_max=2.5):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -461,7 +461,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 
 def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
-                  dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
+                  dRA=0., dDec=0., PA=0., inc=0., uvcheck=False, f_min=3., f_max=2.5):
     """
     Compute the synthetic visibilities of a model with an axisymmetric brightness profile.
 
@@ -510,12 +510,12 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
         **units**: arcsecond
+    PA : float, optional
+        Position Angle, defined East of North. Default is 0.
+        **units**: degree
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        **units**: degree
-    PA : float, optional
-        Position Angle, defined East of North. Default is 0.
         **units**: degree
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
@@ -558,7 +558,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
 def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
               dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-              dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
+              dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3., f_max=2.5):
     """
     Compute the chi square of a model image given the observed visibilities.
 
@@ -658,7 +658,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
                 dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-                dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
+                dRA=0., dDec=0., PA=0., inc=0., uvcheck=False, f_min=3., f_max=2.5):
     """
     Compute the chi square of a model with an axisymmetric brightness profile
     given the observed visibilities.
@@ -723,12 +723,12 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
         **units**: arcsecond
+    PA : float, optional
+        Position Angle, defined East of North. Default is 0.
+        **units**: degree
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        **units**: degree
-    PA : float, optional
-        Position Angle, defined East of North. Default is 0.
         **units**: degree
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
