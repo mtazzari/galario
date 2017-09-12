@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Using galario from C" href="C-api.html" />
+    <link rel="next" title="C API reference" href="C-api.html" />
     <link rel="prev" title="galario Cookbook" href="cookbook.html" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
@@ -66,7 +66,7 @@
 <p>The 2D surface brightness in <code class="code docutils literal"><span class="pre">image</span></code> is Fourier transformed and sampled in the
 (u, v) locations given in the <code class="code docutils literal"><span class="pre">u</span></code> and <code class="code docutils literal"><span class="pre">v</span></code> arrays.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">uvcheck</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">uvcheck</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -85,23 +85,21 @@ and the y-axis (Dec.) increases from bottom (South) to top (North).
 The length of v must be equal to the length of u.
 <strong>units</strong>: wavelength</li>
 <li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: cm</li>
-<li><strong>dist</strong> (<em>float</em>) – Distance to the source.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
 <li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
 <li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: degree</li>
+<strong>units</strong>: rad</li>
 <li><strong>uvcheck</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>maxuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
-<li><strong>minuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
 </ul>
 </td>
@@ -126,7 +124,7 @@ then Fourier transformed and sampled in the (u, v) locations given in the <code 
 <p>The image is created as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal"><span class="pre">sweep()</span></code></a> assuming that the x-axis (R.A.) increases
 from right (West) to left (East) and the y-axis (Dec.) increases from bottom (South) to top (North).</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
                     <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">uvcheck</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -140,15 +138,13 @@ The profile is assumed to be sampled on a linear radial grid starting
 at <code class="code docutils literal"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal"><span class="pre">dR</span></code>.
 <strong>units</strong>: Jy/sr</li>
 <li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>nxy</strong> (<em>int</em>) – Side of the square model image, which is internally computed.
 <strong>units</strong>: pixel</li>
 <li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: cm</li>
-<li><strong>dist</strong> (<em>float</em>) – Distance to the source.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
 <strong>units</strong>: wavelength</li>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
@@ -156,21 +152,21 @@ The length of v must be equal to the length of u.
 <strong>units</strong>: wavelength</li>
 <li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
 <li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
+<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
+<strong>units</strong>: rad</li>
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
-<strong>units</strong>: degree</li>
-<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: degree</li>
+<strong>units</strong>: rad</li>
 <li><strong>uvcheck</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>maxuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
-<li><strong>minuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
 </ul>
 </td>
@@ -215,7 +211,7 @@ can be safely set to False.</p>
 <p>where <span class="math">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
 as in <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal"><span class="pre">sampleImage()</span></code></a>.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
                  <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">uvcheck</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -230,9 +226,7 @@ and the y-axis (Dec.) increases from bottom (South) to top (North).
 <code class="code docutils literal"><span class="pre">nxy</span></code> must be even.
 <strong>units</strong>: Jy/pixel</li>
 <li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: cm</li>
-<li><strong>dist</strong> (<em>float</em>) – Distance to the source.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
 <strong>units</strong>: wavelength</li>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
@@ -248,18 +242,18 @@ The length of <code class="code docutils literal"><span class="pre">vis_obs_w</s
 <strong>units</strong>:</li>
 <li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
 <li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
 <li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: degree</li>
+<strong>units</strong>: rad</li>
 <li><strong>uvcheck</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>maxuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
-<li><strong>minuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
 </ul>
 </td>
@@ -290,7 +284,7 @@ The chi square is computed from the observed and synthetic visibilities as:</p>
 <p>where <span class="math">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
 as in <a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal"><span class="pre">sampleProfile()</span></code></a>.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
                    <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">uvcheck</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -304,15 +298,13 @@ The profile is assumed to be sampled on a linear radial grid starting
 at <code class="code docutils literal"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal"><span class="pre">dR</span></code>.
 <strong>units</strong>: Jy/sr</li>
 <li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is <code class="code docutils literal"><span class="pre">intensity[0]</span></code>.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>nxy</strong> (<em>int</em>) – Side of the square model image, which is internally computed.
 <strong>units</strong>: pixel</li>
 <li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: cm</li>
-<li><strong>dist</strong> (<em>float</em>) – Distance to the source.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
 <strong>units</strong>: wavelength</li>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
@@ -328,21 +320,21 @@ The length of <code class="code docutils literal"><span class="pre">vis_obs_w</s
 <strong>units</strong>:</li>
 <li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
 <li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: arcsecond</li>
+<strong>units</strong>: rad</li>
+<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
+<strong>units</strong>: rad</li>
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
-<strong>units</strong>: degree</li>
-<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: degree</li>
+<strong>units</strong>: rad</li>
 <li><strong>uvcheck</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>maxuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
-<li><strong>minuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
+<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.
 <strong>units</strong>: pure number</li>
 </ul>
 </td>
@@ -455,7 +447,7 @@ cores to see if hyperthreading provides any benefit.</p>
 <code class="descclassname">galario.double.</code><code class="descname">get_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_image_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the recommended image size given the (u, v) locations.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maxuv_factor</span><span class="o">=</span><span class="mf">2.2</span><span class="p">,</span> <span class="n">minuv_factor</span><span class="o">=</span><span class="mf">3.1</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">3.</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -468,12 +460,10 @@ cores to see if hyperthreading provides any benefit.</p>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of v must be equal to the length of u.
 <strong>units</strong>: wavelength</li>
-<li><strong>dist</strong> (<em>float</em>) – Distance to the source.
-<strong>units</strong>: cm</li>
 <li><strong>dxy</strong> (<em>float</em><em>, </em><em>optional</em>) – Image cell size, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: cm</li>
-<li><strong>maxuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.</li>
-<li><strong>minuv_factor</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.</li>
+<strong>units</strong>: rad</li>
+<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.</li>
+<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.</li>
 </ul>
 </td>
 </tr>
@@ -496,7 +486,7 @@ Size of the image cell, assumed equal and uniform in both x and y direction.
 <code class="descclassname">galario.double.</code><code class="descname">check_uvplane</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.check_uvplane" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">check_uvplane</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">duv</span><span class="p">,</span> <span class="n">maxuv_factor</span><span class="p">,</span> <span class="n">minuv_factor</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">check_uvplane</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">duv</span><span class="p">,</span> <span class="n">f_max</span><span class="p">,</span> <span class="n">f_min</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -513,12 +503,12 @@ The length of v must be equal to the length of u.
 <strong>units</strong>: pixel</li>
 <li><strong>duv</strong> (<em>float</em>) – Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
 <strong>units</strong>: wavelength</li>
-<li><strong>maxuv_factor</strong> (<em>float</em>) – Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
+<li><strong>f_max</strong> (<em>float</em>) – Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
 the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
-The maximum (u, v)-distance covered is <code class="code docutils literal"><span class="pre">maxuv_factor</span></code> times the maximum (u, v)-distance
+The maximum (u, v)-distance covered is <code class="code docutils literal"><span class="pre">f_max</span></code> times the maximum (u, v)-distance
 of the observed visibilities.
 <strong>units</strong>: pure number</li>
-<li><strong>minuv_factor</strong> (<em>float</em>) – Size of the field of view covered by the (u, v) plane grid w.r.t. the field
+<li><strong>f_min</strong> (<em>float</em>) – Size of the field of view covered by the (u, v) plane grid w.r.t. the field
 of view covered by the image. Recommended to be larger than 3 for better results.
 <strong>units</strong>: pure number</li>
 </ul>
@@ -536,7 +526,7 @@ of view covered by the image. Recommended to be larger than 3 for better results
 from right (West) to left (East) and the y-axis (Dec.) increases
 from bottom (South) to top (North).</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">image</span> <span class="o">=</span> <span class="n">sweep</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">image</span> <span class="o">=</span> <span class="n">sweep</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -549,18 +539,16 @@ The brightness profile is assumed to be sampled on a linear radial grid
 starting at <code class="code docutils literal"><span class="pre">Rmin</span></code> and with spacing <code class="code docutils literal"><span class="pre">dR</span></code>.
 <strong>units</strong>: Jy/sr</li>
 <li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>nxy</strong> (<em>int</em>) – Side of the square model image.
 <strong>units</strong>: pixel</li>
 <li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: cm</li>
-<li><strong>dist</strong> (<em>float</em>) – Distance to the source.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: rad</li>
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
-<strong>units</strong>: degree</li>
+<strong>units</strong>: rad</li>
 </ul>
 </td>
 </tr>
@@ -591,9 +579,9 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>dRA</strong> (<em>float</em>) – Right Ascension offset.
-<strong>units</strong>: arcseconds</li>
+<strong>units</strong>: rad</li>
 <li><strong>dDec</strong> (<em>float</em>) – Declination offset.
-<strong>units</strong>: arcseconds</li>
+<strong>units</strong>: rad</li>
 <li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u-coordinates of visibility points.
 <strong>units</strong>: observing wavelength</li>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v-coordinates of visibility points.
@@ -642,7 +630,7 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
                         title="previous chapter"><strong>galario</strong> Cookbook</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="C-api.html"
-                        title="next chapter">Using galario from C</a></p>
+                        title="next chapter">C API reference</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -671,7 +659,7 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="C-api.html" title="Using galario from C"
+          <a href="C-api.html" title="C API reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="cookbook.html" title="galario Cookbook"

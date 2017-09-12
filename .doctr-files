@@ -1,5 +1,7 @@
 ./C-api.html
+./C-example.html
 ./_sources/C-api.rst.txt
+./_sources/C-example.rst.txt
 ./_sources/cookbook.rst.txt
 ./_sources/index.rst.txt
 ./_sources/install.rst.txt

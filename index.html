@@ -53,71 +53,84 @@
           <div class="body" role="main">
             
   <div class="section" id="galario">
-<h1>galario<a class="headerlink" href="#galario" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="gpu-accelerated-library-for-analysing-radio-interferometry-observations">
-<h2><strong>GPU Accelerated Library for Analysing Radio Interferometry Observations</strong><a class="headerlink" href="#gpu-accelerated-library-for-analysing-radio-interferometry-observations" title="Permalink to this headline">¶</a></h2>
-<p><strong>galario</strong> exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
-predictions to the observations of radio interferometers. Namely, it speeds up the computation of the synthetic visibilities
+<h1><strong>galario</strong><a class="headerlink" href="#galario" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="gpu-accelerated-library-for-analysing-radio-interferometer-observations">
+<h2><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong><a class="headerlink" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations" title="Permalink to this headline">¶</a></h2>
+<p><strong>galario</strong> is a library that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
+predictions to radio interferometer observations. Namely, it speeds up the computation of the synthetic visibilities
 given a model image (or an axisymmetric brightness profile) and their comparison to the observations.</p>
-<p>It is licensed under LGPLv3 and along with the GPU accelerated version based on the
-<a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">CUDA Toolkit</a> offers a CPU counterpart accelerated with
+<p>Along with the GPU accelerated version based on the
+<a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">CUDA Toolkit</a>, <strong>galario</strong> offers a CPU counterpart accelerated with
 <a class="reference external" href="http://www.openmp.org">openMP</a>.
 Modern radio interferometers like
 <a class="reference external" href="http://www.almaobservatory.org/en/home/">ALMA</a>,
 <a class="reference external" href="https://science.nrao.edu/facilities/vla">VLA</a>,
 <a class="reference external" href="http://www.iram-institute.org/EN/noema-project.php?ContentID=9&amp;rub=9&amp;srub=0&amp;ssrub=0&amp;sssrub=0">NOEMA</a>
-and the future ones like
-<a class="reference external" href="http://skatelescope.org">SKA</a> are pushing the computational efforts needed to model the observations to the extreme.
+are pushing the computational efforts needed to model the observations to the extreme.
 The unprecedented sensitivity and resolution achieved by these observatories require comparing model predictions
 with huge amount of data points that sample a wide range of spatial frequencies.
 In this context, <strong>galario</strong> provides a fast library useful for comparing a model to observations directly in the Fourier plane.</p>
 <p>We presented <strong>galario</strong> in <a class="reference external" href="LINK">Tazzari, Beaujean and Testi (2017)</a>, where you can find more details about the
 relevant equations and the algorithm implementation.
-Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to
-<a class="reference external" href="http://aspbooks.org/a/volumes/table_of_contents/180">this</a> thorough reference.</p>
-<p><strong>galario</strong> is actively developed on <a class="reference external" href="https://github.com/mtazzari/galario/">GitHub</a>.</p>
+Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to the
+<a class="reference external" href="http://aspbooks.org/a/volumes/table_of_contents/180">Synthesis Imaging in Radio Astronomy II</a> book.</p>
+<p><strong>galario</strong> is actively developed on <a class="reference external" href="https://github.com/mtazzari/galario/">GitHub</a>
+and has already been employed in <a class="reference internal" href="studies.html"><span class="doc">these published studies</span></a>.</p>
 <p>Instructions on how to build and install <strong>galario</strong> can be found <a class="reference internal" href="install.html"><span class="doc">here</span></a>.</p>
 </div>
 <div class="section" id="basic-usage">
 <h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
-<p>Let’s say you have an observational dataset of <code class="code docutils literal"><span class="pre">N</span></code> visibility points located at <span class="math">\((u_j, v_j)\)</span>, with <span class="math">\(j=1...N\)</span> and <span class="math">\(u_j\)</span>, <span class="math">\(v_j\)</span>
-expressed in units of the observing wavelength. <span class="math">\(V_{obs\ j}\)</span> is the <span class="math">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math">\(w_j\)</span>.
-If you want to compute the visibilities of a model <code class="code docutils literal"><span class="pre">image</span></code> in the same <span class="math">\((u_j, v_j)\)</span> locations of the observations,
-you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">pc</span><span class="p">,</span> <span class="n">au</span>
-<span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
+<p>Let’s say you have an observational dataset of <code class="code docutils literal"><span class="pre">M</span></code> visibility points located at <span class="math">\((u_j, v_j)\)</span>, with <span class="math">\(j=1...M\)</span> and <span class="math">\(u_j\)</span>, <span class="math">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math">\(V_{obs\ j}\)</span> (Jy) is the <span class="math">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math">\(w_j\)</span>.
+With <strong>galario</strong> you can:</p>
+<p><strong>1) Compute visibilities from a model image</strong></p>
+<blockquote>
+<div><p>If you want to compute the visibilities of a model <code class="code docutils literal"><span class="pre">image</span></code> (Jy/px) with pixel size <code class="code docutils literal"><span class="pre">dxy</span></code> (rad) in the same <span class="math">\((u_j, v_j)\)</span> locations of the observations, you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
 
-<span class="n">dist</span> <span class="o">=</span> <span class="mf">240.</span> <span class="o">*</span> <span class="n">pc</span>  <span class="c1"># distance to the source [cm]</span>
-<span class="n">dxy</span> <span class="o">=</span> <span class="mf">10.</span> <span class="o">*</span> <span class="n">au</span>    <span class="c1"># spatial size of the pixel in the model image [cm]</span>
-
-<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>where <code class="code docutils literal"><span class="pre">vis</span></code> is a complex array of length <span class="math">\(N\)</span> containing the real (<code class="code docutils literal"><span class="pre">vis.real</span></code>) and imaginary (<code class="code docutils literal"><span class="pre">vis.imag</span></code>) part of the synthetic visibilities.</p>
-<p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <strong>chi square</strong> needed for the likelihood computation,
-you can use directly:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">chi2Image</span>
-
-<span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>If you want to compare the observations with a model characterized by an <strong>axisymmetric brightness profile</strong>, <strong>galario</strong> offers
-dedicated functions that exploit the symmetry of the model to accelerate the image creation.
-If <span class="math">\(I(R)\)</span> is the radial brightness profile, the command is as simple as:</p>
+</div></blockquote>
+<p><strong>2) Compute visibilities from an axisymmetric brightness profile</strong></p>
+<blockquote>
+<div><p>If you want to compare the observations with a model characterized by an <strong>axisymmetric brightness profile</strong>, <strong>galario</strong> offers dedicated functions that exploit the symmetry of the model to accelerate the image creation.</p>
+<p>If <span class="math">\(I(R)\)</span> (Jy/sr) is the radial brightness profile, the command is as simple as:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleProfile</span>
 
-<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal"><span class="pre">Rmin</span></code> and <code class="code docutils literal"><span class="pre">dR</span></code> are the innermost radius and the cell size of the grid on which <span class="math">\(I(R)\)</span> is computed. An analogous function
+<p>where <code class="code docutils literal"><span class="pre">Rmin</span></code> and <code class="code docutils literal"><span class="pre">dR</span></code> are expressed in radians and are the innermost radius and the cell size of the grid on which <span class="math">\(I(R)\)</span> is computed. An analogous function
 <code class="code docutils literal"><span class="pre">chi2Profile</span></code> allows one to compute directly the chi square.</p>
+</div></blockquote>
+<p><strong>3) Compute the</strong> <span class="math">\(\chi^2\)</span> <strong>of a model (image or brightness profile)</strong></p>
+<blockquote>
+<div><p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <span class="math">\(\chi^2\)</span> for the likelihood computation, you can use directly one of these:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">chi2Image</span>
+
+<span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+<span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p><strong>4) Do all the above operations + translate and rotate the model image</strong></p>
+<blockquote>
+<div><p>To translate the model image in Right Ascension and Declination direction by (dRA, dDec) offsets (rad),
+or to rotate the image by a Position Angle PA (rad) (defined East of North), you can specify them as optional parameters.</p>
+<p>This works for all the <code class="code docutils literal"><span class="pre">sampleImage</span></code>, <code class="code docutils literal"><span class="pre">sampleProfile</span></code>, <code class="code docutils literal"><span class="pre">chi2Image</span></code> and <code class="code docutils literal"><span class="pre">chi2Profile</span></code> functions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
+
+<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="n">dDec</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="n">PA</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you work on a machine <strong>without</strong> a CUDA-enabled GPU, don’t worry: you can use the CPU version
 of <strong>galario</strong> by just removing the subscript <code class="code docutils literal"><span class="pre">&quot;_cuda&quot;</span></code> from the imports above and benefit from the openMP parallelization.
 All the function names and interfaces are the same for GPU and CPU version!</p>
 </div>
-<p>More details on how to get started with <strong>galario</strong> are given in the <a class="reference internal" href="quickstart.html"><span class="doc">quickstart</span></a>.</p>
 <p>Be sure to checkout also the <a class="reference internal" href="cookbook.html"><span class="doc">cookbook</span></a> with many useful code snippets!</p>
 </div>
 <div class="section" id="license-and-attribution">
@@ -143,7 +156,6 @@ The BibTeX entry for the paper is:</p>
 <li class="toctree-l2"><a class="reference internal" href="install.html#documentation">Documentation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">A quickstart example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cookbook.html"><strong>galario</strong> Cookbook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cookbook.html#using-the-gpu-and-cpu-version">Using the GPU and CPU version</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook.html#selecting-the-gpu">Selecting the GPU</a></li>
@@ -157,17 +169,18 @@ The BibTeX entry for the paper is:</p>
 <li class="toctree-l2"><a class="reference internal" href="py-api.html#other-useful-functions">Other useful functions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="C-api.html">Using galario from C</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="C-api.html#a-small-example">A small example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="C-api.html#example-walk-through">Example walk-through</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="C-api.html#c-api-reference">C API reference</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="C-api.html">C API reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="C-api.html#sample-and-chi2-functions">Sample and chi2 functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="C-api.html#management-functions">Management functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="C-api.html#individual-operations">Individual operations</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="C-example.html">Using galario from C</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="C-example.html#a-small-example">A small example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="C-example.html#example-walk-through">Example walk-through</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="studies.html">Studies that used <strong>galario</strong></a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 </div>
@@ -192,8 +205,8 @@ The BibTeX entry for the paper is:</p>
 
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">galario</a><ul>
-<li><a class="reference internal" href="#gpu-accelerated-library-for-analysing-radio-interferometry-observations"><strong>GPU Accelerated Library for Analysing Radio Interferometry Observations</strong></a></li>
+<li><a class="reference internal" href="#"><strong>galario</strong></a><ul>
+<li><a class="reference internal" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations"><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong></a></li>
 <li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
 <li><a class="reference internal" href="#license-and-attribution">License and Attribution</a></li>
 <li><a class="reference internal" href="#contents">Contents</a></li>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Using galario from C &#8212; galario 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Studies that used galario" href="studies.html" />
+    <link rel="prev" title="C API reference" href="C-api.html" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">galario 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+        <div class="badge">
+            <a href="https://github.com/mtazzari/galario/">Fork me on GitHub</a>
+            <img src="_static/right-red@2x.png">
+        </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="using-galario-from-c">
+<h1>Using galario from C<a class="headerlink" href="#using-galario-from-c" title="Permalink to this headline">¶</a></h1>
+<p>The core of galario is accessible from C, all functions are in the header <code class="code docutils literal"><span class="pre">galario.h</span></code>. Of course it can be used from most other languages as well, in particular C++.</p>
+<div class="section" id="a-small-example">
+<h2>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this headline">¶</a></h2>
+<p>Here is a small test program that performs the FFT in 2D on an image with random values</p>
+<div class="highlight-c"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<span class="cm"> * A simple test to make sure we can include, link, and run galario from pure C.</span>
+<span class="cm"> */</span>
+<span class="cp">#include</span> <span class="cpf">&quot;galario.h&quot;</span><span class="cp"></span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;complex.h&gt;</span><span class="cp"></span>
+
+<span class="cp">#define nx 128</span>
+<span class="cp">#define ny 128</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+     <span class="n">galario_init</span><span class="p">();</span>
+     <span class="n">dreal</span> <span class="n">realdata</span><span class="p">[</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">];</span>
+     <span class="n">dcomplex</span><span class="o">*</span> <span class="n">res</span> <span class="o">=</span> <span class="n">galario_copy_input</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">realdata</span><span class="p">);</span>
+     <span class="n">galario_fft2d</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">res</span><span class="p">);</span>
+     <span class="n">galario_free</span><span class="p">(</span><span class="n">res</span><span class="p">);</span>
+     <span class="n">galario_cleanup</span><span class="p">();</span>
+
+     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After successfully installing galario to <code class="code docutils literal"><span class="pre">/path/to/galario</span></code>, a simple
+test program running galario on the CPU with <code class="code docutils literal"><span class="pre">openMP</span></code> and double
+precision can be built with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">gcc</span> <span class="o">-</span><span class="n">I</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">galario</span><span class="o">/</span><span class="n">include</span> <span class="o">-</span><span class="n">L</span><span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">galario</span><span class="o">/</span><span class="n">lib</span> <span class="o">-</span><span class="n">lgalario</span> <span class="o">-</span><span class="n">DDOUBLE_PRECISION</span> <span class="n">galario_test</span><span class="o">.</span><span class="n">c</span> <span class="o">-</span><span class="n">o</span> <span class="n">galario_test</span>
+</pre></div>
+</div>
+<p>To use single precision, simply do not define the preprocessor symbol <code class="code docutils literal"><span class="pre">-DDOUBLE_PRECISION</span></code> and link in the appropriate library with <code class="code docutils literal"><span class="pre">-lgalario_single</span></code>. A mismatch between the library and the preprocessor symbol causes undefined behavior but usually a segmentation fault causes the program to abort at runtime.</p>
+<p>If galario was installed with <code class="code docutils literal"><span class="pre">cuda</span></code> support, link in <code class="code docutils literal"><span class="pre">-lgalario_cuda</span></code> or <code class="code docutils literal"><span class="pre">-lgalario_single_cuda</span></code>.</p>
+</div>
+<div class="section" id="example-walk-through">
+<h2>Example walk-through<a class="headerlink" href="#example-walk-through" title="Permalink to this headline">¶</a></h2>
+<p>A small walk through the example’s <code class="code docutils literal"><span class="pre">main</span></code> function line by line:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">galario_init</span><span class="p">();</span>
+<span class="o">...</span>
+<span class="n">galario_cleanup</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>Before any computation is done inside galario, the library has to be initialized. Similarly, any data created during initialization should be cleaned at the end of <code class="code docutils literal"><span class="pre">main</span></code>.</p>
+<p>To create the input image, define an array:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dreal</span> <span class="n">realdata</span><span class="p">[</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>The data type <code class="code docutils literal"><span class="pre">dreal</span></code> can refer to either <code class="code docutils literal"><span class="pre">float</span></code> or <code class="code docutils literal"><span class="pre">double</span></code>, depending on the preprocessor symbol <code class="code docutils literal"><span class="pre">DOUBLE_PRECISION</span></code>. galario assumes the input is a real image but the output of the FFT is complex. galario provides a helper function to allocate an array of the proper size and to copy over the input image:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dcomplex</span><span class="o">*</span> <span class="n">res</span> <span class="o">=</span> <span class="n">galario_copy_input</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">realdata</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The actual FFT is done in-place, and the result is stored in <code class="code docutils literal"><span class="pre">res</span></code>. The data layout is described in the <a class="reference external" href="http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data">FFTW manual</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">galario_fft2d</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">res</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>To deallocate <code class="code docutils literal"><span class="pre">res</span></code>, we use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">galario_free</span><span class="p">(</span><span class="n">res</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>In general, any array created by galario and handed back to the user must be deallocated using <code class="code docutils literal"><span class="pre">galario_free</span></code>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Using galario from C</a><ul>
+<li><a class="reference internal" href="#a-small-example">A small example</a></li>
+<li><a class="reference internal" href="#example-walk-through">Example walk-through</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="C-api.html"
+                        title="previous chapter">C API reference</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="studies.html"
+                        title="next chapter">Studies that used <strong>galario</strong></a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/C-example.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="studies.html" title="Studies that used galario"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="C-api.html" title="C API reference"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>
