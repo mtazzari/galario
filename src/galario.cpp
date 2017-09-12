@@ -770,7 +770,7 @@ inline void apply_phase_sampled_core(int const idx_x, const dreal* const u, cons
 #ifdef __CUDACC__
 __global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* __restrict__ fint) {
 
-    if ((dRA==0) || (dDec==0)) {
+    if ((dRA==0.) && (dDec==0.)) {
         return;
     }
 
@@ -791,7 +791,7 @@ __global__ void apply_phase_sampled_d(dreal dRA, dreal dDec, int const nd, const
 
 void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
 
-    if ((dRA==0) || (dDec==0)) {
+    if ((dRA==0.) && (dDec==0.)) {
         return;
     }
 
@@ -874,7 +874,7 @@ void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot,
                  dreal* const urot, dreal* vrot) {
     CPUTimer t;
 
-    if (PA==0) {
+    if (PA==0.) {
         *dRArot = dRA;
         *dDecrot = dDec;
         memcpy(urot, u, sizeof(dreal)*nd);
@@ -912,7 +912,7 @@ void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dD
      CCheck(cudaMalloc(&urot_d, nbytes_d_dreal));
      CCheck(cudaMalloc(&vrot_d, nbytes_d_dreal));
 
-     if (PA==0) {
+     if (PA==0.) {
         *dRArot = dRA;
         *dDecrot = dDec;
         cudaMemcpy(urot_d, u_d, nbytes_d_dreal, cudaMemcpyDeviceToDevice);
@@ -1148,7 +1148,7 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     // ########### KERNELS ############
     // ################################
     // rotate uv points
-     if (PA==0) {
+     if (PA==0.) {
         dRArot = dRA;
         dDecrot = dDec;
         cudaMemcpy(urot_d, u_d, nbytes_ndat, cudaMemcpyDeviceToDevice);

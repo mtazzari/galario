@@ -4,12 +4,8 @@ from __future__ import (division, print_function, absolute_import,
                         unicode_literals)
 
 import numpy as np
-import os
 import datetime
-import textwrap
 import timeit
-import optparse
-import sys
 
 from utils import generate_random_vis, create_reference_image, create_sampling_points
 import galario

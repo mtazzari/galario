@@ -416,14 +416,14 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        **units**: degree
+        **units**: rad
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
@@ -449,10 +449,6 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
     if uvcheck:
         check_uvplane(u, v, nxy, duv, f_max, f_min)
-
-    PA *= deg
-    dRA *= arcsec
-    dDec *= arcsec
 
     vis = np.zeros(len(u), dtype=complex_dtype)
     _galario_sample_image(nxy, nxy, <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
@@ -505,18 +501,18 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        **units**: degree
+        **units**: rad
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        **units**: degree
+        **units**: rad
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
@@ -544,11 +540,6 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
     if uvcheck:
         check_uvplane(u, v, nxy, duv, f_max, f_min)
-
-    PA *= deg
-    inc *= deg
-    dRA *= arcsec
-    dDec *= arcsec
 
     vis = np.zeros(len(u), dtype=complex_dtype)
     _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
@@ -608,14 +599,14 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        **units**: degree
+        **units**: rad
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
@@ -647,9 +638,6 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     cdef dreal chi2
-    PA *= deg
-    dRA *= arcsec
-    dDec *= arcsec
 
     _galario_chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
 
@@ -718,18 +706,18 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     dDec : float, optional
         Dec. offset w.r.t. the phase center by which the image is translated.
         If dDec > 0 translate the image towards the top (North). Default is 0.
-        **units**: arcsecond
+        **units**: rad
     PA : float, optional
         Position Angle, defined East of North. Default is 0.
-        **units**: degree
+        **units**: rad
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        **units**: degree
+        **units**: rad
     uvcheck : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
@@ -760,10 +748,6 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     cdef dreal chi2
-    inc *= deg
-    PA *= deg
-    dRA *= arcsec
-    dDec *= arcsec
 
     _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
 
@@ -804,7 +788,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
-        **units**: degree
+        **units**: rad
 
     Returns
     -------
@@ -816,7 +800,6 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
     assert Rmin < dxy, "For the interpolation algorithm, Rmin must be smaller than dxy. " \
                        "Currently Rmin={}\t dxy={}".format(Rmin, dxy)
 
-    inc *= deg
     image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
 
     _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
@@ -838,13 +821,13 @@ def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
     ----------
     PA : float
         Position Angle, defined East of North.
-        **units**: degree
+        **units**: rad
     dRA : float, optional
         R.A. offset.
-        **units**: arcsecond
+        **units**: rad
     dDec : float, optional
         Dec. offset.
-        **units**: arcsecond
+        **units**: rad
     u : array_like, float
         u coordinate of the visibility points.
         **units**: wavelength
@@ -867,8 +850,6 @@ def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
     """
     nd = len(u)
     assert nd == len(v)
-
-    PA *= deg
 
     cdef dreal dRArot
     cdef dreal dDecrot
@@ -933,10 +914,10 @@ def apply_phase_vis(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
     ----------
     dRA : float
         Right Ascension offset.
-        **units**: arcseconds
+        **units**: rad
     dDec : float
         Declination offset.
-        **units**: arcseconds
+        **units**: rad
     u : array_like, float
         u-coordinates of visibility points.
         **units**: observing wavelength
@@ -954,9 +935,6 @@ def apply_phase_vis(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
         **units**: arbitrary, same as vis
 
     """
-    dRA *= arcsec
-    dDec *= arcsec
-
     vis_out = np.copy(vis, order='C')
     _galario_apply_phase_sampled(dRA, dDec, len(vis), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(vis_out))
 
