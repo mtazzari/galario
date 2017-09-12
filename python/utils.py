@@ -6,7 +6,6 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 
 from scipy.interpolate import interp1d, RectBivariateSpline
-from galario import arcsec, pc, au, deg
 
 __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image",
            "radial_profile", "g_sweep_prototype", "sweep_ref",
@@ -16,17 +15,17 @@ __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image
            "unique_part", "assert_allclose", "apply_rotation"]
 
 
-def py_sampleImage(reference_image, dxy, udat, vdat, PA=0., dRA=0., dDec=0.):
+def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0.):
     """
     Python implementation of sampleImage.
 
     """
     nxy = reference_image.shape[0]
 
-    PA *= deg
-    dRA *= 2.*np.pi * arcsec
-    dDec *= 2.*np.pi * arcsec
-    du = 1. / nxy / dxy
+    dRA *= 2.*np.pi
+    dDec *= 2.*np.pi
+
+    du = 1. / (nxy*dxy)
 
     # Real to Complex transform
     fft_r2c_shifted = np.fft.fftshift(
@@ -72,12 +71,11 @@ def py_sampleImage(reference_image, dxy, udat, vdat, PA=0., dRA=0., dDec=0.):
     return vis
 
 
-def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, inc=0., PA=0, dRA=0., dDec=0.):
+def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, dRA=0., dDec=0., PA=0, inc=0.):
     """
     Python implementation of sampleProfile.
 
     """
-    inc *= deg
     inc_cos = np.cos(inc)
 
     nrad = len(intensity)
@@ -110,7 +108,7 @@ def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, inc=0., PA=0, dR
     return vis
 
 
-def py_chi2Image(reference_image, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, PA=0., dRA=0., dDec=0.):
+def py_chi2Image(reference_image, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, dRA=0., dDec=0., PA=0.):
     """
     Python implementation of chi2Image.
 
@@ -123,7 +121,7 @@ def py_chi2Image(reference_image, dxy, udat, vdat, vis_obs_re, vis_obs_im, weigh
 
 
 
-def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, inc=0., PA=0, dRA=0., dDec=0.):
+def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, dRA=0., dDec=0., PA=0, inc=0.):
     """
     Python implementation of chi2Profile.
 
@@ -204,7 +202,6 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
         Image of the disk, i.e. the intensity map.
 
     """
-    inc = inc/180.*np.pi
     inc_cos = np.cos(inc)
 
     nrad = len(I)
@@ -350,7 +347,7 @@ def apply_phase_array(u, v, fint, x0, y0):
     fint: 1D float array, complex
         Fourier Transform sampled in the (u, v) points.
         Re, Im, u, v must have the same length.
-    x0, y0: floats, arcsec
+    x0, y0: floats, rad
         Shifts in the real space.
 
     Returns
@@ -359,10 +356,6 @@ def apply_phase_array(u, v, fint, x0, y0):
         Phase-shifted of the Fourier Transform sampled in the (u, v) points.
 
     """
-    # convert x0, y0 from arcsec to cm
-    x0 *= arcsec
-    y0 *= arcsec
-
     x0 *= 2.*np.pi
     y0 *= 2.*np.pi
 
@@ -389,9 +382,8 @@ def generate_random_vis(nsamples, dtype):
 
 def apply_rotation(PA, dRA, dDec, udat, vdat):
     """ Rotates the RA, Dec offsets and the udat and vdat coordinates by Position Angle PA """
-    # PA: deg
+    # PA: rad
 
-    PA = PA / 180. * np.pi
     cos_PA = np.cos(PA)
     sin_PA = np.sin(PA)
 
