@@ -15,7 +15,7 @@ predictions to radio interferometer observations. Namely, it speeds up the compu
 given a model image (or an axisymmetric brightness profile) and their comparison to the observations.
 
 Along with the GPU accelerated version based on the
-`CUDA Toolkit <https://developer.nvidia.com/cuda-toolkit>`_ offers a CPU counterpart accelerated with
+`CUDA Toolkit <https://developer.nvidia.com/cuda-toolkit>`_, |galario| offers a CPU counterpart accelerated with
 `openMP <http://www.openmp.org>`_.
 Modern radio interferometers like
 `ALMA <http://www.almaobservatory.org/en/home/>`_,
@@ -43,43 +43,60 @@ Basic Usage
 .. |v_j| replace:: :math:`v_j`
 .. |w_j| replace:: :math:`w_j`
 
-Let's say you have an observational dataset of `M` visibility points located at :math:`(u_j, v_j)`, with :math:`j=1...M` and |u_j|, |v_j|
-expressed in units of the observing wavelength. :math:`V_{obs\ j}` (Jy) is the :math:`j`-th complex visibility with associated theoretical weight |w_j|.
-If you want to compute the visibilities of a model `image` (Jy/px) with pixel size `dxy` (rad) in the same :math:`(u_j, v_j)` locations of the observations,
-you can easily do it with the GPU accelerated |galario|:
+Let's say you have an observational dataset of `M` visibility points located at :math:`(u_j, v_j)`, with :math:`j=1...M` and |u_j|, |v_j| expressed in units of the observing wavelength. :math:`V_{obs\ j}` (Jy) is the :math:`j`-th complex visibility with associated theoretical weight |w_j|.
+With |galario| you can:
 
-.. code-block:: python
+**1) Compute visibilities from a model image**
 
-    from galario.double_cuda import sampleImage
+    If you want to compute the visibilities of a model :code:`image` (Jy/px) with pixel size `dxy` (rad) in the same :math:`(u_j, v_j)` locations of the observations, you can easily do it with the GPU accelerated |galario|:
 
-    vis = sampleImage(image, dxy, u, v, dRA=dRA, dDec=dDec, PA=PA)
+    .. code-block:: python
 
-where `vis` is a complex array of length :math:`N` containing the real (`vis.real`) and imaginary (`vis.imag`) part of the synthetic visibilities.
-dRA, dDec and PA are optional parameters: if specified, translate the image in Right Ascension and Declination direction
-by dRA (rad) and dDec (rad), respectively, and to rotate it by a Position Angle PA (rad) (East of North).
+        from galario.double_cuda import sampleImage
 
-If you are doing a **fit** and the only number you are interested in is the **chi square** needed for the likelihood computation,
-you can use directly:
+        vis = sampleImage(image, dxy, u, v)
 
-.. code-block:: python
+    where `vis` is a complex array of length :math:`N` containing the real (`vis.real`) and imaginary (`vis.imag`) part of the synthetic visibilities.
 
-    from galario.double_cuda import chi2Image
+**2) Compute visibilities from an axisymmetric brightness profile**
 
-    chi2 = chi2Image(image, dxy, u, v, V_obs.real, V_obs.imag, w)
+    If you want to compare the observations with a model characterized by an **axisymmetric brightness profile**, |galario| offers dedicated functions that exploit the symmetry of the model to accelerate the image creation.
 
-If you want to compare the observations with a model characterized by an **axisymmetric brightness profile**, |galario| offers
-dedicated functions that exploit the symmetry of the model to accelerate the image creation.
-If :math:`I(R)` (Jy/sr) is the radial brightness profile, the command is as simple as:
+    If :math:`I(R)` (Jy/sr) is the radial brightness profile, the command is as simple as:
 
-.. code-block:: python
+    .. code-block:: python
 
-    from galario.double_cuda import sampleProfile
+        from galario.double_cuda import sampleProfile
 
-    vis = sampleProfile(I, Rmin, dR, nxy, dxy, u, v)
-.. add an example with inc, PA, dRA, dDec?
+        vis = sampleProfile(I, Rmin, dR, nxy, dxy, u, v)
 
-where `Rmin` and `dR` are expressed in radians and are the innermost radius and the cell size of the grid on which :math:`I(R)` is computed. An analogous function
-`chi2Profile` allows one to compute directly the chi square.
+    where `Rmin` and `dR` are expressed in radians and are the innermost radius and the cell size of the grid on which :math:`I(R)` is computed. An analogous function
+    `chi2Profile` allows one to compute directly the chi square.
+
+**3) Compute the** :math:`\chi^2` **of a model (image or brightness profile)**
+
+    If you are doing a **fit** and the only number you are interested in is the :math:`\chi^2` for the likelihood computation, you can use directly one of these:
+
+    .. code-block:: python
+
+        from galario.double_cuda import chi2Image
+
+        chi2 = chi2Image(image, dxy, u, v, V_obs.real, V_obs.imag, w)
+        chi2 = chi2Profile(I, Rmin, dR, nxy, dxy, u, v, V_obs.real, V_obs.imag, w)
+
+
+**4) Do all the above operations + translate and rotate the model image**
+
+    To translate the model image in Right Ascension and Declination direction by (dRA, dDec) offsets (rad),
+    or to rotate the image by a Position Angle PA (rad) (defined East of North), you can specify them as optional parameters.
+
+    This works for all the `sampleImage`, `sampleProfile`, `chi2Image` and `chi2Profile` functions:
+
+    .. code-block:: python
+
+        from galario.double_cuda import sampleImage
+
+        vis = sampleImage(image, dxy, u, v, dRA=dRA, dDec=dDec, PA=PA)
 
 .. note::
     If you work on a machine **without** a CUDA-enabled GPU, don't worry: you can use the CPU version
@@ -110,6 +127,7 @@ Contents
     cookbook
     py-api
     C-api
+    C-example
     studies
     license
 ..     quickstart
