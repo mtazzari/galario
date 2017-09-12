@@ -28,8 +28,8 @@ In this context, |galario| provides a fast library useful for comparing a model 
 
 We presented |galario| in `Tazzari, Beaujean and Testi (2017) <LINK>`_, where you can find more details about the
 relevant equations and the algorithm implementation.
-Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to
-`this <http://aspbooks.org/a/volumes/table_of_contents/180>`_ thorough reference.
+Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to the
+`Synthesis Imaging in Radio Astronomy II <http://aspbooks.org/a/volumes/table_of_contents/180>`_ book.
 
 |galario| is actively developed on `GitHub <https://github.com/mtazzari/galario/>`_
 and has already been employed in :doc:`these published studies <studies>`.
