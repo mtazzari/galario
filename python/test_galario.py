@@ -83,14 +83,15 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
 
 
 @pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
-                          [(10, 'float64', 1e-6, 0, g_double, par1),
-                          (10, 'float64',  1e-8, 0, g_double, par2),
-                          (10, 'float64',  1e-8, 0, g_double, par3),
-                          (10, 'float64',  1e-8, 0, g_double, par4)],
+                          [(1000, 'float64', 1e-6, 0, g_double, par1),
+                          (1000, 'float64',  1e-6, 0, g_double, par2),
+                          (1000, 'float64',  1e-6, 0, g_double, par3),
+                          (1000, 'float64',  1e-6, 0, g_double, par4)],
                          ids=["{}".format(i) for i in range(4)])
 def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
     """
     Test the (current) R2C implementation against the (old) C2C one.
+    # it is possible that 0.0002% of points differ at rtol>1e-5
 
     """
     dRA = pars['dRA']
@@ -134,8 +135,9 @@ def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
     dxy = 1./nxy/du
     vis_galario = acc_lib.sampleImage(ref_real, dxy, udat, vdat, dRA=dRA, dDec=dDec, PA=PA)
 
+    # check python c2c vs galario
     assert_allclose(vis_galario.real, vis_c2c_shifted.real, rtol, atol)
-    assert_allclose(vis_galario.imag, vis_c2c_shifted.imag, rtol, atol)
+    assert_allclose(vis_galario.imag, vis_c2c_shifted.imag, rtol, np.abs(np.mean(vis_galario.real))*rtol)
 
 
 # single precision less precise if code compiled with `-ffast-math`, otherwise rtol=1e-7 passes
@@ -308,10 +310,10 @@ def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
 
 
 @pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
-                          [(int(1e2), 'float64', 1e-6, 0, g_double, par1),
-                          (int(1e2), 'float64', 1e-6, 0, g_double, par2),
-                          (int(1e2), 'float64', 1e-6, 0, g_double, par3),
-                          (int(1e2), 'float64', 1e-6, 0, g_double, par4)],
+                          [(int(1e3), 'float64', 1e-6, 0, g_double, par1),
+                          (int(1e3), 'float64', 1e-6, 0, g_double, par2),
+                          (int(1e3), 'float64', 1e-6, 0, g_double, par3),
+                          (int(1e3), 'float64', 1e-6, 0, g_double, par4)],
                          ids=["{}".format(i) for i in range(4)])
 def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     """
@@ -365,7 +367,7 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
 
     # cross-check galario sampleProfile vs sampleImage
     assert_allclose(vis_g_sampleImage.real, vis_g_sampleProfile.real, rtol=rtol, atol=atol)
-    assert_allclose(vis_g_sampleImage.imag, vis_g_sampleProfile.imag, rtol=rtol, atol=np.abs(np.mean(vis_g_sampleProfile.real))*1.e-6)
+    assert_allclose(vis_g_sampleImage.imag, vis_g_sampleProfile.imag, rtol=rtol, atol=np.abs(np.mean(vis_g_sampleProfile.real))*rtol)
 
     # test chi2Image
     x, _, w = generate_random_vis(nsamples, real_type)
