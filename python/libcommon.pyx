@@ -241,13 +241,13 @@ def check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis=None, u=None, v=None):
     return True
 
 
-def check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv):
+def check_uvplane(u, v, nxy, duv, f_max, f_min):
     """
     Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.
 
     Typical call signature::
 
-        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
+        check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     Parameters
     ----------
@@ -264,25 +264,25 @@ def check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv):
     duv : float
         Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
         **units**: wavelength
-    f_maxuv : float
+    f_max : float
         Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
         the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
-        The maximum (u, v)-distance covered is `f_maxuv` times the maximum (u, v)-distance
+        The maximum (u, v)-distance covered is `f_max` times the maximum (u, v)-distance
         of the observed visibilities.
         **units**: pure number
-    f_minuv : float
+    f_min : float
         Size of the field of view covered by the (u, v) plane grid w.r.t. the field
         of view covered by the image. Recommended to be larger than 3 for better results.
         **units**: pure number
 
     """
     assert len(u) == len(v), "Wrong array length: u, v must have same length."
-    assert f_maxuv > 2., "Expected f_maxuv > 2 to ensure correct Nyquist sampling."
-    assert f_minuv > 3., "Expected f_minuv > 3 to ensure the image covers the field of view of the data."
+    assert f_max > 2., "Expected f_max > 2 to ensure correct Nyquist sampling."
+    assert f_min > 3., "Expected f_min > 3 to ensure the image covers the field of view of the data."
 
     uvdist = np.hypot(u, v)
-    min_uv = np.min(uvdist)/f_minuv
-    max_uv = np.max(uvdist) * 2. * f_maxuv
+    min_uv = np.min(uvdist)/f_min
+    max_uv = np.max(uvdist) * 2. * f_max
     # the factor of 2 comes from the fact that the FFT sample frequencies from -0.5 to 0.5 times max_uv
 
     assert duv <= min_uv, "The image does not cover the full field of view of the observations: try increasing nxy or dxy."
@@ -297,7 +297,7 @@ def get_image_size(u, v, dxy=None, f_max=2.2, f_min=3.1):
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, dxy=None, f_maxuv=2.2, f_minuv=3.1)
+        nxy, dxy = get_image_size(u, v, dxy=None, f_max=2.2, f_min=3.1)
 
     Parameters
     ----------
@@ -384,7 +384,7 @@ def get_uvcell_size(nxy, dxy):
 # ############################################################################ #
 
 def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
+                dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -428,10 +428,10 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_maxuv : float, optional
+    f_max : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    f_minuv : float, optional
+    f_min : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -448,7 +448,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
+        check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     PA *= deg
     dRA *= arcsec
@@ -461,7 +461,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 
 def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
-                  dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
+                  dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
     """
     Compute the synthetic visibilities of a model with an axisymmetric brightness profile.
 
@@ -521,10 +521,10 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_maxuv : float, optional
+    f_max : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    f_minuv : float, optional
+    f_min : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -543,7 +543,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
     duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
+        check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     PA *= deg
     inc *= deg
@@ -558,7 +558,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
 def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
               dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-              dRA=0., dDec=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
+              dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
     """
     Compute the chi square of a model image given the observed visibilities.
 
@@ -620,10 +620,10 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_maxuv : float, optional
+    f_max : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    f_minuv : float, optional
+    f_min : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -644,7 +644,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
+        check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     cdef dreal chi2
     PA *= deg
@@ -658,7 +658,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
                 dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-                dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_minuv=3.1, f_maxuv=2.2):
+                dRA=0., dDec=0., inc=0., PA=0., uvcheck=False, f_min=3.1, f_max=2.2):
     """
     Compute the chi square of a model with an axisymmetric brightness profile
     given the observed visibilities.
@@ -734,10 +734,10 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_maxuv : float, optional
+    f_max : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
-    f_minuv : float, optional
+    f_min : float, optional
         See :func:`.check_uvplane`.
         **units**: pure number
 
@@ -757,7 +757,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     duv = get_uvcell_size(nxy, dxy)
 
     if uvcheck:
-        check_uvplane(u, v, nxy, duv, f_maxuv, f_minuv)
+        check_uvplane(u, v, nxy, duv, f_max, f_min)
 
     cdef dreal chi2
     inc *= deg
