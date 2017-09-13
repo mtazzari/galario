@@ -447,7 +447,7 @@ cores to see if hyperthreading provides any benefit.</p>
 <code class="descclassname">galario.double.</code><code class="descname">get_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_image_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the recommended image size given the (u, v) locations.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">3.</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">3.</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -460,8 +460,6 @@ cores to see if hyperthreading provides any benefit.</p>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of v must be equal to the length of u.
 <strong>units</strong>: wavelength</li>
-<li><strong>dxy</strong> (<em>float</em><em>, </em><em>optional</em>) – Image cell size, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: rad</li>
 <li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.</li>
 <li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_uvplane" title="galario.double.check_uvplane"><code class="xref py py-func docutils literal"><span class="pre">check_uvplane()</span></code></a>.</li>
 </ul>
