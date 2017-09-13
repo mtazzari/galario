@@ -286,18 +286,18 @@ def check_uvplane(u, v, nxy, duv, f_max, f_min):
     # the factor of 2 comes from the fact that the FFT sample frequencies from -0.5 to 0.5 times max_uv
 
     assert duv <= min_uv, "The image does not cover the full field of view of the observations: try increasing nxy or dxy."
-    assert duv*nxy >= max_uv, "The uv plane setup does not fulfil Nyquist sampling: try decreasing nxy or dxy."
+    assert duv*nxy >= max_uv, "The uv plane setup does not fulfil Nyquist sampling: try decreasing nxy or dxy. Currently nxy:{}, duv:{}, min_uv:{}, max_uv:{}".format(duv, nxy, min_uv, max_uv)
 
     return True
 
 
-def get_image_size(u, v, dxy=None, f_max=2.5, f_min=3.):
+def get_image_size(u, v, f_max=2.5, f_min=3.):
     """
     Compute the recommended image size given the (u, v) locations.
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, dxy=None, f_max=2.5, f_min=3.)
+        nxy, dxy = get_image_size(u, v, f_max=2.5, f_min=3.)
 
     Parameters
     ----------
@@ -308,9 +308,6 @@ def get_image_size(u, v, dxy=None, f_max=2.5, f_min=3.):
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
         **units**: wavelength
-    dxy : float, optional
-        Image cell size, assumed equal and uniform in both x and y direction.
-        **units**: rad
     f_max : float, optional
         See :func:`.check_uvplane`.
     f_min : float, optional
@@ -329,24 +326,14 @@ def get_image_size(u, v, dxy=None, f_max=2.5, f_min=3.):
     """
     uvdist = np.hypot(u, v)
 
-    min_uv = np.min(uvdist) / f_min
-    if not dxy:
-        max_uv = np.max(uvdist) * 2. * f_max
-        dxy = 1/max_uv
-    else:
-        max_uv = 1/dxy
+    duv = 0.6 * np.min(uvdist) / f_min  # MRS/f_min
+    max_uv = np.max(uvdist) * 2. * f_max
 
-    nxy = int(2 ** np.ceil(np.log2(max_uv/min_uv)))
+    nxy = int(2 ** np.ceil(np.log2(max_uv/duv)))
 
-    duv = get_uvcell_size(nxy, dxy)
+    dxy = 1/(nxy*duv)
 
-    check_uvplane(u, v, nxy, duv, f_max, f_min)
-
-    if not dxy:
-        return nxy, dxy
-    else:
-        return nxy
-
+    return nxy, dxy
 
 def get_uvcell_size(nxy, dxy):
     """
@@ -804,8 +791,8 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
 
     _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
 
-    # return a copy so is C-Continuous and can be used in sampleImage()
-    return image.view(dtype=real_dtype)[:, :-2].copy()
+    # return a C-Continuous array so that it can be used in sampleImage()
+    return np.ascontiguousarray(image.view(dtype=real_dtype)[:, :-2])
 
 
 def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
