@@ -1,0 +1,14 @@
+{
+    "license": "other-open",
+    "upload_type": "software",
+    "creators": [
+        {
+            "affiliation": "Institute of Astronomy, University of Cambridge",
+            "name": "Marco Tazzari"
+        },
+        {
+            "affiliation": "C2PAP, Excellence cluster universe, LMU",
+            "name": "Frederik Beaujean"
+        }
+    ],
+}
