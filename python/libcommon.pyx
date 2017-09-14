@@ -291,13 +291,13 @@ def check_uvplane(u, v, nxy, duv, f_max, f_min):
     return True
 
 
-def get_image_size(u, v, f_max=2.5, f_min=3.):
+def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
     """
     Compute the recommended image size given the (u, v) locations.
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, f_max=2.5, f_min=3.)
+        nxy, dxy = get_image_size(u, v, f_min=5., f_max=2.5)
 
     Parameters
     ----------
@@ -308,6 +308,10 @@ def get_image_size(u, v, f_max=2.5, f_min=3.):
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
         **units**: wavelength
+    PB : float, optional
+        Primary beam of the antenna, e.g. 1.22*wavelength/Diameter for an idealized
+        antenna with uniform illumination.
+        **units**: rad
     f_max : float, optional
         See :func:`.check_uvplane`.
     f_min : float, optional
@@ -326,12 +330,28 @@ def get_image_size(u, v, f_max=2.5, f_min=3.):
     """
     uvdist = np.hypot(u, v)
 
-    duv = 0.6 * np.min(uvdist) / f_min  # MRS/f_min
+    MRS = 0.6 / np.min(uvdist)
+    duv = 1 / MRS / f_min
     max_uv = np.max(uvdist) * 2. * f_max
 
+    # nxy to ensure that FOV > MRS * f_min
     nxy = int(2 ** np.ceil(np.log2(max_uv/duv)))
+    nxy_MRS = nxy
 
     dxy = 1/(nxy*duv)
+
+    if PB != 0:
+        # impose that the field of view (FOV) is larger than the PB.
+        while dxy*nxy/PB < 1. :
+            nxy *= 2  # multiply by 2 to keep nxy a power of 2
+
+    if verbose:
+        print("dxy:{:e}arcsec\tnxy_MRS:{}".format(dxy/arcsec, nxy_MRS))
+        print("nxy_MRS: matrix size to have FOV > f_min * MRS, where f_min:{} and MRS:{:e}arcsec".format(f_min, MRS/arcsec))
+
+        if PB != 0:
+            print("nxy_FOV:{}".format(nxy))
+            print("nxy_FOV: matrix size to have FOV > PB")
 
     return nxy, dxy
 
@@ -344,7 +364,7 @@ def get_image_size(u, v, f_max=2.5, f_min=3.):
 # ############################################################################ #
 
 def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3., f_max=2.5):
+                dRA=0., dDec=0., PA=0., uvcheck=False, f_min=5., f_max=2.5):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -417,7 +437,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 
 def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
-                  dRA=0., dDec=0., PA=0., inc=0., uvcheck=False, f_min=3., f_max=2.5):
+                  dRA=0., dDec=0., PA=0., inc=0., uvcheck=False, f_min=5., f_max=2.5):
     """
     Compute the synthetic visibilities of a model with an axisymmetric brightness profile.
 
@@ -509,7 +529,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
 def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
               dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-              dRA=0., dDec=0., PA=0., uvcheck=False, f_min=3., f_max=2.5):
+              dRA=0., dDec=0., PA=0., uvcheck=False, f_min=5., f_max=2.5):
     """
     Compute the chi square of a model image given the observed visibilities.
 
@@ -606,7 +626,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
                 dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-                dRA=0., dDec=0., PA=0., inc=0., uvcheck=False, f_min=3., f_max=2.5):
+                dRA=0., dDec=0., PA=0., inc=0., uvcheck=False, f_min=5., f_max=2.5):
     """
     Compute the chi square of a model with an axisymmetric brightness profile
     given the observed visibilities.
