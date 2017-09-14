@@ -11,7 +11,7 @@ include "galario_config.pxi"
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup',
            'ngpus', 'use_gpu', 'threads',
-           'check_image', 'check_obs', 'check_uvplane', 'get_image_size', 'get_uvcell_size',
+           'check_image', 'check_obs', 'check_uvplane', 'get_image_size',
            'sampleImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
            '_fft2d', '_fftshift', '_fftshift_axis0']
@@ -335,33 +335,6 @@ def get_image_size(u, v, f_max=2.5, f_min=3.):
 
     return nxy, dxy
 
-def get_uvcell_size(nxy, dxy):
-    """
-    Computes the cell size in the (u, v) space given the size of the image.
-
-    Assumes that the image is a square matrix of side `nxy` with linear (x, y) coordinate axes.
-
-    Typical call signature::
-
-        duv = get_uvcell_size(nxy, dxy)
-
-    Parameters
-    ----------
-    dxy : float
-        Image cell size, assumed equal and uniform in both x and y direction.
-        **units**: rad
-    nxy : int
-        Size of the image.
-        **units**: pixel
-
-    Returns
-    ------
-    get_uvcell_size : float
-        The (u, v) cell size
-        **units**: observing wavelength
-
-    """
-    return 1 / (dxy*nxy)
 
 
 # ############################################################################ #
@@ -432,7 +405,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     check_image(image)
     nxy = image.shape[0]
 
-    duv = get_uvcell_size(nxy, dxy)
+    duv = 1 / (dxy*nxy)
 
     if uvcheck:
         check_uvplane(u, v, nxy, duv, f_max, f_min)
@@ -523,7 +496,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
     """
     assert Rmin < dxy, "For the interpolation of the image center, expect Rmin < dxy, but got Rmin={}, dxy={}".format(Rmin, dxy)
-    duv = get_uvcell_size(nxy, dxy)
+    duv = 1 / (dxy*nxy)
 
     if uvcheck:
         check_uvplane(u, v, nxy, duv, f_max, f_min)
@@ -619,7 +592,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     check_image(image)
     nxy = image.shape[0]
 
-    duv = get_uvcell_size(nxy, dxy)
+    duv = 1 / (dxy*nxy)
 
     if uvcheck:
         check_uvplane(u, v, nxy, duv, f_max, f_min)
@@ -729,7 +702,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
     assert Rmin < dxy, "For the interpolation of the image center, expect Rmin < dxy, but got Rmin={}, dxy={}".format(Rmin, dxy)
 
-    duv = get_uvcell_size(nxy, dxy)
+    duv = 1 / (dxy*nxy)
 
     if uvcheck:
         check_uvplane(u, v, nxy, duv, f_max, f_min)
