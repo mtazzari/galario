@@ -17,13 +17,19 @@ given a model image (or an axisymmetric brightness profile) and their comparison
 Along with the GPU accelerated version based on the
 `CUDA Toolkit <https://developer.nvidia.com/cuda-toolkit>`_, |galario| offers a CPU counterpart accelerated with
 `openMP <http://www.openmp.org>`_.
+
+.. image:: images/alma_panoramic.jpeg
+   :scale: 80 %
+   :alt: ALMA antennas on the Chajnantor plateau. Credit: ESO
+   :align: center
+   :target: http://www.eso.org/public/images/baan_7698/
+
 Modern radio interferometers like
 `ALMA <http://www.almaobservatory.org/en/home/>`_,
-`VLA <https://science.nrao.edu/facilities/vla>`_,
+`Karl G. Jansky VLA <https://science.nrao.edu/facilities/vla>`_,
 `NOEMA <http://www.iram-institute.org/EN/noema-project.php?ContentID=9&rub=9&srub=0&ssrub=0&sssrub=0>`_
-are pushing the computational efforts needed to model the observations to the extreme.
-The unprecedented sensitivity and resolution achieved by these observatories require comparing model predictions
-with huge amount of data points that sample a wide range of spatial frequencies.
+are pushing to the extreme the computational efforts needed to model the observations.
+The unprecedented sensitivity and resolution achieved by these observatories deliver huge amount of data that sample a wide range of spatial frequencies.
 In this context, |galario| provides a fast library useful for comparing a model to observations directly in the Fourier plane.
 
 We presented |galario| in `Tazzari, Beaujean and Testi (2017) <LINK>`_, where you can find more details about the
