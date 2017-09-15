@@ -50,8 +50,7 @@ script:
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install doctr && pip install sphinx_py3doc_enhanced_theme && pip install sphinxcontrib-fulltoc && make docs && cd .. && doctr deploy . --built-docs build/docs/html/; fi
 
 after_success:
-  - codecov
-  - cat codecov.yml | curl --data-binary @- https://codecov.io/validate
+  - bash <(curl -s https://codecov.io/bash) || echo 'Codecov failed to upload'
 
 notifications:
   - email: false
