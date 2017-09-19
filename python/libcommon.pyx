@@ -247,7 +247,7 @@ def check_image_size(u, v, nxy, dxy, PB=0, verbose=False):
 
     Typical call signature::
 
-        check_image_size(u, v, nxy, dxy, f_max, f_min)
+        check_image_size(u, v, nxy, dxy, PB=0, verbose=False)
 
     Parameters
     ----------
@@ -264,16 +264,6 @@ def check_image_size(u, v, nxy, dxy, PB=0, verbose=False):
     duv : float
         Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
         **units**: wavelength
-    f_max : float
-        Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
-        the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
-        The maximum (u, v)-distance covered is `f_max` times the maximum (u, v)-distance
-        of the observed visibilities.
-        **units**: pure number
-    f_min : float
-        Size of the field of view covered by the (u, v) plane grid w.r.t. the field
-        of view covered by the image. Recommended to be larger than 3 for better results.
-        **units**: pure number
     verbose : bool, optional
         If True, prints information on the criteria to be fulfilled by `nxy` and `dxy`.
 
@@ -333,10 +323,16 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
         Primary beam of the antenna, e.g. 1.22*wavelength/Diameter for an idealized
         antenna with uniform illumination.
         **units**: rad
-    f_max : float, optional
-        See :func:`.check_image_size`.
-    f_min : float, optional
-        See :func:`.check_image_size`.
+    f_min : float
+        Size of the field of view covered by the (u, v) plane grid w.r.t. the field
+        of view covered by the image. Recommended to be larger than 3 for better results.
+        **units**: pure number
+    f_max : float
+        Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
+        the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
+        The maximum (u, v)-distance covered is `f_max` times the maximum (u, v)-distance
+        of the observed visibilities.
+        **units**: pure number
     verbose : bool, optional
         If True, prints information on the criteria to be fulfilled by `nxy` and `dxy`.
 
@@ -387,7 +383,7 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
 # ############################################################################ #
 
 def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., check=False, f_min=5., f_max=2.5):
+                dRA=0., dDec=0., PA=0., check=False):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -431,12 +427,6 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_max : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
-    f_min : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
 
     Returns
     -------
@@ -451,7 +441,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, duv, f_max, f_min)
+        check_image_size(u, v, nxy, dxy)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
     _galario_sample_image(nxy, nxy, <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
@@ -460,7 +450,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 
 def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
-                  dRA=0., dDec=0., PA=0., inc=0., check=False, f_min=5., f_max=2.5):
+                  dRA=0., dDec=0., PA=0., inc=0., check=False):
     """
     Compute the synthetic visibilities of a model with an axisymmetric brightness profile.
 
@@ -473,7 +463,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
     Typical call signature::
 
         vis = sampleProfile(intensity, Rmin, dR, nxy, dxy, u, v,
-                            dRA=0, dDec=0, inc=0, PA=0, check=False)
+                            dRA=0, dDec=0, PA=0, inc=0, check=False)
 
     Parameters
     ----------
@@ -520,12 +510,6 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_max : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
-    f_min : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
 
     Returns
     -------
@@ -542,7 +526,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, duv, f_max, f_min)
+        check_image_size(u, v, nxy, dxy)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
     _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
@@ -552,7 +536,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
 def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
               dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-              dRA=0., dDec=0., PA=0., check=False, f_min=5., f_max=2.5):
+              dRA=0., dDec=0., PA=0., check=False):
     """
     Compute the chi square of a model image given the observed visibilities.
 
@@ -614,12 +598,6 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_max : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
-    f_min : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
 
     Returns
     -------
@@ -638,7 +616,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, duv, f_max, f_min)
+        check_image_size(u, v, nxy, dxy)
 
     cdef dreal chi2
 
@@ -649,7 +627,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
                 dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-                dRA=0., dDec=0., PA=0., inc=0., check=False, f_min=5., f_max=2.5):
+                dRA=0., dDec=0., PA=0., inc=0., check=False):
     """
     Compute the chi square of a model with an axisymmetric brightness profile
     given the observed visibilities.
@@ -667,7 +645,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     Typical call signature::
 
         chi2 = chi2Profile(intensity, Rmin, dR, nxy, dxy, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
-                           dRA=0, dDec=0, inc=0, PA=0, check=False)
+                           dRA=0, dDec=0, PA=0, inc=0, check=False)
 
     Parameters
     ----------
@@ -725,12 +703,6 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
         the synthetic visibilities in the (u, v) locations provided.
         Default is False since the check might take time. For executions where speed is important, set to False.
-    f_max : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
-    f_min : float, optional
-        See :func:`.check_image_size`.
-        **units**: pure number
 
     Returns
     -------
@@ -748,7 +720,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, duv, f_max, f_min)
+        check_image_size(u, v, nxy, dxy)
 
     cdef dreal chi2
 
