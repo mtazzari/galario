@@ -120,6 +120,9 @@ The BibTeX entry for the paper is::
 
     @ARTICLE{...}
 
+|galario| has also a `Zenodo DOI <https://doi.org/10.5281/zenodo.891039>`_, which can be used to refer to the exact
+version of |galario| used in a paper.
+
 |galario| is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
 
 © Copyright 2017 Marco Tazzari, Frederik Beaujean, Leonardo Testi.

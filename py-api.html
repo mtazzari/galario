@@ -97,10 +97,6 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
-<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
 </ul>
 </td>
 </tr>
@@ -125,7 +121,7 @@ then Fourier transformed and sampled in the (u, v) locations given in the <code 
 from right (West) to left (East) and the y-axis (Dec.) increases from bottom (South) to top (North).</p>
 <p>Typical call signature:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
-                    <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                    <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -164,10 +160,6 @@ If inc=0. the image is face-on; if inc=90. the image is edge-on.
 <li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
-<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
 </ul>
 </td>
 </tr>
@@ -251,10 +243,6 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
-<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
 </ul>
 </td>
 </tr>
@@ -285,7 +273,7 @@ The chi square is computed from the observed and synthetic visibilities as:</p>
 as in <a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal"><span class="pre">sampleProfile()</span></code></a>.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
-                   <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                   <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -332,10 +320,6 @@ If inc=0. the image is face-on; if inc=90. the image is edge-on.
 <li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
-<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
-<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.
-<strong>units</strong>: pure number</li>
 </ul>
 </td>
 </tr>
@@ -463,8 +447,14 @@ The length of v must be equal to the length of u.
 <li><strong>PB</strong> (<em>float</em><em>, </em><em>optional</em>) – Primary beam of the antenna, e.g. 1.22*wavelength/Diameter for an idealized
 antenna with uniform illumination.
 <strong>units</strong>: rad</li>
-<li><strong>f_max</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.</li>
-<li><strong>f_min</strong> (<em>float</em><em>, </em><em>optional</em>) – See <a class="reference internal" href="#galario.double.check_image_size" title="galario.double.check_image_size"><code class="xref py py-func docutils literal"><span class="pre">check_image_size()</span></code></a>.</li>
+<li><strong>f_min</strong> (<em>float</em>) – Size of the field of view covered by the (u, v) plane grid w.r.t. the field
+of view covered by the image. Recommended to be larger than 3 for better results.
+<strong>units</strong>: pure number</li>
+<li><strong>f_max</strong> (<em>float</em>) – Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
+the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
+The maximum (u, v)-distance covered is <code class="code docutils literal"><span class="pre">f_max</span></code> times the maximum (u, v)-distance
+of the observed visibilities.
+<strong>units</strong>: pure number</li>
 <li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal"><span class="pre">nxy</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code>.</li>
 </ul>
 </td>
@@ -488,7 +478,7 @@ Size of the image cell, assumed equal and uniform in both x and y direction.
 <code class="descclassname">galario.double.</code><code class="descname">check_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.check_image_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">check_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">f_max</span><span class="p">,</span> <span class="n">f_min</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">check_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">PB</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -505,14 +495,6 @@ The length of v must be equal to the length of u.
 <strong>units</strong>: pixel</li>
 <li><strong>duv</strong> (<em>float</em>) – Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
 <strong>units</strong>: wavelength</li>
-<li><strong>f_max</strong> (<em>float</em>) – Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
-the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
-The maximum (u, v)-distance covered is <code class="code docutils literal"><span class="pre">f_max</span></code> times the maximum (u, v)-distance
-of the observed visibilities.
-<strong>units</strong>: pure number</li>
-<li><strong>f_min</strong> (<em>float</em>) – Size of the field of view covered by the (u, v) plane grid w.r.t. the field
-of view covered by the image. Recommended to be larger than 3 for better results.
-<strong>units</strong>: pure number</li>
 <li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal"><span class="pre">nxy</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code>.</li>
 </ul>
 </td>
