@@ -31,8 +31,9 @@ before_install:
   - conda config --add channels conda-forge
 
 install:
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION astropy coverage codecov pytest-cov cython nomkl numpy pytest scipy sphinx
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION astropy cython nomkl numpy pytest scipy sphinx
   - source activate test-environment
+  - pip install coverage codecov pytest-cov
 
   - mkdir build && cd build
   - cmake -DCMAKE_INSTALL_PREFIX=/tmp -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} ..
@@ -44,7 +45,7 @@ script:
   - set -e
 
   # first unit tests
-  - ctest -V --output-on-failure --cov=./
+  - python/py.test.sh -sv --cov=./ python/test_galario.py
 
   # build and deploy docs only for one python version
   - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install doctr && pip install sphinx_py3doc_enhanced_theme && pip install sphinxcontrib-fulltoc && make docs && cd .. && doctr deploy . --built-docs build/docs/html/; fi
