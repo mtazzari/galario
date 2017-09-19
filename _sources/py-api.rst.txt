@@ -52,7 +52,7 @@ Other useful functions
 ----------------------
 .. autofunction:: galario.double.threads
 .. autofunction:: galario.double.get_image_size
-.. autofunction:: galario.double.check_uvplane
+.. autofunction:: galario.double.check_image_size
 .. autofunction:: galario.double.sweep
 .. autofunction:: galario.double.apply_phase_vis
 
