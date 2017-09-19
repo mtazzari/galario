@@ -384,7 +384,9 @@ void fft_d(int nx, int ny, dcomplex* data_d) {
 void fft_h(int nx, int ny, dcomplex* data) {
     dreal* input = reinterpret_cast<dreal*>(data);
     FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
+#ifdef _OPENMP
     fftw_plan_with_nthreads(galario_threads());
+#endif
     FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, ny, input, output, FFTW_ESTIMATE);
     FFTW(execute)(p);
 
