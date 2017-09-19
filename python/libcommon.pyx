@@ -241,13 +241,13 @@ def check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis=None, u=None, v=None):
     return True
 
 
-def check_uvplane(u, v, nxy, duv, f_max, f_min):
+def check_uvplane(u, v, nxy, dxy, PB=0, verbose=False):
     """
     Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.
 
     Typical call signature::
 
-        check_uvplane(u, v, nxy, duv, f_max, f_min)
+        check_uvplane(u, v, nxy, dxy, f_max, f_min)
 
     Parameters
     ----------
@@ -277,16 +277,35 @@ def check_uvplane(u, v, nxy, duv, f_max, f_min):
 
     """
     assert len(u) == len(v), "Wrong array length: u, v must have same length."
-    assert f_max > 2., "Expected f_max > 2 to ensure correct Nyquist sampling."
-    assert f_min > 1., "Expected f_min > 1 to ensure the image covers the maximum recoverable scale of the data."
 
     uvdist = np.hypot(u, v)
-    min_uv = np.min(uvdist)/f_min
-    max_uv = np.max(uvdist) * 2. * f_max
+
+    MRS = 0.6 / np.min(uvdist)
+    max_uv = np.max(uvdist) * 2.
     # the factor of 2 comes from the fact that the FFT sample frequencies from -0.5 to 0.5 times max_uv
 
-    assert duv <= min_uv, "The image does not cover the full field of view of the observations: try increasing nxy or dxy."
-    assert duv*nxy >= max_uv, "The uv plane setup does not fulfil Nyquist sampling: try decreasing nxy or dxy. Currently nxy:{}, duv:{}, min_uv:{}, max_uv:{}".format(duv, nxy, min_uv, max_uv)
+    FOV = nxy*dxy
+    FOV_to_MRS = FOV/MRS
+    UVFOV_to_MAXUV = 1/(max_uv*dxy)
+
+    FOV_to_MRS_str = "Nxy * dxy / MRS = {} must be > 1 at the very least".format(FOV_to_MRS)
+    UVFOV_to_MAXUV_str = "Nxy * duv / (2*max(u,v)) = {} must be > 2 for Nyquist sampling".format(UVFOV_to_MAXUV)
+
+    if PB != 0:
+        FOV_to_PB = FOV/PB
+        FOV_to_PB_str = "Nxy * dxy / PB = {} must be > 1".format(FOV_to_PB)
+
+    if verbose:
+        print(FOV_to_MRS_str)
+        print(UVFOV_to_MAXUV_str)
+        if PB != 0:
+            print(FOV_to_PB_str)
+
+    assert FOV_to_MRS > 1, FOV_to_MRS_str
+    assert UVFOV_to_MAXUV > 2, UVFOV_to_MAXUV_str
+
+    if PB != 0:
+        assert FOV_to_PB > 1, FOV_to_PB_str
 
     return True
 
@@ -297,7 +316,7 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, f_min=5., f_max=2.5)
+        nxy, dxy = get_image_size(u, v, f_min=5., f_max=2.5, verbose=False)
 
     Parameters
     ----------
@@ -316,6 +335,8 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
         See :func:`.check_uvplane`.
     f_min : float, optional
         See :func:`.check_uvplane`.
+    verbose : bool, optional
+        If True, prints useful information on the criteria to be fulfilled by `nxy` and `dxy`.
 
     Returns
     -------
