@@ -143,13 +143,14 @@ Contents
     :maxdepth: 2
 
     install
+    quickstart
     cookbook
     py-api
     C-api
     C-example
     studies
     license
-..     quickstart
+
 
 Indices
 -------
