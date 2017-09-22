@@ -3,9 +3,17 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. image:: images/galario.jpg
+   :scale: 40 %
+   :alt: Galario logo. Credit: Tazzari, Beaujean, Testi.
+   :align: left
+
 =========
 |galario|
 =========
+
+--------------
+
 
 **GPU Accelerated Library for Analysing Radio Interferometer Observations**
 ---------------------------------------------------------------------------
