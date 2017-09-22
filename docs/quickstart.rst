@@ -209,7 +209,8 @@ Fit of a single-wavelength data set
         # plot the resulting MCMC
         import corner
         samples = sampler.chain[:, -1000:, :].reshape((-1, ndim))
-        fig = corner.corner(samples, labels=["$f_0$", "$\sigma$", "$i$", "PA", "$\Delta$RA", "$\Delta$Dec"])
+        fig = corner.corner(samples, labels=["$f_0$", "$\sigma$", r"$i$", r"PA", r"$\Delta$RA", r"$\Delta$Dec"],
+                            show_titles=True, quantiles=[0.16, 0.50, 0.84], label_kwargs={'labelpad':20, 'fontsize':0}, fontsize=8)
         fig.savefig("triangle_example.png")
 
     At the end of the run, which takes approx. 5-8 mins. on a laptop with an Intel i5 2.9GHz, you should obtain an image of
