@@ -42,6 +42,9 @@ and has already been employed in :doc:`these published studies <studies>`.
 
 Instructions on how to build and install |galario| can be found :doc:`here <install>`.
 
+More details on how to get started with |galario| are given in the :doc:`Quickstart example <quickstart>`.
+
+Be sure to checkout also the :doc:`Cookbook <cookbook>` with many useful code snippets!
 
 Basic Usage
 -----------
@@ -108,11 +111,6 @@ With |galario| you can:
     If you work on a machine **without** a CUDA-enabled GPU, don't worry: you can use the CPU version
     of |galario| by just removing the subscript `"_cuda"` from the imports above and benefit from the openMP parallelization.
     All the function names and interfaces are the same for GPU and CPU version!
-
-
-More details on how to get started with |galario| are given in the :doc:`Quickstart example <quickstart>`.
-
-Be sure to checkout also the :doc:`Cookbook <cookbook>` with many useful code snippets!
 
 
 License and Attribution
