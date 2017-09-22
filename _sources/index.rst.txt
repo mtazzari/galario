@@ -32,7 +32,7 @@ are pushing to the extreme the computational efforts needed to model the observa
 The unprecedented sensitivity and resolution achieved by these observatories deliver huge amount of data that sample a wide range of spatial frequencies.
 In this context, |galario| provides a fast library useful for comparing a model to observations directly in the Fourier plane.
 
-We presented |galario| in `Tazzari, Beaujean and Testi (2017) <LINK>`_, where you can find more details about the
+We presented |galario| in `Tazzari, Beaujean and Testi (2017) <https://arxiv.org/abs/1709.06999>`_, where you can find more details about the
 relevant equations and the algorithm implementation.
 Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to the
 `Synthesis Imaging in Radio Astronomy II <http://aspbooks.org/a/volumes/table_of_contents/180>`_ book.
@@ -109,9 +109,11 @@ With |galario| you can:
     of |galario| by just removing the subscript `"_cuda"` from the imports above and benefit from the openMP parallelization.
     All the function names and interfaces are the same for GPU and CPU version!
 
-.. More details on how to get started with |galario| are given in the :doc:`quickstart <quickstart>`.
 
-Be sure to checkout also the :doc:`cookbook <cookbook>` with many useful code snippets!
+More details on how to get started with |galario| are given in the :doc:`Quickstart example <quickstart>`.
+
+Be sure to checkout also the :doc:`Cookbook <cookbook>` with many useful code snippets!
+
 
 License and Attribution
 -----------------------

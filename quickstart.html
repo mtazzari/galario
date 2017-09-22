@@ -261,6 +261,14 @@ in the right figure we compute the bestfit model (here taken as the median of th
 </tbody>
 </table>
 </dd>
+<dt><strong>7) CPU vs GPU execution</strong></dt>
+<dd><p class="first">So far we have run <strong>galario</strong> on the CPU. Running it on a GPU can be done by just changing the import at the beginning:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span> <span class="k">as</span> <span class="n">g_double</span>
+</pre></div>
+</div>
+<p>All the rest of the code remains the same!</p>
+<p class="last">For more details on the GPU vs CPU execution, see the <a class="reference internal" href="cookbook.html#cookbook"><span class="std std-ref">Cookbook</span></a>.</p>
+</dd>
 </dl>
 </div>
 </div>

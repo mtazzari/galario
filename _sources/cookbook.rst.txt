@@ -2,9 +2,13 @@
 .. role:: bash(code)
    :language: bash
 
+.. _cookbook:
+
 ==================
 |galario| Cookbook
 ==================
+
+.. _cookbook_GPU_CPU_version:
 
 Using the GPU and CPU version
 -----------------------------

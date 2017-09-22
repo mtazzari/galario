@@ -105,10 +105,11 @@ activate a Python 3 environment with:</p>
 <p>This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
 It will use the internet connection to automatically download <a class="reference external" href="https://github.com/UCL/GreatCMakeCookOff">this</a> additional library (1.5 MB).</p>
 </li>
-<li><p class="first">Use <code class="code docutils literal"><span class="pre">make</span></code> to build</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>make
+<li><p class="first">Use <code class="code docutils literal"><span class="pre">make</span></code> to build and <code class="code docutils literal"><span class="pre">make</span> <span class="pre">install</span></code> to install it:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> sudo make install
 </pre></div>
 </div>
+<p>If you have no sudo rights, see the <a class="reference internal" href="#install-details"><span class="std std-ref">instructions below</span></a> to specify an installation path.</p>
 </li>
 </ol>
 </div></blockquote>
@@ -289,7 +290,7 @@ passing the additional flag:</p>
 </div>
 </div>
 <div class="section" id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<span id="install-details"></span><h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
 <p>To specify a path where to install the C libraries of <strong>galario</strong> (e.g., if you do not have <code class="code docutils literal"><span class="pre">sudo</span></code> rights to install it in <code class="code docutils literal"><span class="pre">usr/local/lib</span></code>),
 do the conventional:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>cmake -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/path/to/galario/lib ..

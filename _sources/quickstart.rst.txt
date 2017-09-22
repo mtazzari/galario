@@ -223,3 +223,13 @@ Fit of a single-wavelength data set
     |  :alt: Chains                                         |          :alt: Chains                         |
     +-------------------------------------------------------+-----------------------------------------------+
 
+**7) CPU vs GPU execution**
+    So far we have run |galario| on the CPU. Running it on a GPU can be done by just changing the import at the beginning:
+
+    .. code-block:: python
+
+        from galario import double_cuda as g_double
+
+    All the rest of the code remains the same!
+
+    For more details on the GPU vs CPU execution, see the :ref:`Cookbook <cookbook>`.

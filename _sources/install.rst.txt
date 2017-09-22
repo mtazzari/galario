@@ -54,11 +54,13 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
     It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
 
 
- 3. Use `make` to build
+ 3. Use `make` to build and `make install` to install it:
 
     .. code-block:: bash
 
-        make
+        make && sudo make install
+
+    If you have no sudo rights, see the :ref:`instructions below <install_details>` to specify an installation path.
 
 ..        CC="/path/to/gcc" CXX="/path/to/g++" cmake -DCMAKE_PREFIX_PATH="${FFTW_HOME};${CONDA_PREFIX}" ../ && make all
        ..
@@ -297,6 +299,9 @@ passing the additional flag:
 .. code-block:: bash
 
     cmake -DGALARIO_TIMING=1 ..
+
+
+.. _install_details:
 
 Install
 -------
