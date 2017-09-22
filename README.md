@@ -14,6 +14,7 @@ given a model image (or an axisymmetric brightness profile) and their comparison
 
 Check out the [documentation](https://mtazzari.github.io/galario/) and the [installation instructions](https://mtazzari.github.io/galario/install.html).
 
+**galario** has been presented in [Tazzari, Beaujean and Testi (2017)](https://arxiv.org/abs/1709.06999).
 
 License
 -------

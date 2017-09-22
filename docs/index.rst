@@ -115,10 +115,20 @@ Be sure to checkout also the :doc:`cookbook <cookbook>` with many useful code sn
 
 License and Attribution
 -----------------------
-If you use |galario| for your research, please cite `Tazzari, Beaujean and Testi (2017) <LINK>`_ .
+If you use |galario| for your research, please cite `Tazzari, Beaujean and Testi (2017) <https://arxiv.org/abs/1709.06999>`_ .
 The BibTeX entry for the paper is::
 
-    @ARTICLE{...}
+    @ARTICLE{Tazzari:galario,
+    Adsurl = {http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1709.06999},
+    Archiveprefix = {arXiv},
+    Arxivurl = {http://arxiv.org/abs/1709.06999v1},
+    Author = {{Tazzari}, Marco and {Beaujean}, Frederik and {Testi}, Leonardo},
+    Eprint = {1709.06999v1},
+    Jornal = {ArXiv e-prints},
+    Month = {Sep},
+    Primaryclass = {astro-ph.IM},
+    Title = {GALARIO: a GPU Accelerated Library for Analysing Radio Interferometer Observations},
+    Year = {2017}}
 
 |galario| has also a `Zenodo DOI <https://doi.org/10.5281/zenodo.891039>`_, which can be used to refer to the exact
 version of |galario| used in a paper.
