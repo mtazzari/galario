@@ -1,6 +1,9 @@
 ./C-api.html
 ./C-example.html
 ./_images/alma_panoramic.jpeg
+./_images/disk_example.jpg
+./_images/quickstart_triangle_whole_chain.png
+./_images/uvplot.png
 ./_sources/C-api.rst.txt
 ./_sources/C-example.rst.txt
 ./_sources/cookbook.rst.txt
