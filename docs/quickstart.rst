@@ -158,7 +158,6 @@ Fit of a single-wavelength data set
             f0 = 10.**f0        # convert from log to real space
 
             # convert to rad
-            sigma *= arcsec
             inc *= deg
             PA *= deg
             dRA *= arcsec
