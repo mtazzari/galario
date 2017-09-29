@@ -44,6 +44,7 @@ else()
   "Current python install path"
   )
 endif()
+message("${GALARIO_PYTHON_PKG_DIR}")
 # on unix: install .py and .so relative to ${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT}
 install(DIRECTORY ${PYGALARIO_DIR}
   DESTINATION "${GALARIO_PYTHON_PKG_DIR}"
