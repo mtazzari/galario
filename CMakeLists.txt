@@ -15,6 +15,13 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
   string( REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 endif()
 
+# if inside a conda env, install everything in there
+# if (DEFINED ENV{CONDA_PREFIX} AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+if (DEFINED ENV{CONDA_PREFIX})
+  message(STATUS "Installing inside conda env at $ENV{CONDA_PREFIX}")
+  set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+endif()
+
 # ship extra findXXX.cmake in `cmake/`
 # APPEND doesn't propagate variable to subdirectory
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -31,13 +38,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT GALARIO_FORCE_CUDA)
 else()
   find_package(CUDA)
 endif()
-
-# User can change and specify version of python in case there are
-# several in cache with `cmake-gui .` or `ccmake .`
-# set(Python_ADDITIONAL_VERSIONS 3;2 CACHE STRING "List of python versions to look for. First come, first served, for example '2;3.5' prefers 2.x over 3.5")
-
-# the name sounds promising but it didn't go well with UseCython below
-# include(FindCoherentPython)
 
 # has to come before subdirectories are added
 enable_testing()

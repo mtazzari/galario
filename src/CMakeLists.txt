@@ -92,6 +92,9 @@ if (CUDA_FOUND)
   # target_compile_definitions(galario_cuda PUBLIC DOUBLE_PRECISION)
 endif() # cuda
 
+###
+# install
+###
 # it would be nice if directory would let me access all libraries but there is no such property
 # https://cmake.org/cmake/help/v3.0/manual/cmake-properties.7.html
 install (TARGETS ${install_libs}
@@ -104,7 +107,6 @@ install(FILES galario.h galario_py.h galario_defs.h DESTINATION include)
 ###
 # testing
 ###
-
 add_executable(galario_test_c galario_test.c)
 add_test(c_compile_test galario_test_c)
 add_executable(galario_test_cpp galario_test.cpp)

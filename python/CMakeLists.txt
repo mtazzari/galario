@@ -39,7 +39,6 @@ if(DEFINED ENV{CONDA_PREFIX})
   set(GALARIO_PYTHON_PKG_DIR "${DEFAULT_PYTHON_PKG_DIR}" CACHE PATH
     "Current python install path"
     )
-  message(STATUS "Found conda prefix: $ENV{CONDA_PREFIX}")
 else()
   set(GALARIO_PYTHON_PKG_DIR "${PYTHON_PKG_DIR}" CACHE PATH
   "Current python install path"
