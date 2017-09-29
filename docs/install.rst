@@ -327,17 +327,19 @@ This will install the C libraries of |galario| in `/path/to/galario/`.
     `ccmake .` after running `cmake`.
 
 
-If you are working inside an active conda environment, `GALARIO_PYTHON_PKG_DIR` is already initialized to the conda environment path, e.g.:
+If you are working inside an active conda environment, both the libraries and the python wrapper are installed inside the environment defined by `$CONDA_PREFIX`, e.g.:
 
 .. code-block:: bash
 
     conda activate myenv
-    cmake -DCMAKE_INSTALL_PREFIX=/some/prefix ..
+    cmake ..
     make && make install
 
-will output the following in the install step
+Example output during the `install` step
 
-    -- Installing: /some/prefix/lib/libgalario.so
+    -- Installing: /path/to/conda/envs/myenv/lib/libgalario.so
+    -- Installing: /path/to/conda/envs/myenv/include/galario.h
+    ...
     -- Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py
 
 From the environment `myenv` it is now possible to import |galario|.
