@@ -4,11 +4,15 @@ if(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
 endif(NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
 
 file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
-string(REGEX REPLACE "\n" ";" files "${files}")
-# TODO how to determine the python directory? Empty now. need to do in python subdirectory
-message("${GALARIO_PYTHON_PKG_DIR}")
 
-# list(APPEND files "$ENV{DESTDIR}" )
+# first `__init__.py` is in the python package directory that we want to remove
+file(STRINGS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" lines REGEX "^.+/galario/__init__.py$")
+get_filename_component(pypkgdir "${lines}" DIRECTORY)
+
+# turn files into a list
+string(REGEX REPLACE "\n" ";" files "${files}")
+
+# list(APPEND "${pypkgdir}" files)
 foreach(file ${files})
   message(STATUS "Uninstalling $ENV{DESTDIR}${file}")
   if(IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
@@ -26,4 +30,7 @@ foreach(file ${files})
 endforeach(file)
 
 # now remove the python subdirectory
-message(STATUS "Uninstalling python wrapper")
+if (IS_SYMLINK "${pypkgdir}" OR EXISTS "${pypkgdir}")
+  message(STATUS "Uninstalling python package directory ${pypkgdir}")
+  file(REMOVE_RECURSE ${pypkgdir})
+endif()
