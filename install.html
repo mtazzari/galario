@@ -105,7 +105,7 @@ activate a Python 3 environment with:</p>
 <p>This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
 It will use the internet connection to automatically download <a class="reference external" href="https://github.com/UCL/GreatCMakeCookOff">this</a> additional library (1.5 MB).</p>
 </li>
-<li><p class="first">Use <code class="code docutils literal"><span class="pre">make</span></code> to build and <code class="code docutils literal"><span class="pre">make</span> <span class="pre">install</span></code> to install it:</p>
+<li><p class="first">Use <code class="code docutils literal"><span class="pre">make</span></code> to build <strong>galario</strong> and <code class="code docutils literal"><span class="pre">make</span> <span class="pre">install</span></code> to install it inside the active environment:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> make install
 </pre></div>
 </div>
@@ -176,11 +176,11 @@ and reported by <code class="code docutils literal"><span class="pre">cmake</spa
 <p>galario should work with both python 2 and 3. For example, if you are using the <a class="reference external" href="https://www.continuum.io/downloads">Anaconda</a> distribution, you can create conda environments with</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span><span class="c1"># python 2</span>
 conda create --name galario2 <span class="nv">python</span><span class="o">=</span><span class="m">2</span> numpy cython pytest
-conda activate galario2
+<span class="nb">source</span> activate galario2
 
 <span class="c1"># or python3</span>
 conda create --name galario3 <span class="nv">python</span><span class="o">=</span><span class="m">3</span> numpy cython pytest
-conda activate galario3
+<span class="nb">source</span> activate galario3
 </pre></div>
 </div>
 <p>To run the tests, install some more dependencies within the environment</p>
@@ -321,7 +321,7 @@ make <span class="o">&amp;&amp;</span> make install
 – Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py</div></blockquote>
 <p>From the environment <code class="code docutils literal"><span class="pre">myenv</span></code> it is now possible to import <strong>galario</strong>.</p>
 <div class="section" id="uninstall">
-<h3>uninstall<a class="headerlink" href="#uninstall" title="Permalink to this headline">¶</a></h3>
+<h3>Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this headline">¶</a></h3>
 <p>After installation, remove all installed files with</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>make uninstall
 </pre></div>
@@ -407,7 +407,7 @@ If you still have problems, remove the <code class="code docutils literal"><span
 </ul>
 </li>
 <li><a class="reference internal" href="#install">Install</a><ul>
-<li><a class="reference internal" href="#uninstall">uninstall</a></li>
+<li><a class="reference internal" href="#uninstall">Uninstall</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#tests">Tests</a></li>

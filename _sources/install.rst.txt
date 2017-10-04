@@ -54,7 +54,7 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
     It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
 
 
- 3. Use `make` to build and `make install` to install it:
+ 3. Use `make` to build |galario| and `make install` to install it inside the active environment:
 
     .. code-block:: bash
 
@@ -157,11 +157,11 @@ galario should work with both python 2 and 3. For example, if you are using the 
 
     # python 2
     conda create --name galario2 python=2 numpy cython pytest
-    conda activate galario2
+    source activate galario2
 
     # or python3
     conda create --name galario3 python=3 numpy cython pytest
-    conda activate galario3
+    source activate galario3
 
 To run the tests, install some more dependencies within the environment
 
@@ -344,7 +344,7 @@ Example output during the `install` step
 
 From the environment `myenv` it is now possible to import |galario|.
 
-uninstall
+Uninstall
 ~~~~~~~~~
 
 After installation, remove all installed files with
