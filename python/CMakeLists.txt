@@ -30,7 +30,6 @@ endif()
 # installation
 ###
 # to set ${PYTHON_PKG_DIR}. It is prepended by ${CMAKE_INSTALL_PREFIX} if set by user
-# message("using ${PYTHON_PKG_DIR}")
 include(PythonInstall)
 
 # if conda environment is found, prefer that. I know, the name
@@ -44,7 +43,7 @@ else()
   "Current python install path"
   )
 endif()
-message("${GALARIO_PYTHON_PKG_DIR}")
+
 # on unix: install .py and .so relative to ${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT}
 install(DIRECTORY ${PYGALARIO_DIR}
   DESTINATION "${GALARIO_PYTHON_PKG_DIR}"
