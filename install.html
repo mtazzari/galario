@@ -106,10 +106,10 @@ activate a Python 3 environment with:</p>
 It will use the internet connection to automatically download <a class="reference external" href="https://github.com/UCL/GreatCMakeCookOff">this</a> additional library (1.5 MB).</p>
 </li>
 <li><p class="first">Use <code class="code docutils literal"><span class="pre">make</span></code> to build and <code class="code docutils literal"><span class="pre">make</span> <span class="pre">install</span></code> to install it:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> sudo make install
+<div class="highlight-bash"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> make install
 </pre></div>
 </div>
-<p>If you have no sudo rights, see the <a class="reference internal" href="#install-details"><span class="std std-ref">instructions below</span></a> to specify an installation path.</p>
+<p>If the installation fails due to permission problems, you either have to use <code class="code docutils literal"><span class="pre">sudo</span> <span class="pre">make</span> <span class="pre">install</span></code>, or see the <a class="reference internal" href="#install-details"><span class="std std-ref">instructions below</span></a> to specify an alternate installation path.</p>
 </li>
 </ol>
 </div></blockquote>
@@ -307,15 +307,17 @@ do the conventional:</p>
 If you want to install the Python bindings elsewhere, there is an extra cache variable <code class="code docutils literal"><span class="pre">GALARIO_PYTHON_PKG_DIR</span></code> that you can edit with
 <code class="code docutils literal"><span class="pre">ccmake</span> <span class="pre">.</span></code> after running <code class="code docutils literal"><span class="pre">cmake</span></code>.</p>
 </div>
-<p>If you are working inside an active conda environment, <code class="code docutils literal"><span class="pre">GALARIO_PYTHON_PKG_DIR</span></code> is already initialized to the conda environment path, e.g.:</p>
+<p>If you are working inside an active conda environment, both the libraries and the python wrapper are installed inside the environment defined by <code class="code docutils literal"><span class="pre">$CONDA_PREFIX</span></code>, e.g.:</p>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>conda activate myenv
-cmake -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/some/prefix ..
+cmake ..
 make <span class="o">&amp;&amp;</span> make install
 </pre></div>
 </div>
-<p>will output the following in the install step</p>
+<p>Example output during the <code class="code docutils literal"><span class="pre">install</span></code> step</p>
 <blockquote>
-<div>– Installing: /some/prefix/lib/libgalario.so
+<div>– Installing: /path/to/conda/envs/myenv/lib/libgalario.so
+– Installing: /path/to/conda/envs/myenv/include/galario.h
+…
 – Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py</div></blockquote>
 <p>From the environment <code class="code docutils literal"><span class="pre">myenv</span></code> it is now possible to import <strong>galario</strong>.</p>
 </div>
