@@ -21,12 +21,13 @@ target_compile_definitions(galario PUBLIC DOUBLE_PRECISION)
 set(install_libs galario_single galario)
 
 find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
+find_package(Threads)
+if(OpenMP_FOUND AND Threads_FOUND)
   set(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
   # https://cmake.org/Bug/view.php?id=9075
   # http://stackoverflow.com/questions/24532853/how-to-add-linker-flag-for-libraries-with-cmake
   set(CMAKE_SHARED_LINKER_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_SHARED_LINKER_FLAGS}")
-  set(FFTW_PARALLEL "OPENMP")
+  set(FFTW_PARALLEL "THREADS")
 endif()
 
 # we need fftw with (single+double)x(serial+openmp)
