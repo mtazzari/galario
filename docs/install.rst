@@ -344,6 +344,15 @@ Example output during the `install` step
 
 From the environment `myenv` it is now possible to import |galario|.
 
+uninstall
+~~~~~~~~~
+
+After installation, remove all installed files with
+
+.. code-block:: bash
+
+   make uninstall
+
 Tests
 -----
 
