@@ -58,9 +58,9 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
 
     .. code-block:: bash
 
-        make && sudo make install
+        make && make install
 
-    If you have no sudo rights, see the :ref:`instructions below <install_details>` to specify an installation path.
+    If the installation fails due to permission problems, you either have to use `sudo make install`, or see the :ref:`instructions below <install_details>` to specify an alternate installation path.
 
 ..        CC="/path/to/gcc" CXX="/path/to/g++" cmake -DCMAKE_PREFIX_PATH="${FFTW_HOME};${CONDA_PREFIX}" ../ && make all
        ..
