@@ -277,18 +277,12 @@ CUDA
 `cmake` tests for compilation on the GPU with cuda by default **except on Mac OS**,
 where version conflicts between the NVIDIA compiler and the C++ compiler often lead to problems (see `this issue <https://github.com/mtazzari/galario/issues/30>`_).
 
-To manually turn OFF CUDA compilation, disable the search for the CUDA package:
+To manually enable or disable checking for cuda, do
 
 .. code-block:: bash
 
-    cmake -DCMAKE_DISABLE_FIND_PACKAGE_CUDA=1 ..
-
-On the opposite, to force searching for CUDA, for example on Mac OS, do:
-
-.. code-block:: bash
-
-    cmake -DGALARIO_FORCE_CUDA=1 ..
-
+   cmake -DGALARIO_CHECK_CUDA=0 .. # don't check
+   cmake -DGALARIO_CHECK_CUDA=1 .. # check
 
 Timing
 ~~~~~~
@@ -299,7 +293,6 @@ passing the additional flag:
 .. code-block:: bash
 
     cmake -DGALARIO_TIMING=1 ..
-
 
 .. _install_details:
 
