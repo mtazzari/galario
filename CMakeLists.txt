@@ -33,9 +33,15 @@ include(LookUp-GreatCMakeCookOff)
 ###
 # the optional packages
 ###
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT GALARIO_FORCE_CUDA)
-  message(STATUS "Ignoring cuda on the mac by default. Force searching for cuda with `cmake -DGALARIO_FORCE_CUDA=1`")
-else()
+if(NOT DEFINED GALARIO_CHECK_CUDA)
+  if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    message(STATUS "Ignoring cuda on the mac by default. Force searching for cuda with `cmake -DGALARIO_CHECK_CUDA=1`")
+    set(GALARIO_CHECK_CUDA 0)
+  else()
+    set(GALARIO_CHECK_CUDA 1)
+  endif()
+endif()
+if(GALARIO_CHECK_CUDA)
   find_package(CUDA)
 endif()
 
