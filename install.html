@@ -270,12 +270,9 @@ create an alias with:</p>
 <span id="build-details-cuda"></span><h3>CUDA<a class="headerlink" href="#cuda" title="Permalink to this headline">¶</a></h3>
 <p><code class="code docutils literal"><span class="pre">cmake</span></code> tests for compilation on the GPU with cuda by default <strong>except on Mac OS</strong>,
 where version conflicts between the NVIDIA compiler and the C++ compiler often lead to problems (see <a class="reference external" href="https://github.com/mtazzari/galario/issues/30">this issue</a>).</p>
-<p>To manually turn OFF CUDA compilation, disable the search for the CUDA package:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>cmake -DCMAKE_DISABLE_FIND_PACKAGE_CUDA<span class="o">=</span><span class="m">1</span> ..
-</pre></div>
-</div>
-<p>On the opposite, to force searching for CUDA, for example on Mac OS, do:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>cmake -DGALARIO_FORCE_CUDA<span class="o">=</span><span class="m">1</span> ..
+<p>To manually enable or disable checking for cuda, do</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>cmake -DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">0</span> .. <span class="c1"># don&#39;t check</span>
+cmake -DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">1</span> .. <span class="c1"># check</span>
 </pre></div>
 </div>
 </div>
