@@ -141,6 +141,7 @@ namespace {
         static cublasHandle_t handle;
         if (!initialized)
             CBlasCheck(cublasCreate(&handle));
+            initialized = true;
         return handle;
     }
 }
