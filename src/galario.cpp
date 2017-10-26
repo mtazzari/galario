@@ -139,9 +139,10 @@ namespace {
     cublasHandle_t& cublas_handle() {
         static bool initialized = false;
         static cublasHandle_t handle;
-        if (!initialized)
+        if (!initialized) {
             CBlasCheck(cublasCreate(&handle));
             initialized = true;
+        }
         return handle;
     }
 }
