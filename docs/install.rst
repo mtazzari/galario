@@ -2,13 +2,36 @@
 How to build and install |galario|
 ==================================
 
-System Requirements
+
+Operating system
 -------------------
+|galario| runs on Linux and Mac OS X. Windows is not supported.
+
+Installing via conda
+--------------------
+
+By far the easiest way to install |galario| is via `conda <https://conda.io>`_.
+If you are new to `conda`, you may want to start with the minimal `miniconda
+<https://repo.continuum.io/miniconda/>`_. With `conda` all dependencies are
+installed automatically and you get access to |galario|'s C/C++ and python
+bindings, both with support for multithreading.
+
+.. code-block:: bash
+
+   conda config --add channels conda-forge
+   conda install galario
+
+Due to technical limitations, the conda package does not support GPUs at the
+moment. If you want to use a GPU, read on as you have to build |galario| by hand.
+
+Build requirements
+------------------
+
 To compile |galario| you will need:
 
 * a working internet connection (to download 1.5 MB of an external library)
 * a C and C++ compiler such as `gcc` or `clang`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
-* `cmake <https://cmake.org>`_
+* `cmake <https://cmake.org>`_ and `make`
 * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`
 * [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_
 * [optional] Python and numpy for Python bindings to the CPU and GPU
@@ -69,20 +92,24 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
           `CONDA_PREFIX` is automatically set to the conda environment `/anaconda/envs/galario3`.
 
 
-These instructions should be sufficient in most cases, but if you have problems or want more fine-grained control,
-check out the details below. If you find issues or are stuck in one of these steps, consider writing us an email
-or opening an issue on the `GitHub <https://github.com/mtazzari/galario.git>`_ repository.
+These instructions should be sufficient in most cases, but if you have problems
+or want more fine-grained control, check out the details below. If you find
+issues or are stuck in one of these steps, consider writing us an email or
+opening an issue on `GitHub <https://github.com/mtazzari/galario/issues>`_.
 
 .. note::
-    If you compile |galario| only for the CPU, gcc/g++ >= 4.0 work fine. If you compile also the GPU version,
-    check in the |NVIDIA_docs| which gcc/g++ versions are compatible with the `nvcc` compiler shipped with your CUDA Toolkit.
+
+    If you compile |galario| only for the CPU, gcc/g++ >= 4.0 works fine. If you
+    compile also the GPU version, check in the |NVIDIA_docs| which gcc/g++
+    versions are compatible with the `nvcc` compiler shipped with your CUDA
+    Toolkit.
 
 .. _detailed_build_instructions:
 
-Configuration
--------------
+Detailed build instructions
+---------------------------
 
-With the default configuration
+The default configuration to build |galario| is
 
 .. code-block:: bash
 
@@ -91,12 +118,17 @@ With the default configuration
     mkdir build && cd build
     cmake .. && make
 
-Before playing with the `cmake` options, it's best to remove the cache
+There are many options to affect the build when `cmake` is invoked. When playing
+ with options, it's best to remove the `cmake` cache first
 
 .. code-block:: bash
 
     rm build/CMakeCache.txt
 
+In the following, we assume `cmake` is invoked from the `build` directory.
+
+Compiler
+~~~~~~~~
 Set the C and C++ compiler
 
 .. code-block:: bash
@@ -108,8 +140,8 @@ Set the C and C++ compiler
    # alternative
    cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=/path/to/g++ ..
 
-Optimizations
-~~~~~~~~~~~~~
+Optimization level
+~~~~~~~~~~~~~~~~~~
 
 By default |galario| is built with all the optimizations ON. You can check this with:
 
@@ -140,8 +172,7 @@ Python
 
 To build the python bindings, we require python 2.7 or 3.x, `numpy`,
 `cython`, and `pytest`. To run the tests, we additionally need
-`scipy>0.14`. To build the docs, we need `sphinx` and the
-`sphinx_py3doc_enhanced_theme`.
+`scipy>0.14`.
 
 Specify a Python version if Python 2.7 and 3.x are in the system and
 conflicting versions of the interpreter and the libraries are found
@@ -167,7 +198,6 @@ To run the tests, install some more dependencies within the environment
 
 .. code-block:: bash
 
-    conda config --add channels conda-forge
     conda install scipy
 
 cmake may get confused with the conda python and the system
@@ -181,8 +211,10 @@ currently loaded conda environment is
 
     cmake -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} ..
 
-If you still have problems, after the `cmake` command, check whether the FFTW libraries with openMP flags are found and
-whether the path to Python is correctly set to the path of the conda environment in use, e.g. in this example `/home/user/anaconda/envs/galario3`.
+If you still have problems, after the `cmake` command, check whether the FFTW
+libraries with openMP flags are found and whether the path to Python is
+correctly set to the path of the conda environment in use, e.g.
+`/home/user/anaconda/envs/galario3`.
 
 .. _fftw_requirement:
 
@@ -193,15 +225,28 @@ The FFTW libraries are required for the CPU version of galario.
 You can check if they are installed on your system by checking if **all** libraries listed below are
 present, for example in `/usr/lib` or `/usr/local/lib/`.
 
-To install FFTW follow the instructions at http://www.fftw.org.
 galario requires the following FFTW libraries:
 
 * `libfftw3`: double precision
 * `libfftw3f`: single precision
-* `libfftw3_omp`: double precision with OpenMP
-* `libfftw3f_omp`: single precision with OpenMP
+* `libfftw3_threads`: double precision with pthreads
+* `libfftw3f_threads`: single precision with pthreads
 
 galario has been tested with FFTW 3.3.6.
+
+The easiest way to install FFTW is to use a package manager, for example `apt`
+on Debian/Ubuntu or `homebrew` on the Mac. For example,
+
+.. code-block:: bash
+
+   sudo apt-get libfftw3-3 libfftw3-dev
+
+
+If you really want to build FFTW from
+source, for example because you don't have admin rights, read on.
+
+Manual compilation
+^^^^^^^^^^^^^^^^^^
 
 To compile FFTW, download the .tar.gz from FFTW website. On Mac OS, you have to explicitly
 enable the build of dynamic (shared) library with the `--enable-shared` option, while on Linux this `should` be the default.
@@ -244,6 +289,9 @@ create an alias with:
 
     alias make="make -j4"
 
+Setting paths
+^^^^^^^^^^^^^
+
 To find FFTW3 in a nonstandard directory, say `$FFTW_HOME`, tell `cmake` about it:
 
 .. code-block:: bash
@@ -262,8 +310,6 @@ In case the directory with the header files is not inferred correctly:
 
     cmake -DCMAKE_CXX_FLAGS="-I${FFTW_HOME}/include" ..
 
-openMP
-~~~~~~
 In case the openmp libraries are not in `${FFTW_HOME}/lib`
 
 .. code-block:: bash
@@ -274,8 +320,11 @@ In case the openmp libraries are not in `${FFTW_HOME}/lib`
 
 CUDA
 ~~~~
-`cmake` tests for compilation on the GPU with cuda by default **except on Mac OS**,
-where version conflicts between the NVIDIA compiler and the C++ compiler often lead to problems (see `this issue <https://github.com/mtazzari/galario/issues/30>`_).
+
+`cmake` tests for compilation on the GPU with cuda by default **except on Mac
+OS**, where version conflicts between the NVIDIA compiler and the C++ compiler
+often lead to problems; see for example `this issue
+<https://github.com/mtazzari/galario/issues/30>`_.
 
 To manually enable or disable checking for cuda, do
 
@@ -287,12 +336,45 @@ To manually enable or disable checking for cuda, do
 Timing
 ~~~~~~
 For testing purposes, you can activate the timing features embedded in the code that produce detailed printouts to `stdout` of various
-portions of the functions. The times are measured in milliseconds. This feature is OFF by default and can be activated while compiling
-passing the additional flag:
+portions of the functions. The times are measured in milliseconds. This feature is OFF by default and can be activated during the configuration stage with
 
 .. code-block:: bash
 
     cmake -DGALARIO_TIMING=1 ..
+
+Documentation
+~~~~~~~~~~~~~
+
+This documentation should be available online `here
+<https://mtazzari.github.io/galario/>`_. If you want to build the documentation
+locally, from within the `build/` directory run:
+
+.. code-block:: bash
+
+    make docs
+
+which creates output in `build/docs/html`. The `docs` are not built by default, only upon request.
+
+First install the build requirements with
+
+.. code-block:: bash
+
+   conda install sphinx
+   pip install sphinx_py3doc_enhanced_theme
+
+within the conda environment in use. This ensures that the
+`sphinx` version matches the Python version used to compile
+|galario|.
+If you still have problems, remove the `CMakeCache.txt`, rerun
+`cmake`, and observe which location of `sphinx` is reported in
+`CMakeCache.txt`, for example:
+
+.. code-block:: bash
+
+    -- Found Sphinx: /home/myuser/.local/miniconda3/envs/galario3/bin/sphinx-build
+
+The |galario| library needs to be imported when building the documentation (the
+import would fail otherwise) to extract docstrings.
 
 .. _install_details:
 
@@ -329,6 +411,8 @@ If you are working inside an active conda environment, both the libraries and th
     make && make install
 
 Example output during the `install` step
+
+.. code-block:: bash
 
     -- Installing: /path/to/conda/envs/myenv/lib/libgalario.so
     -- Installing: /path/to/conda/envs/myenv/include/galario.h
@@ -368,8 +452,8 @@ Force it to show all output:
 
     make && python/py.test.sh -sv python_package/tests/test_galario.py
 
-By default, tests do not run on the GPU. Activate them by calling `... py.test.sh --gpu=1 ...`.
-To select a given parametrized test named `test_sample`, just run `... py.test.sh -k sample`.
+By default, tests do not run on the GPU. Activate them by calling `py.test.sh --gpu=1 ...`.
+To select a given parametrized test named `test_sample`, just run `py.test.sh -k sample`.
 
 A cuda error such as
 
@@ -379,43 +463,12 @@ A cuda error such as
     invalid argument
 
 can mean that code cannot be executed on the GPU at all rather than that specific call being invalid.
-Check if `nvidia-smi` runs
+Check if `nvidia-smi` fails
 
 .. code-block:: bash
 
     $ nvidia-smi
     Failed to initialize NVML: Driver/library version mismatch
-
-
-Documentation
--------------
-This documentation should be available online `here <LINK>`. If you want to build the documentation locally, from within
-the `build/` directory run:
-
-.. code-block:: bash
-
-    make docs
-
-which creates output in `build/docs/html`. The `docs` are not build by default, only upon request.
-
-Since the |galario| library needs to be imported when building the
-documentation (the import would fail otherwise), run
-
-.. code-block:: bash
-
-   conda install sphinx
-   pip install sphinx_py3doc_enhanced_theme
-
-within the conda environment in use. This ensures that the
-`sphinx` version matches the Python version used to compile
-|galario|.
-If you still have problems, remove the `CMakeCache.txt`, rerun
-`cmake`, and observe which location of `sphinx` is reported in
-`CMakeCache.txt`, for example:
-
-.. code-block:: bash
-
-    -- Found Sphinx: /home/myuser/.local/miniconda3/envs/galario3/bin/sphinx-build
 
 
 .. LINKS opening in new tabs/windows
