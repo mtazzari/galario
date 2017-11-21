@@ -44,35 +44,32 @@ foreach(t IN ITEMS galario_single galario)
 endforeach()
 
 if (CUDA_FOUND)
-  # for timing test, we want to avoid the start-up time from JIT, so we create fat binaries
-  # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list
-  list(APPEND CUDA_NVCC_FLAGS --gpu-architecture=compute_30 --gpu-code=compute_30,sm_53)
+  # We require at least 30 because anything before is deprecated in cuda 8. For
+  # maximum compatibility with future GPUs, we don't specify an exact GPU code
+  # like such as sm_53. The code is JIT compiled incurring a startup delay.
+  # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#further-mechanisms
+  list(APPEND CUDA_NVCC_FLAGS --gpu-architecture=compute_30 --gpu-code=compute_30)
 
   # Issue with cuda 7.5 on Ubuntu 16.04
   # https://github.com/BVLC/caffe/issues/4046
   list(APPEND CUDA_NVCC_FLAGS -D_FORCE_INLINES)
 
-  # TODO I couldn't get nvcc to work with flags propagated. Code
-  # doesn't compile with optimization turned on. Very strange. Also
-  # the NDEBUG symbol affect if compilation succeeds.
+  # Allow multiple processes to use the GPU concurrently
+  # https://github.com/mtazzari/galario/issues/60
+  list(APPEND CUDA_NVCC_FLAGS --default-stream per-thread)
+
+  if(GALARIO_TIMING)
+    list(APPEND CUDA_NVCC_FLAGS -DGALARIO_TIMING)
+  endif()
+
   SET(CUDA_PROPAGATE_HOST_FLAGS ON)
 
   # Specify include directories
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
-  # Specify library paths
-  link_directories(
-    # /opt/foobar/lib
-    # /opt/joestuff/lib
-    )
-
   # copy over common file and rename to .cu, else cmake doesn't call nvcc on it
   set(common_cu "${CMAKE_CURRENT_BINARY_DIR}/cuda_lib.cu")
   configure_file(${common_cpp} ${common_cu})
-
-  if(GALARIO_TIMING)
-    list(APPEND CUDA_NVCC_FLAGS -DGALARIO_TIMING)
-  endif()
 
   # first compile float version
   cuda_add_library(galario_single_cuda ${common_cu})
@@ -88,9 +85,6 @@ if (CUDA_FOUND)
     cuda_add_cufft_to_target(${t})
     list(APPEND install_libs ${t})
   endforeach()
-
-  # ignored
-  # target_compile_definitions(galario_cuda PUBLIC DOUBLE_PRECISION)
 endif() # cuda
 
 ###
