@@ -1326,13 +1326,13 @@ void _galario_sample_profile(int nr, void *ints, dreal Rmin, dreal dR, dreal dxy
 __host__ __device__
 #endif
 inline void diff_weighted_core(int const idx_x, int const nd, const dreal* const __restrict__ fobs_re,
-                               const dreal * const __restrict__ fobs_im, dcomplex* const __restrict__ fint,
-                               const dreal* const __restrict__ weights)
+                               const dreal * const __restrict__ fobs_im, const dcomplex* const __restrict__ fint,
+                               const dreal* const __restrict__ weights, dcomplex& res)
 {
     dcomplex const fobs_cmplx = dcomplex { fobs_re[idx_x], fobs_im[idx_x] };
     dcomplex const sqrt_w_cmplx = dcomplex { SQRT(weights[idx_x]), 0.0 } ;
-    fint[idx_x] = CMPLXSUB(fint[idx_x], fobs_cmplx);
-    fint[idx_x] = CMPLXMUL(fint[idx_x], sqrt_w_cmplx);
+    res = CMPLXSUB(fint[idx_x], fobs_cmplx);
+    res = CMPLXMUL(res, sqrt_w_cmplx);
 }
 
 #ifdef __CUDACC__
@@ -1346,20 +1346,9 @@ __global__ void diff_weighted_d
     int const sidx_x = blockDim.x * gridDim.x;
 
     for (auto idx_x = idx_x0; idx_x < nd; idx_x += sidx_x) {
-        diff_weighted_core(idx_x, nd, fobs_re, fobs_im, fint, weights);
+        // fint copied before, so it is ok to overwrite inside diff_weighted_core
+        diff_weighted_core(idx_x, nd, fobs_re, fobs_im, fint, weights, fint[idx_x]);
     }
-}
-#else
-
-void diff_weighted_h
-        (int const nd, const dreal* const fobs_re, const dreal* const fobs_im, dcomplex* const fint, const dreal* const weights)
-{
-    CPUTimer t;
-#pragma omp parallel for
-    for (auto idx = 0; idx < nd; ++idx) {
-        diff_weighted_core(idx, nd, fobs_re, fobs_im, fint, weights);
-    }
-    t.Elapsed("reduce_chi2::diff_weighted");
 }
 #endif
 
@@ -1385,7 +1374,7 @@ void reduce_chi2_d
 }
 #endif
 
-void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dcomplex* fint, const dreal* weights, dreal* chi2) {
+void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2) {
      CPUTimer t_start;
 #ifdef __CUDACC__
 
@@ -1423,20 +1412,20 @@ void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, dco
      CCheck(cudaFree(fint_d));
 
 #else
-     diff_weighted_h(nd, fobs_re, fobs_im, fint, weights);
-
-     CPUTimer t;
-     // TODO: if available, use BLAS (mkl?) functions cblas_scnrm2 or cblas_dznrm2 for float/double complex
-     // compute the Euclidean norm
      dreal y = 0.;
+
+     // compute chi2 by hand in a single pass over data, avoiding creation of
+     // intermediate complex values
 #pragma omp parallel for reduction(+:y)
-     for (auto i = 0; i < nd; ++i) {
-         dcomplex const x = fint[i];
-         dcomplex const x_conj = CMPLXCONJ(fint[i]);
-         y += real(CMPLXMUL(x, x_conj));
+     for (auto idx = 0; idx < nd; ++idx) {
+         dcomplex chi;
+         diff_weighted_core(idx, nd, fobs_re, fobs_im, fint, weights, chi);
+         // \chi^2 += a^2 + b^2
+         const auto a = real(chi);
+         const auto b = imag(chi);
+         y += a*a + b*b;
      }
      *chi2 = y;
-     t.Elapsed("reduce_chi2::reduction");
 #endif
      t_start.Elapsed("reduce_chi2_tot");
 }
