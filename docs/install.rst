@@ -239,7 +239,7 @@ on Debian/Ubuntu or `homebrew` on the Mac. For example,
 
 .. code-block:: bash
 
-   sudo apt-get libfftw3-3 libfftw3-dev
+   sudo apt-get install libfftw3-3 libfftw3-dev
 
 
 If you really want to build FFTW from
