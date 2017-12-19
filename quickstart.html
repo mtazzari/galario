@@ -118,11 +118,6 @@ For more details, refer to Sect. 3.2 in <a class="reference external" href="LINK
 <span class="k">def</span> <span class="nf">GaussianProfile</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nR</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Gaussian brightness profile. &quot;&quot;&quot;</span>
 
-    <span class="c1"># convert to radians</span>
-    <span class="n">sigma</span> <span class="o">*=</span> <span class="n">arcsec</span>     <span class="c1"># [rad]</span>
-    <span class="n">Rmin</span> <span class="o">*=</span> <span class="n">arcsec</span>      <span class="c1"># [rad]</span>
-    <span class="n">dR</span> <span class="o">*=</span> <span class="n">arcsec</span>        <span class="c1"># [rad]</span>
-
     <span class="c1"># radial grid</span>
     <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Rmin</span><span class="p">,</span> <span class="n">Rmin</span> <span class="o">+</span> <span class="n">dR</span><span class="o">*</span><span class="n">nR</span><span class="p">,</span> <span class="n">nR</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 
@@ -191,7 +186,10 @@ for the <code class="code docutils literal"><span class="pre">chi2Image</span></
 
     <span class="n">f0</span> <span class="o">=</span> <span class="mf">10.</span><span class="o">**</span><span class="n">f0</span>        <span class="c1"># convert from log to real space</span>
 
-    <span class="c1"># convert to rad</span>
+    <span class="c1"># convert to radians</span>
+    <span class="n">sigma</span> <span class="o">*=</span> <span class="n">arcsec</span>
+    <span class="n">Rmin</span> <span class="o">*=</span> <span class="n">arcsec</span>
+    <span class="n">dR</span> <span class="o">*=</span> <span class="n">arcsec</span>
     <span class="n">inc</span> <span class="o">*=</span> <span class="n">deg</span>
     <span class="n">PA</span> <span class="o">*=</span> <span class="n">deg</span>
     <span class="n">dRA</span> <span class="o">*=</span> <span class="n">arcsec</span>
