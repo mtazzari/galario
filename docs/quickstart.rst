@@ -83,11 +83,6 @@ Fit of a single-wavelength data set
         def GaussianProfile(f0, sigma, Rmin, dR, nR):
             """ Gaussian brightness profile. """
 
-            # convert to radians
-            sigma *= arcsec     # [rad]
-            Rmin *= arcsec      # [rad]
-            dR *= arcsec        # [rad]
-
             # radial grid
             R = np.linspace(Rmin, Rmin + dR*nR, nR, endpoint=False)
 
@@ -157,7 +152,10 @@ Fit of a single-wavelength data set
 
             f0 = 10.**f0        # convert from log to real space
 
-            # convert to rad
+            # convert to radians
+            sigma *= arcsec
+            Rmin *= arcsec
+            dR *= arcsec
             inc *= deg
             PA *= deg
             dRA *= arcsec
