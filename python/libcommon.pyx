@@ -241,7 +241,7 @@ def check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis=None, u=None, v=None):
     return True
 
 
-def check_image_size(u, v, nxy, dxy, PB=0, verbose=False):
+def check_image_size(u, v, nxy, dxy, duv, PB=0, verbose=False):
     """
     Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.
 
@@ -298,6 +298,10 @@ def check_image_size(u, v, nxy, dxy, PB=0, verbose=False):
 
     if PB != 0:
         assert FOV_to_PB > 1, FOV_to_PB_str
+
+    # to avoid segfaults in the interpolation, ensure that indices are ok
+    assert np.max(np.abs(u) / duv <= nxy//2 + 1)
+    assert np.max(np.abs(v) / duv <= nxy//2)
 
     return True
 
@@ -441,7 +445,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, dxy)
+        check_image_size(u, v, nxy, dxy, duv)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
     _galario_sample_image(nxy, nxy, <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
@@ -526,7 +530,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, dxy)
+        check_image_size(u, v, nxy, dxy, duv)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
     _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
@@ -616,7 +620,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, dxy)
+        check_image_size(u, v, nxy, dxy, duv)
 
     cdef dreal chi2
 
@@ -720,7 +724,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     duv = 1 / (dxy*nxy)
 
     if check:
-        check_image_size(u, v, nxy, dxy)
+        check_image_size(u, v, nxy, dxy, duv)
 
     cdef dreal chi2
 
