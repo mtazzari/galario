@@ -428,9 +428,11 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Position Angle, defined East of North. Default is 0.
         **units**: rad
     check : bool, optional
-        If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
-        the synthetic visibilities in the (u, v) locations provided.
-        Default is False since the check might take time. For executions where speed is important, set to False.
+        If True, check whether `image` and `dxy` satisfy Nyquist criterion for
+        computing the synthetic visibilities in the (u, v) locations provided.
+        Additionally check that the (u, v) points fall in the image to avoid
+        segmentation violations. Default is False since the check might take
+        time. For executions where speed is important, set to False.
 
     Returns
     -------
@@ -511,9 +513,11 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
         **units**: rad
     check : bool, optional
-        If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
-        the synthetic visibilities in the (u, v) locations provided.
-        Default is False since the check might take time. For executions where speed is important, set to False.
+        If True, check whether `image` and `dxy` satisfy Nyquist criterion for
+        computing the synthetic visibilities in the (u, v) locations provided.
+        Additionally check that the (u, v) points fall in the image to avoid
+        segmentation violations. Default is False since the check might take
+        time. For executions where speed is important, set to False.
 
     Returns
     -------
@@ -599,9 +603,11 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Position Angle, defined East of North. Default is 0.
         **units**: rad
     check : bool, optional
-        If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
-        the synthetic visibilities in the (u, v) locations provided.
-        Default is False since the check might take time. For executions where speed is important, set to False.
+        If True, check whether `image` and `dxy` satisfy Nyquist criterion for
+        computing the synthetic visibilities in the (u, v) locations provided.
+        Additionally check that the (u, v) points fall in the image to avoid
+        segmentation violations. Default is False since the check might take
+        time. For executions where speed is important, set to False.
 
     Returns
     -------
@@ -704,9 +710,11 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         If inc=0. the image is face-on; if inc=90. the image is edge-on.
         **units**: rad
     check : bool, optional
-        If True, check whether `image` and `dxy` satisfy Nyquist criterion for computing
-        the synthetic visibilities in the (u, v) locations provided.
-        Default is False since the check might take time. For executions where speed is important, set to False.
+        If True, check whether `image` and `dxy` satisfy Nyquist criterion for
+        computing the synthetic visibilities in the (u, v) locations provided.
+        Additionally check that the (u, v) points fall in the image to avoid
+        segmentation violations. Default is False since the check might take
+        time. For executions where speed is important, set to False.
 
     Returns
     -------
