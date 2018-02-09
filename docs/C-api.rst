@@ -12,7 +12,7 @@ Sample and chi2 functions
 There are four main functions that should serve the standard use of galario.
 
 .. function::
-   void galario_sample_profile(int nr, dreal* const intensity,
+   void sample_profile(int nr, dreal* const intensity,
    dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc,
    dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u,
    const dreal *v, dcomplex *fint);
@@ -40,7 +40,7 @@ There are four main functions that should serve the standard use of galario.
 
 
 .. function::
-   void galario_sample_image(int nx, int ny, const dreal* image,
+   void sample_image(int nx, int ny, const dreal* image,
    dreal dRA, dreal dDec, dreal duv, dreal PA,
    int nd, const dreal* u, const dreal* v, dcomplex* fint);
 
@@ -50,11 +50,11 @@ There are four main functions that should serve the standard use of galario.
    :param ny: The number of points of `image` in y-direction
    :param image: A rectangular image of size `nx*ny`.
 
-   For the other parameters, see :func:`galario_sample_profile() <.galario_sample_profile>`.
+   For the other parameters, see :func:`sample_profile() <.sample_profile>`.
 
 
 .. function::
-   dreal galario_chi2_profile(int nr, dreal* const intensity,
+   dreal chi2_profile(int nr, dreal* const intensity,
    dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc,
    dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u,
    const dreal *v, const dreal* fobs_re, const dreal* fobs_im,
@@ -65,7 +65,7 @@ There are four main functions that should serve the standard use of galario.
 
    For details, see :py:func:`chi2Profile`.
 
-   All parameters are identical to :func:`galario_sample_profile`
+   All parameters are identical to :func:`sample_profile`
    except that the model visibilities are not returned but directly
    compared to weighted observations.
 
@@ -74,7 +74,7 @@ There are four main functions that should serve the standard use of galario.
    :param weights: The weights of the observations. Size: `nd`.
 
 .. function::
-   dreal galario_chi2_image(int nx, int ny, const dreal* image,
+   dreal chi2_image(int nx, int ny, const dreal* image,
    dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u,
    const dreal* v, const dreal* fobs_re, const dreal* fobs_im,
    const dreal* weights);
@@ -82,8 +82,8 @@ There are four main functions that should serve the standard use of galario.
    Compute the chi2 between observed visibilities and the
    interpolation based on the input `image` and return in `chi2`.
 
-   For details, see :py:func:`chi2Image`, :func:`galario_sample_image`
-   and :func:`galario_chi2_profile`.
+   For details, see :py:func:`chi2Image`, :func:`sample_image`
+   and :func:`chi2_profile`.
 
 .. DANGER::
 
@@ -97,20 +97,20 @@ Management functions
 --------------------
 
 .. function::
-   void galario_init();
+   void init();
 
    Initialize memory and environment for galario.
 
    Call this function before any computation is performed.
 
 .. function::
-   void galario_cleanup();
+   void cleanup();
 
    Free memory and clean up environment created by
-   :func:`galario_init`. Call after all computations in galario.
+   :func:`init`. Call after all computations in galario.
 
 .. function::
-   int galario_threads(int num = 0);
+   int threads(int num = 0);
 
    Set the number of `openMP` threads that galario uses in parallel
    regions to `num`. The default of 0 doesn't change the number of
@@ -124,12 +124,12 @@ Management functions
    For details, see the python function :py:func:`threads`.
 
 .. function::
-   int galario_ngpus();
+   int ngpus();
 
    Get the number of available GPUs.
 
 .. function::
-    void galario_use_gpu(int device_id);
+    void use_gpu(int device_id);
 
     Set the GPU to be used for the computations.
 
@@ -141,32 +141,32 @@ Individual operations
 The following functions provide low-level access to individual operations performed by the `sample` and `chi2` functions. A standard user will likely have little use for them. Refer to the python API documentation of the wrappers for details on the individual functions.
 
 .. function::
-   void galario_sweep(int nr, dreal* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image);
+   void sweep(int nr, dreal* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image);
 
 .. function::
-   void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int nd, const dreal* u, const dreal* v, dreal* urot, dreal* vrot);
+   void uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int nd, const dreal* u, const dreal* v, dreal* urot, dreal* vrot);
 
 .. function::
-   dcomplex* galario_copy_input(int nx, int ny, const dreal* image);
+   dcomplex* copy_input(int nx, int ny, const dreal* image);
 
 .. function::
-   void galario_free(void*);
+   void free(void*);
 
 .. function::
-   void galario_fft2d(int nx, int ny, dcomplex* image);
+   void fft2d(int nx, int ny, dcomplex* image);
 
 .. function::
-   void galario_fftshift(int nx, int ny, dcomplex* image);
+   void fftshift(int nx, int ny, dcomplex* image);
 
 .. function::
-   void galario_fftshift_axis0(int nx, int ny, dcomplex* matrix);
+   void fftshift_axis0(int nx, int ny, dcomplex* matrix);
 
 .. function::
-    void galario_interpolate(int nrow, int ncol, const dcomplex *image, int nd, const dreal *u, const dreal *v,
+    void interpolate(int nrow, int ncol, const dcomplex *image, int nd, const dreal *u, const dreal *v,
     const dreal duv, dcomplex *fint);
 
 .. function::
-   void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* fint);
+   void apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* fint);
 
 .. function::
-   void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2);
+   void reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2);

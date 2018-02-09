@@ -31,9 +31,9 @@ Example walk-through
 
 A small walk through the example's `main` function line by line::
 
-  galario_init();
+  init();
   ...
-  galario_cleanup();
+  cleanup();
 
 Before any computation is done inside galario, the library has to be initialized. Similarly, any data created during initialization should be cleaned at the end of `main`.
 
@@ -43,14 +43,14 @@ To create the input image, define an array::
 
 The data type `dreal` can refer to either `float` or `double`, depending on the preprocessor symbol `DOUBLE_PRECISION`. galario assumes the input is a real image but the output of the FFT is complex. galario provides a helper function to allocate an array of the proper size and to copy over the input image::
 
-  dcomplex* res = galario_copy_input(nx, ny, realdata);
+  dcomplex* res = copy_input(nx, ny, realdata);
 
 The actual FFT is done in-place, and the result is stored in `res`. The data layout is described in the `FFTW manual <http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data>`_::
 
-  galario_fft2d(nx, ny, res);
+  fft2d(nx, ny, res);
 
 To deallocate `res`, we use::
 
-  galario_free(res);
+  free(res);
 
-In general, any array created by galario and handed back to the user must be deallocated using `galario_free`.
+In general, any array created by galario and handed back to the user must be deallocated using `free`.

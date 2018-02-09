@@ -2,7 +2,7 @@
 #include "galario_py.h"
 
 // full function makes code hard to read
-#define tpb galario_threads()
+#define tpb threads()
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -116,21 +116,44 @@ namespace {
 #endif // _OPENMP && TIMING
 
 #ifdef __CUDACC__
+    void throw_exception(const char *file, const int line, const char* source, const char* msg) {
+        std::stringstream ss;
+        ss << file << ":" << line << ": ";
+        ss << "Error in " << source " call:\n" << msg;
+
+        std::string msg;
+        ss >> msg;
+
+        throw std::runtime_error(msg);
+    }
+
+    void throw_exception(const char *file, const int line, const char* source, const int err) {
+        std::stringstream ss;
+        ss << "Failed with error code " << err;
+        std::string msg;
+        ss >> msg;
+        throw_exception(file, line, source, msg);
+    }
+
     #define CCheck(err) __cudaSafeCall((err), __FILE__, __LINE__)
     inline void __cudaSafeCall(cudaError err, const char *file, const int line)  {
     #ifndef NDEBUG
         if (cudaSuccess != err) {
-            if (err == cudaErrorMemoryAllocation) {
-                    std::stringstream ss;
-                    ss << file << ":" << line << ": Cuda memory allocation error";
-                    std::string msg;
-                    ss >> msg;
+            throw_exception(file, line, "cuda", cudaGetErrorString(err));
+            // std::stringstream ss;
+            // ss << file << ":" << line << ": ";
+            // ss << "Error in cuda call:\n" << cudaGetErrorString(err);
 
-                    throw std::bad_alloc(msg);
-            } else {
-                fprintf(stderr, "[ERROR] Cuda call %s: %d\n%s\n", file, line, cudaGetErrorString(err));
-                exit(42);
-            }
+            // if (err == cudaErrorMemoryAllocation) {
+            //     ss << "Cuda memory allocation error";
+            // } else {
+            //     ss << "Error in cuda call:\n" << cudaGetErrorString(err);
+            // }
+
+            // std::string msg;
+            // ss >> msg;
+
+            // throw std::runtime_error(msg);
         }
     #endif
     }
@@ -139,8 +162,9 @@ namespace {
     inline void __cublasSafeCall(cublasStatus_t err, const char *file, const int line) {
     #ifndef NDEBUG
         if(CUBLAS_STATUS_SUCCESS != err) {
-           fprintf(stderr, "[ERROR] Cublas call %s: %d failed with code %d\n", file, line, err);
-           exit(43);
+            throw_exception(file, line, "cublas", err);
+           // fprintf(stderr, "[ERROR] Cublas call %s: %d failed with code %d\n", file, line, err);
+           // exit(43);
         }
     #endif
     }
@@ -149,8 +173,9 @@ namespace {
     inline void __cufftwSafeCall(cufftResult_t err, const char *file, const int line) {
     #ifndef NDEBUG
        if (CUFFT_SUCCESS != err) {
-           fprintf(stderr, "[ERROR] Cufftw call %s: %d\n failed with code %d\n", file, line, err);
-           exit(44);
+           throw_exception(file, line, "cufftw", err);
+           // fprintf(stderr, "[ERROR] Cufftw call %s: %d\n failed with code %d\n", file, line, err);
+           // exit(44);
        }
     #endif
     }
@@ -264,7 +289,8 @@ namespace {
 
 } // anonymous namespace
 
-int galario_threads(int num) {
+namespace galario {
+int threads(int num) {
 #ifdef __CUDACC__
     // mynthreads^2 is used per block
     static int mynthreads = 16;
@@ -289,7 +315,7 @@ int galario_threads(int num) {
     return mynthreads;
 }
 
-void galario_init() {
+void init() {
 #ifdef __CUDACC__
     cublas_handle();
 #else
@@ -299,7 +325,7 @@ void galario_init() {
 #endif
 }
 
-void galario_cleanup() {
+void cleanup() {
 #ifdef __CUDACC__
     CBlasCheck(cublasDestroy(cublas_handle()));
 #else
@@ -316,6 +342,7 @@ void galario_free(void* data) {
 #else
     fftw_free(data);
 #endif
+}
 }
 
 #ifdef __CUDACC__
@@ -341,6 +368,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
 }
 #endif
 
+namespace galario {
 /**
  * Copy an (nx, ny) square image into a complex buffer for real-to-complex FFTW.
  *
@@ -349,7 +377,7 @@ dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
  * If turns out to be slow have a look here:
  *   https://stackoverflow.com/questions/19601696/what-is-the-fastest-do-array-padding-of-the-image-array
  */
-dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
+dcomplex* copy_input(int nx, int ny, const dreal* realdata) {
     CHECK_INPUTXY(nx, ny);
     // in r2c, the last dimension only has ~half the size
     auto const ncol = ny/2 + 1;
@@ -378,8 +406,9 @@ dcomplex* galario_copy_input(int nx, int ny, const dreal* realdata) {
     return buffer;
 }
 
-void* _galario_copy_input(int nx, int ny, void* realdata) {
-    return galario_copy_input(nx, ny, static_cast<dreal*>(realdata));
+void* _copy_input(int nx, int ny, void* realdata) {
+    return copy_input(nx, ny, static_cast<dreal*>(realdata));
+}
 }
 
 #ifdef __CUDACC__
@@ -406,7 +435,7 @@ void fft_h(int nx, int ny, dcomplex* data) {
     dreal* input = reinterpret_cast<dreal*>(data);
     FFTW(complex)* output = reinterpret_cast<FFTW(complex)*>(data);
 #ifdef _OPENMP
-    fftw_plan_with_nthreads(galario_threads());
+    fftw_plan_with_nthreads(galario::threads());
 #endif
     FFTW(plan) p = FFTW(plan_dft_r2c_2d)(nx, ny, input, output, FFTW_ESTIMATE);
     FFTW(execute)(p);
@@ -416,11 +445,12 @@ void fft_h(int nx, int ny, dcomplex* data) {
 }
 #endif
 
+namespace galario {
 /**
  * `realdata`: nx * nx matrix
  * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
  */
-void galario_fft2d(int nx, int ny, dcomplex* data) {
+void fft2d(int nx, int ny, dcomplex* data) {
     CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
     dcomplex *data_d;
@@ -436,8 +466,9 @@ void galario_fft2d(int nx, int ny, dcomplex* data) {
 #endif
 }
 
-void _galario_fft2d(int nx, int ny, void* data) {
-    galario_fft2d(nx, ny, static_cast<dcomplex*>(data));
+void _fft2d(int nx, int ny, void* data) {
+    fft2d(nx, ny, static_cast<dcomplex*>(data));
+}
 }
 
 /**
@@ -517,7 +548,8 @@ void shift_h(int const nx, int const ny, dcomplex* const __restrict__ data) {
 }
 #endif
 
-void galario_fftshift(int nx, int ny, dcomplex* data) {
+namespace galario {
+void fftshift(int nx, int ny, dcomplex* data) {
     CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
     dcomplex *data_d;
@@ -535,8 +567,9 @@ void galario_fftshift(int nx, int ny, dcomplex* data) {
 #endif
 }
 
-void _galario_fftshift(int nx, int ny, void* data) {
-    galario_fftshift(nx, ny, static_cast<dcomplex*>(data));
+void _fftshift(int nx, int ny, void* data) {
+    fftshift(nx, ny, static_cast<dcomplex*>(data));
+}
 }
 
 /**
@@ -594,7 +627,8 @@ void shift_axis0_h(int const nrow, int const ncol, dcomplex* const __restrict__ 
 }
 #endif
 
-void galario_fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
+namespace galario {
+void fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
     CHECK_INPUT(nrow);
 #ifdef __CUDACC__
     dcomplex *matrix_d;
@@ -612,8 +646,9 @@ void galario_fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
 #endif
 }
 
-void _galario_fftshift_axis0(int nrow, int ncol, void* matrix) {
-    galario_fftshift_axis0(nrow, ncol, static_cast<dcomplex*>(matrix));
+void _fftshift_axis0(int nrow, int ncol, void* matrix) {
+    fftshift_axis0(nrow, ncol, static_cast<dcomplex*>(matrix));
+}
 }
 
 /**
@@ -729,7 +764,8 @@ void interpolate_h(int const nrow, int const ncol, const dcomplex* const data, i
 }
 #endif
 
-void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const dreal *u, const dreal *v,
+namespace galario {
+void interpolate(int nrow, int ncol, const dcomplex *data, int nd, const dreal *u, const dreal *v,
                          const dreal duv, dcomplex *fint) {
 
 #ifdef __CUDACC__
@@ -772,9 +808,10 @@ void galario_interpolate(int nrow, int ncol, const dcomplex *data, int nd, const
 #endif
 }
 
-void _galario_interpolate(int nrow, int ncol, void *data, int nd, void *u, void *v, dreal duv, void *fint) {
-    galario_interpolate(nrow, ncol, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u),
+void _interpolate(int nrow, int ncol, void *data, int nd, void *u, void *v, dreal duv, void *fint) {
+    interpolate(nrow, ncol, static_cast<dcomplex*>(data), nd, static_cast<dreal*>(u),
                         static_cast<dreal*>(v), duv, static_cast<dcomplex*>(fint));
+}
 }
 
 // APPLY_PHASE TO SAMPLED POINTS //
@@ -828,7 +865,8 @@ void apply_phase_sampled_h(dreal dRA, dreal dDec, int const nd, const dreal* con
 }
 #endif
 
-void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
+namespace galario {
+void apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
 #ifdef __CUDACC__
 
      size_t nbytes_d_complex = sizeof(dcomplex)*nd;
@@ -859,12 +897,12 @@ void galario_apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const drea
 #endif
 }
 
-void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
+void _apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* const u,
                                   void* const v, void* __restrict__ fint) {
-    galario_apply_phase_sampled(dRA, dDec, nd, static_cast<dreal*>(u),
+    apply_phase_sampled(dRA, dDec, nd, static_cast<dreal*>(u),
                                 static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
-
+}
 
 /**
  * Rotates the RA, Dec offsets and the u and v coordinates by Position Angle PA
@@ -919,7 +957,8 @@ void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot,
 }
 #endif
 
-void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
+namespace galario {
+void uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
                        dreal* const urot, dreal* const vrot) {
 #ifdef __CUDACC__
      size_t nbytes_d_dreal = sizeof(dreal)*nd;
@@ -960,12 +999,12 @@ void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dD
 #endif
 }
 
-void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* const u,
+void _uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* const u,
                                   void* const v, void* const urot, void* const vrot) {
-    galario_uv_rotate(PA, dRA, dDec, static_cast<dreal*>(dRArot), static_cast<dreal*>(dDecrot), nd, static_cast<dreal*>(u),
+    uv_rotate(PA, dRA, dDec, static_cast<dreal*>(dRArot), static_cast<dreal*>(dDecrot), nd, static_cast<dreal*>(u),
                                 static_cast<dreal*>(v), static_cast<dreal*>(urot), static_cast<dreal*>(vrot));
 }
-
+}
 
 /**
  * Sweep.
@@ -1165,7 +1204,8 @@ void create_image_h(int const nr, const dreal *const intensity, dreal const Rmin
 #endif
 
 
-void galario_sweep(int nr, dreal *const intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex *image) {
+namespace galario {
+void sweep(int nr, dreal *const intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex *image) {
     CHECK_INPUT(nxy);
 
 #ifdef __CUDACC__
@@ -1181,8 +1221,9 @@ void galario_sweep(int nr, dreal *const intensity, dreal Rmin, dreal dR, int nxy
 #endif
 }
 
-void _galario_sweep(int nr, void *intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void *image) {
-    galario_sweep(nr, static_cast<dreal *>(intensity), Rmin, dR, nxy, dxy, inc, static_cast<dcomplex *>(image));
+void _sweep(int nr, void *intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void *image) {
+    sweep(nr, static_cast<dreal *>(intensity), Rmin, dR, nxy, dxy, inc, static_cast<dcomplex *>(image));
+}
 }
 
 #ifdef __CUDACC__
@@ -1287,18 +1328,19 @@ void sample_h(int nx, int ny, dcomplex* data, dreal dRA, dreal dDec, int nd, dre
     // apply phase to the sampled points
     OPENMPTIME(apply_phase_sampled_h(dRArot, dDecrot, nd, urot, vrot, fint), "sample::apply_phase_sampled");
 
-    galario_free(urot);
-    galario_free(vrot);
+    galario::galario_free(urot);
+    galario::galario_free(vrot);
     t_start.Elapsed("sample_tot");
 }
 
 #endif
 
 
+namespace galario {
 /**
  * return result in `fint`
  */
-void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv,
+void sample_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv,
                           const dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint) {
     CPUTimer t_start;
 
@@ -1328,7 +1370,7 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
 #else
     CPUTimer t;
 
-    auto data = galario_copy_input(nx, ny, realdata); t.Elapsed("sample_image::copy_input");
+    auto data = copy_input(nx, ny, realdata); t.Elapsed("sample_image::copy_input");
 
     sample_h(nx, ny, data, dRA, dDec, nd, duv, PA, u, v, fint);
 
@@ -1337,8 +1379,8 @@ void galario_sample_image(int nx, int ny, const dreal* realdata, dreal dRA, drea
     t_start.Elapsed("sample_image_tot");
 }
 
-void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint) {
-    galario_sample_image(nx, ny, static_cast<dreal*>(data), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
+void _sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fint) {
+    sample_image(nx, ny, static_cast<dreal*>(data), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(fint));
 }
 
 
@@ -1346,7 +1388,7 @@ void _galario_sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dr
  * return result in `fint`
  *
  */
-void galario_sample_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
+void sample_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                             dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     CPUTimer t_start;
 
@@ -1386,10 +1428,11 @@ void galario_sample_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR
 }
 
 
-void _galario_sample_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
+void _sample_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
                              dreal duv, dreal PA, int nd, void *u, void *v, void *fint) {
-    galario_sample_profile(nr, static_cast<dreal *>(intensity), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
+    sample_profile(nr, static_cast<dreal *>(intensity), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
                            static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dcomplex *>(fint));
+}
 }
 
 
@@ -1451,7 +1494,8 @@ dreal reduce_chi2_d
 }
 #endif
 
-dreal galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights) {
+namespace galario {
+dreal reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights) {
      CPUTimer t_start;
      dreal chi2 = 0.;
 #ifdef __CUDACC__
@@ -1492,11 +1536,11 @@ dreal galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, co
      return chi2;
 }
 
-dreal _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights) {
-    return galario_reduce_chi2(nd, static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dcomplex*>(fint), static_cast<dreal*>(weights));
+dreal _reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights) {
+    return reduce_chi2(nd, static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dcomplex*>(fint), static_cast<dreal*>(weights));
 }
 
-int galario_ngpus()
+int ngpus()
 {
     int num_devices = 0;
 #ifdef __CUDACC__
@@ -1505,14 +1549,16 @@ int galario_ngpus()
     return num_devices;
 }
 
-void galario_use_gpu(int device_id)
+void use_gpu(int device_id)
 {
 #ifdef __CUDACC__
     CCheck(cudaSetDevice(device_id));
 #endif
 }
+}
 
-dreal galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights) {
+namespace galario {
+dreal chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights) {
     CPUTimer t_start;
 
     CHECK_INPUTXY(nx, ny);
@@ -1566,9 +1612,9 @@ dreal galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal
     CPUTimer t;
 
     auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd)); t.Elapsed("chi2_imag::fftw_alloc");
-    galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
+    sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
 
-    chi2 = galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights);
+    chi2 = reduce_chi2(nd, fobs_re, fobs_im, fint, weights);
 
     t = CPUTimer(); galario_free(fint); t.Elapsed("chi2_imag::free_fint");
 #endif
@@ -1578,13 +1624,13 @@ dreal galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal
     return chi2;
 }
 
-dreal _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights) {
-    return galario_chi2_image(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u),
+dreal _chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights) {
+    return chi2_image(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u),
                  static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im),
                  static_cast<dreal*>(weights));
 }
 
-dreal galario_chi2_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
+dreal chi2_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                           dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *fobs_re,
                           const dreal *fobs_im, const dreal *weights) {
     CPUTimer t_start;
@@ -1623,8 +1669,8 @@ dreal galario_chi2_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR,
     CPUTimer t;
 
     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd); t.Elapsed("chi2_profile::malloc_fint");
-    galario_sample_profile(nr, intensity, Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd, u, v, fint);
-    chi2 = galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights);
+    sample_profile(nr, intensity, Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd, u, v, fint);
+    chi2 = reduce_chi2(nd, fobs_re, fobs_im, fint, weights);
     t = CPUTimer(); free(fint); t.Elapsed("chi2_profile::free_fint");
 #endif
     t_start.Elapsed("chi2_profile_tot");
@@ -1633,9 +1679,10 @@ dreal galario_chi2_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR,
     return chi2;
 }
 
-dreal _galario_chi2_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
+dreal _chi2_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
                            dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights) {
-    return galario_chi2_profile(nr, static_cast<dreal *>(intensity), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
+    return chi2_profile(nr, static_cast<dreal *>(intensity), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
                          static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dreal *>(fobs_re),
                          static_cast<dreal *>(fobs_im), static_cast<dreal *>(weights));
+}
 }

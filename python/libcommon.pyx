@@ -8,6 +8,11 @@ np.import_array()
 
 include "galario_config.pxi"
 
+cimport galario_defs as cpp
+
+cdef extern from "fftw3.h":
+    void fftw_free(void*)
+
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup',
            'ngpus', 'use_gpu', 'threads',
@@ -25,55 +30,8 @@ pc = 3.0856775815e18                # cm (IAU 2015 Resolution B2)
 au = 1.49597870700e13               # cm (IAU 2012 Resolution B1)
 
 
-IF DOUBLE_PRECISION:
-    ctypedef double dreal
-    real_dtype = np.float64
-
-    ctypedef double complex dcomplex
-    complex_dtype = np.complex128
-    complex_typenum = np.NPY_COMPLEX128
-
-ELSE:
-    ctypedef float dreal
-    real_dtype = np.float32
-
-    ctypedef float complex dcomplex
-    complex_dtype = np.complex64
-    complex_typenum = np.NPY_COMPLEX64
-
-cdef extern from "galario_py.h":
-    # Main user functions
-    void _galario_sample_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis) except +
-    void _galario_sample_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis) except +
-    dreal _galario_chi2_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
-                                dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights) except +;
-    dreal _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights) except +;
-    void _galario_sweep(int nr, void* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image) except +
-    void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* u, void* v, void* urot, void* vrot) except +
-
-    # Interface for the experts
-    void* _galario_copy_input(int nx, int ny, void* realimage) except +
-    void* _galario_fft2d(int nx, int ny, void* image) except +
-    void _galario_fftshift(int nx, int ny, void* image) except +
-    void _galario_fftshift_axis0(int nx, int ny, void* image) except +
-    void _galario_interpolate(int nx, int ncol, void* image, int nd, void* u, void* v, dreal duv, void* vis) except +
-    void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* vis) except +
-    dreal _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights) except +
-
-cdef extern from "galario.h":
-    void galario_init();
-    void galario_cleanup();
-    int  galario_threads(int num);
-    void galario_free(void*);
-    void galario_use_gpu(int device_id)
-    int  galario_ngpus()
-
-cdef extern from "fftw3.h":
-    void fftw_free(void*)
-
-
 cdef class ArrayWrapper:
-    """Wrap an array allocated in C that has to be deleted by `galario_free`.
+    """Wrap an array allocated in C that has to be deleted by `free`.
 
     See https://gist.github.com/GaelVaroquaux/1249305#file-cython_wrapper-pyx for a discussion
     """
@@ -116,17 +74,17 @@ cdef class ArrayWrapper:
     def __dealloc__(self):
         """ Frees the array. This is called by Python when all the
         references to the object are gone. """
-        galario_free(self.data_ptr)
+        cpp.galario_free(self.data_ptr)
 
 
 def _init():
     """ Initializes FFTW threads """
-    galario_init()
+    cpp.init()
 
 
 def _cleanup():
     """ Cleans up FFTW threads """
-    galario_cleanup()
+    cpp.cleanup()
 
 
 # ############################################################################ #
@@ -145,7 +103,7 @@ def ngpus():
         Number of GPUs available on the machine.
 
     """
-    return galario_ngpus()
+    return cpp.ngpus()
 
 
 def use_gpu(int device_id):
@@ -170,7 +128,7 @@ def use_gpu(int device_id):
     `watch -n0.1 nvidia-smi`.
 
     """
-    galario_use_gpu(device_id)
+    cpp.use_gpu(device_id)
 
 def threads(int num=0):
     """
@@ -209,7 +167,7 @@ def threads(int num=0):
     cores to see if hyperthreading provides any benefit.
 
     """
-    return galario_threads(num)
+    return cpp.threads(num)
 
 
 # ############################################################################ #
@@ -451,7 +409,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         check_image_size(u, v, nxy, dxy, duv)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_image(nxy, nxy, <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+    cpp._sample_image(nxy, nxy, <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
     return vis
 
@@ -538,7 +496,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
         check_image_size(u, v, nxy, dxy, duv)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
-    _galario_sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+    cpp._sample_profile(len(intensity), <void*>&intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
     return vis
 
@@ -629,7 +587,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     if check:
         check_image_size(u, v, nxy, dxy, duv)
 
-    return _galario_chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
+    return cpp._chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
@@ -731,7 +689,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     if check:
         check_image_size(u, v, nxy, dxy, duv)
 
-    return _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
+    return cpp._chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
 def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
@@ -782,7 +740,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
 
     image = np.empty((nxy, nxy//2+1), dtype=complex_dtype, order='C')
 
-    _galario_sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
+    cpp._sweep(len(intensity), <void*>&intensity[0], Rmin, dR, nxy, dxy, inc, <void*>np.PyArray_DATA(image))
 
     # return a C-Continuous array so that it can be used in sampleImage()
     return np.ascontiguousarray(image.view(dtype=real_dtype)[:, :-2])
@@ -836,7 +794,7 @@ def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
     urot = np.copy(u, order='C')
     vrot = np.copy(v, order='C')
 
-    _galario_uv_rotate(PA, dRA, dDec, &dRArot, &dDecrot, nd,
+    cpp._uv_rotate(PA, dRA, dDec, &dRArot, &dDecrot, nd,
                        <void*> &u[0], <void*> &v[0],
                        <void*>np.PyArray_DATA(urot), <void*>np.PyArray_DATA(vrot))
 
@@ -875,7 +833,7 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
     """
     vis = np.empty(len(u), dtype=complex_dtype, order='C')
 
-    _galario_interpolate(r2cFT.shape[0], r2cFT.shape[1], <void*>&r2cFT[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(vis))
+    cpp._interpolate(r2cFT.shape[0], r2cFT.shape[1], <void*>&r2cFT[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(vis))
 
     return vis
 
@@ -916,7 +874,7 @@ def apply_phase_vis(dRA, dDec, dreal[::1] u, dreal[::1] v, dcomplex[::1] vis):
 
     """
     vis_out = np.copy(vis, order='C')
-    _galario_apply_phase_sampled(dRA, dDec, len(vis), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(vis_out))
+    cpp._apply_phase_sampled(dRA, dDec, len(vis), <void*> &u[0], <void*> &v[0], <void*>np.PyArray_DATA(vis_out))
 
     return vis_out
 
@@ -954,8 +912,7 @@ def reduce_chi2(dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs
     """
     check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis)
 
-    return _galario_reduce_chi2(len(vis), <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis[0], <void*>&vis_obs_w[0])
-
+    return cpp._reduce_chi2(len(vis), <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis[0], <void*>&vis_obs_w[0])
 
 
 def _fft2d(dreal[:,::1] image):
@@ -963,9 +920,9 @@ def _fft2d(dreal[:,::1] image):
     # require contiguous arrays with stride=1 in buffer[::1]
     check_image(image)
     nx, ny = image.shape[0], image.shape[1]
-    cdef void* res = _galario_copy_input(nx, ny, <void*>&image[0,0])
+    cdef void* res = cpp._copy_input(nx, ny, <void*>&image[0,0])
 
-    _galario_fft2d(nx, ny, res)
+    cpp._fft2d(nx, ny, res)
 
     # Use a custom delete function to free the array http://gael-varo1quaux.info/programming/cython-example-of-exposing-c-computed-arrays-in-python-without-image-copies.html
     return ArrayWrapper().as_ndarray(nx, ny, res)
@@ -992,9 +949,9 @@ def _fftshift(dreal[:,::1] matrix):
     nx, ny = matrix.shape[0], matrix.shape[1]
     assert nx % 2 == 0 and ny % 2 == 0, "Expect even matrix size but got {}".format(matrix.shape)
 
-    cdef void* res = _galario_copy_input(nx, ny, <void*>&matrix[0,0])
+    cdef void* res = cpp._copy_input(nx, ny, <void*>&matrix[0,0])
 
-    _galario_fftshift(nx, ny, res)
+    cpp._fftshift(nx, ny, res)
 
     return ArrayWrapper().as_ndarray(nx, ny, res)
 
@@ -1012,4 +969,4 @@ def _fftshift_axis0(dcomplex[:,::1] matrix):
 
     """
     assert matrix.shape[0] % 2 == 0, "Axis 0 of `matrix` has to be even "
-    _galario_fftshift_axis0(matrix.shape[0], matrix.shape[1], <void*>&matrix[0,0])
+    cpp._fftshift_axis0(matrix.shape[0], matrix.shape[1], <void*>&matrix[0,0])

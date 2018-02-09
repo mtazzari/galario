@@ -1,1 +1,17 @@
 DEF DOUBLE_PRECISION = ${GALARIO_DOUBLE_PRECISION}
+
+IF DOUBLE_PRECISION:
+    ctypedef double dreal
+    real_dtype = np.float64
+
+    ctypedef double complex dcomplex
+    complex_dtype = np.complex128
+    complex_typenum = np.NPY_COMPLEX128
+
+ELSE:
+    ctypedef float dreal
+    real_dtype = np.float32
+
+    ctypedef float complex dcomplex
+    complex_dtype = np.complex64
+    complex_typenum = np.NPY_COMPLEX64
