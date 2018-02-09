@@ -2,7 +2,6 @@
 # these options are understood by both gcc and nvcc
 set(cxx_std "-std=c++11")
 set(CMAKE_CXX_FLAGS "${cxx_std} ${CMAKE_CXX_FLAGS}")
-set(CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS}")
 
 # these need to be wrapped in -Xcompiler for nvcc
 # use strict-aliasing because all input arrays to functions must not alias for correctness
@@ -102,11 +101,9 @@ install(FILES galario.h galario_py.h galario_defs.h DESTINATION include)
 ###
 # testing
 ###
-add_executable(galario_test_c galario_test.c)
-add_test(c_compile_test galario_test_c)
 add_executable(galario_test_cpp galario_test.cpp)
 add_test(cpp_compile_test galario_test_cpp)
 
-foreach(t IN ITEMS galario_test_c galario_test_cpp)
+foreach(t IN ITEMS galario_test_cpp)
   target_link_libraries(${t} galario ${FFTW3_LIBRARIES})
 endforeach()
