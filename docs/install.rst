@@ -376,6 +376,10 @@ If you still have problems, remove the `CMakeCache.txt`, rerun
 The |galario| library needs to be imported when building the documentation (the
 import would fail otherwise) to extract docstrings.
 
+To delete the sphinx cache in case the docs don't update as expected
+
+    rm -rf docs/_doctrees/
+
 .. _install_details:
 
 Install
