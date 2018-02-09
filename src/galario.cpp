@@ -15,6 +15,29 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef __CUDACC__
+#include <cuda_runtime_api.h>
+#include <cuda.h>
+#include <cuComplex.h>
+
+#include <cublas_v2.h>
+#include <cufft.h>
+
+#include <cstdio>
+#include <cstdlib>
+
+#else // CPU
+// general min function already available in cuda
+// math_functions.hpp. Need `using` so the right implementation of
+// `min` is chosen for the kernels that are both on gpu and cpu
+#include <algorithm>
+using std::min;
+using std::max;
+
+#include <fftw3.h>
+
+#endif
+
 // Stuff needed for GPU and CPU but should not be visible any other translation unit so we can use very common names.
 namespace {
     /**
@@ -59,8 +82,6 @@ namespace {
         assert(ny % 2 == 0);  \
     } while (0)
 
-}
-
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
     struct CPUTimer {
         double start;
@@ -95,22 +116,21 @@ namespace {
 #endif // _OPENMP && TIMING
 
 #ifdef __CUDACC__
-    #include <cuda_runtime_api.h>
-    #include <cuda.h>
-    #include <cuComplex.h>
-
-    #include <cublas_v2.h>
-    #include <cufft.h>
-
-    #include <cstdio>
-    #include <cstdlib>
-
     #define CCheck(err) __cudaSafeCall((err), __FILE__, __LINE__)
     inline void __cudaSafeCall(cudaError err, const char *file, const int line)  {
     #ifndef NDEBUG
-        if(cudaSuccess != err) {
-            fprintf(stderr, "[ERROR] Cuda call %s: %d\n%s\n", file, line, cudaGetErrorString(err));
-            exit(42);
+        if (cudaSuccess != err) {
+            if (err == cudaErrorMemoryAllocation) {
+                    std::stringstream ss;
+                    ss << file << ":" << line << ": Cuda memory allocation error";
+                    std::string msg;
+                    ss >> msg;
+
+                    throw std::bad_alloc(msg);
+            } else {
+                fprintf(stderr, "[ERROR] Cuda call %s: %d\n%s\n", file, line, cudaGetErrorString(err));
+                exit(42);
+            }
         }
     #endif
     }
@@ -135,7 +155,6 @@ namespace {
     #endif
     }
 
-namespace {
     cublasHandle_t& cublas_handle() {
         static bool initialized = false;
         static cublasHandle_t handle;
@@ -145,7 +164,6 @@ namespace {
         }
         return handle;
     }
-}
 
     #ifdef GALARIO_TIMING
         struct GPUTimer
@@ -219,14 +237,6 @@ namespace {
     }
 
 #else // CPU
-    // general min function already available in cuda
-    // math_functions.hpp. Need `using` so the right implementation of
-    // `min` is chosen for the kernels that are both on gpu and cpu
-    #include <algorithm>
-    using std::min;
-    using std::max;
-
-    #include <fftw3.h>
     #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
 
     inline void __fftwSafeCall(int status, const char *file, const int line) {
@@ -251,6 +261,8 @@ namespace {
     #define SQRT sqrtf
     #define FFTW(name) fftwf_ ## name
 #endif
+
+} // anonymous namespace
 
 int galario_threads(int num) {
 #ifdef __CUDACC__
