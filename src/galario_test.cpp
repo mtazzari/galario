@@ -38,7 +38,7 @@ int main()
     galario_fftshift_axis0(n, n, cp);
     // galario_interpolate(n, n, cp, n, rp, rp, r, cp);
     galario_apply_phase_sampled(r, r, n, rp, rp, cp);
-    galario_reduce_chi2(3, &realdata[0], &realdata[0], &res[0], &realdata[0], &realdata[0]);
+    auto chi2 = galario_reduce_chi2(3, &realdata[0], &realdata[0], &res[0], &realdata[0]);
 
     galario_free(res);
     galario_cleanup();

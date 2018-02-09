@@ -211,6 +211,13 @@ namespace {
         #define CMPLXCONJ cuConjf
         #define CUBLASNRM2 cublasScnrm2
     #endif  // DOUBLE_PRECISION
+
+    void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
+        size_t nbytes_ndat = sizeof(dreal)*nd;
+        CCheck(cudaMalloc(addr_x_d, nbytes_ndat));
+        CCheck(cudaMemcpy(*addr_x_d, x, nbytes_ndat, cudaMemcpyHostToDevice));
+    }
+
 #else // CPU
     // general min function already available in cuda
     // math_functions.hpp. Need `using` so the right implementation of
@@ -1353,8 +1360,8 @@ __global__ void diff_weighted_d
 #endif
 
 #ifdef __CUDACC__
-void reduce_chi2_d
-(int nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im, dcomplex * const __restrict__ fint, const dreal* const __restrict__ weights, dreal* const __restrict__ chi2)
+dreal reduce_chi2_d
+(int nd, const dreal* const __restrict__ fobs_re, const dreal* const __restrict__ fobs_im, dcomplex * const __restrict__ fint, const dreal* const __restrict__ weights)
 {
     GPUTimer t_start, t;
 
@@ -1364,74 +1371,62 @@ void reduce_chi2_d
     diff_weighted_d<<<nd / nthreads + 1, nthreads>>>(nd, fobs_re, fobs_im, fint, weights);
     t.Elapsed("reduce_chi2::diff_weighted");
 
-    // only device pointers! maybe not ... check with jiri
+    // only device pointers!
     // compute the Euclidean norm
-    CUBLASNRM2(cublas_handle(), nd, fint, 1, chi2);
+    dreal chi2 = 0;
+    CUBLASNRM2(cublas_handle(), nd, fint, 1, &chi2);
     // but we want the square of the norm
-    *chi2 *= *chi2;
+    chi2 *= chi2;
     t.Elapsed("reduce_chi2::reduction");
     t_start.Elapsed("reduce_chi2_tot");
+
+    return chi2;
 }
 #endif
 
-void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2) {
+dreal galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights) {
      CPUTimer t_start;
+     dreal chi2 = 0.;
 #ifdef __CUDACC__
 
     /* allocate and copy */
      dreal *fobs_re_d, *fobs_im_d, *weights_d;
-     size_t nbytes_nd = sizeof(dreal)*nd;
-
-     CCheck(cudaMalloc(&fobs_re_d, nbytes_nd));
-     CCheck(cudaMemcpy(fobs_re_d, fobs_re, nbytes_nd, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&fobs_im_d, nbytes_nd));
-     CCheck(cudaMemcpy(fobs_im_d, fobs_im, nbytes_nd, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&weights_d, nbytes_nd));
-     CCheck(cudaMemcpy(weights_d, weights, nbytes_nd, cudaMemcpyHostToDevice));
-
-     dreal *chi2_d;
-     size_t nbytes_chi2 = sizeof(dreal);
-     CCheck(cudaMalloc(&chi2_d, nbytes_chi2));
+     copy_observations_d(nd, fobs_re, &fobs_re_d);
+     copy_observations_d(nd, fobs_im, &fobs_im_d);
+     copy_observations_d(nd, weights, &weights_d);
 
      dcomplex* fint_d;
      size_t nbytes_fint = sizeof(dcomplex) * nd;
      CCheck(cudaMalloc(&fint_d, nbytes_fint));
      CCheck(cudaMemcpy(fint_d, fint, nbytes_fint, cudaMemcpyHostToDevice));
 
-     reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
-
-     // CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
+     chi2 = reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
 
      /* free */
      CCheck(cudaFree(fobs_re_d));
      CCheck(cudaFree(fobs_im_d));
      CCheck(cudaFree(weights_d));
-     CCheck(cudaFree(chi2_d));
      CCheck(cudaFree(fint_d));
-
 #else
-     dreal y = 0.;
-
      // compute chi2 by hand in a single pass over data, avoiding creation of
      // intermediate complex values
-#pragma omp parallel for reduction(+:y)
+#pragma omp parallel for reduction(+:chi2)
      for (auto idx = 0; idx < nd; ++idx) {
          dcomplex chi;
          diff_weighted_core(idx, nd, fobs_re, fobs_im, fint, weights, chi);
          // \chi^2 += a^2 + b^2
          const auto a = real(chi);
          const auto b = imag(chi);
-         y += a*a + b*b;
+         chi2 += a*a + b*b;
      }
-     *chi2 = y;
 #endif
      t_start.Elapsed("reduce_chi2_tot");
+
+     return chi2;
 }
 
-void _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights, dreal* chi2) {
-    galario_reduce_chi2(nd, static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dcomplex*>(fint), static_cast<dreal*>(weights), chi2);
+dreal _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights) {
+    return galario_reduce_chi2(nd, static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im), static_cast<dcomplex*>(fint), static_cast<dreal*>(weights));
 }
 
 int galario_ngpus()
@@ -1450,18 +1445,11 @@ void galario_use_gpu(int device_id)
 #endif
 }
 
-#ifdef __CUDACC__
-void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
-    size_t nbytes_ndat = sizeof(dreal)*nd;
-    CCheck(cudaMalloc(addr_x_d, nbytes_ndat));
-    CCheck(cudaMemcpy(*addr_x_d, x, nbytes_ndat, cudaMemcpyHostToDevice));
-}
-#endif
-
-void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2) {
+dreal galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights) {
     CPUTimer t_start;
 
     CHECK_INPUTXY(nx, ny);
+    dreal chi2 = 0;
 #ifdef __CUDACC__
     GPUTimer t;
      // ################################
@@ -1495,7 +1483,7 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     dcomplex* data_d = copy_input_d(nx, ny, realdata);
 
     sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
-    reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
+    chi2 = reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
 
     // ################################
     // ########### CLEANUP ############
@@ -1513,25 +1501,29 @@ void galario_chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal 
     auto fint = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd)); t.Elapsed("chi2_imag::fftw_alloc");
     galario_sample_image(nx, ny, realdata, dRA, dDec, duv, PA, nd, u, v, fint);
 
-    galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
+    chi2 = galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights);
 
     t = CPUTimer(); galario_free(fint); t.Elapsed("chi2_imag::free_fint");
 #endif
     t_start.Elapsed("chi2_image_tot");
     flush_timing();
+
+    return chi2;
 }
 
-void _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights, dreal* chi2) {
-    galario_chi2_image(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u),
+dreal _galario_chi2_image(int nx, int ny, void* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights) {
+    return galario_chi2_image(nx, ny, static_cast<dreal*>(realdata), dRA, dDec, duv, PA, nd, static_cast<dreal*>(u),
                  static_cast<dreal*>(v), static_cast<dreal*>(fobs_re), static_cast<dreal*>(fobs_im),
-                 static_cast<dreal*>(weights), chi2);
+                 static_cast<dreal*>(weights));
 }
 
-void galario_chi2_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
+dreal galario_chi2_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                           dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *fobs_re,
-                          const dreal *fobs_im, const dreal *weights, dreal *chi2) {
+                          const dreal *fobs_im, const dreal *weights) {
     CPUTimer t_start;
     CHECK_INPUT(nxy);
+    dreal chi2 = 0;
+
 #ifdef __CUDACC__
     GPUTimer t, t_start2;
     dcomplex *fint_d;
@@ -1550,7 +1542,7 @@ void galario_chi2_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal
     create_image_d(nr, ints, Rmin, dR, nxy, dxy, inc, &image_d);
 
     sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
-    reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d, chi2);
+    chi2 = reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
 
     t.Start();
     CCheck(cudaFree(fint_d));
@@ -1565,17 +1557,18 @@ void galario_chi2_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal
 
     dcomplex* fint = (dcomplex*) malloc(sizeof(dcomplex)*nd); t.Elapsed("chi2_profile::malloc_fint");
     galario_sample_profile(nr, ints, Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd, u, v, fint);
-    galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights, chi2);
+    chi2 = galario_reduce_chi2(nd, fobs_re, fobs_im, fint, weights);
     t = CPUTimer(); free(fint); t.Elapsed("chi2_profile::free_fint");
 #endif
     t_start.Elapsed("chi2_profile_tot");
     flush_timing();
+
+    return chi2;
 }
 
-void _galario_chi2_profile(int nr, void *ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
-                           dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights,
-                           dreal *chi2) {
-    galario_chi2_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
+dreal _galario_chi2_profile(int nr, void *ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
+                           dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights) {
+    return galario_chi2_profile(nr, static_cast<dreal *>(ints), Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, nd,
                          static_cast<dreal *>(u), static_cast<dreal *>(v), static_cast<dreal *>(fobs_re),
-                         static_cast<dreal *>(fobs_im), static_cast<dreal *>(weights), chi2);
+                         static_cast<dreal *>(fobs_im), static_cast<dreal *>(weights));
 }
