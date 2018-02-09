@@ -25,9 +25,10 @@ To compute the synthetic visibilities of a model use the :func:`sampleImage() <g
     The offset is achieved by applying a complex phase to the sampled visibilities.
     To rotation is achieved by internally rotating the (u, v) locations by -PA.
 
-    **Suggestion** We recommend starting with `uvcheck` set to True to ensure the results obtained are correct.
-    Once a combination of matrix size and `dxy` for the given data has been found, `uvcheck`
-    can be safely set to False.
+    **Suggestion**: We recommend starting with `check` set to `True` to ensure
+    the results obtained are correct. Once a combination of matrix size and
+    `dxy` for the given data has been found, `uvcheck` can be safely set to
+    `False`.
 
 Computing directly the chi square
 ---------------------------------
@@ -41,9 +42,9 @@ GPU related
 -----------
 .. py:data:: galario.HAVE_CUDA
 
-    Global variable (bool).
-    It is `True` if the GPU libraries (`galario.double_cuda` and `galario.single_cuda`) are available, `False` otherwise.
-    On a machine without a CUDA-enabled GPU it is always `False`.
+    Global variable (`bool`). It is `True` if the GPU libraries
+    (`galario.double_cuda` and `galario.single_cuda`) are available, `False`
+    otherwise. On a machine without a CUDA-enabled GPU it is always `False`.
 
 .. autofunction:: galario.double.ngpus
 .. autofunction:: galario.double.use_gpu
@@ -55,4 +56,3 @@ Other useful functions
 .. autofunction:: galario.double.check_image_size
 .. autofunction:: galario.double.sweep
 .. autofunction:: galario.double.apply_phase_vis
-

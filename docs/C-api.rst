@@ -85,6 +85,14 @@ These are four main functions that should serve the standard use of galario.
    For details, see :py:func:`chi2Image`, :func:`galario_sample_image`
    and :func:`galario_chi2_profile`.
 
+.. DANGER::
+
+   The values of `duv` and and `u`, `v` have to be consistent; i.e., :math:`\max
+   |u| \leq \frac{n}{2} + 1` and :math:`v \leq \frac{n}{2}`, where :math:`n` is
+   the number of rows and columns of the real input image. For performance
+   reasons, the interpolate function does not check this. Inconsistent values
+   may lead to segfaults.
+
 Management functions
 --------------------
 
