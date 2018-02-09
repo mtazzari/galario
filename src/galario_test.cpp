@@ -3,6 +3,7 @@
  */
 #include "galario.h"
 
+#include <cassert>
 #include <complex>
 #include <vector>
 
@@ -38,7 +39,16 @@ int main()
     galario_fftshift_axis0(n, n, cp);
     // galario_interpolate(n, n, cp, n, rp, rp, r, cp);
     galario_apply_phase_sampled(r, r, n, rp, rp, cp);
-    auto chi2 = galario_reduce_chi2(3, &realdata[0], &realdata[0], &res[0], &realdata[0]);
+
+    auto ncomplex = nx*(ny/2+1);
+    std::vector<dcomplex> fint(res, res + ncomplex);
+    auto chi2 = galario_reduce_chi2(300, &realdata[0], &realdata[0], res, &realdata[0]);
+    (void)chi2; // avoid unused variable warning
+
+    // copy input before galario_reduce_chi2 to see if it is modified inadvertently
+    for (auto i = 0; i < ncomplex; ++i) {
+        assert(fint[i] == res[i]);
+    }
 
     galario_free(res);
     galario_cleanup();
