@@ -43,22 +43,22 @@ ELSE:
 
 cdef extern from "galario_py.h":
     # Main user functions
-    void _galario_sample_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
-    void _galario_sample_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
+    void _galario_sample_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis) except +
+    void _galario_sample_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis) except +
     dreal _galario_chi2_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
-                                dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights);
-    dreal _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights);
-    void _galario_sweep(int nr, void* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image)
-    void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* u, void* v, void* urot, void* vrot)
+                                dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights) except +;
+    dreal _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights) except +;
+    void _galario_sweep(int nr, void* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image) except +
+    void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* u, void* v, void* urot, void* vrot) except +
 
     # Interface for the experts
-    void* _galario_copy_input(int nx, int ny, void* realimage);
-    void* _galario_fft2d(int nx, int ny, void* image)
-    void _galario_fftshift(int nx, int ny, void* image)
-    void _galario_fftshift_axis0(int nx, int ny, void* image);
-    void _galario_interpolate(int nx, int ncol, void* image, int nd, void* u, void* v, dreal duv, void* vis)
-    void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* vis)
-    dreal _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights);
+    void* _galario_copy_input(int nx, int ny, void* realimage) except +
+    void* _galario_fft2d(int nx, int ny, void* image) except +
+    void _galario_fftshift(int nx, int ny, void* image) except +
+    void _galario_fftshift_axis0(int nx, int ny, void* image) except +
+    void _galario_interpolate(int nx, int ncol, void* image, int nd, void* u, void* v, dreal duv, void* vis) except +
+    void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* vis) except +
+    dreal _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights) except +
 
 cdef extern from "galario.h":
     void galario_init();
