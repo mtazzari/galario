@@ -45,8 +45,9 @@ cdef extern from "galario_py.h":
     # Main user functions
     void _galario_sample_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
     void _galario_sample_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis)
-    void _galario_chi2_profile(int nr, void* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* vis_obs_w, dreal* chi2)
-    void _galario_chi2_image(int nx, int ny, void* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* vis_obs_w, dreal* chi2)
+    dreal _galario_chi2_profile(int nr, void *ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
+                                dreal duv, dreal PA, int nd, void *u, void *v, void *fobs_re, void *fobs_im, void *weights);
+    dreal _galario_chi2_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* fobs_re, void* fobs_im, void* weights);
     void _galario_sweep(int nr, void* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, void* image)
     void _galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, int nd, void* u, void* v, void* urot, void* vrot)
 
@@ -57,7 +58,7 @@ cdef extern from "galario_py.h":
     void _galario_fftshift_axis0(int nx, int ny, void* image);
     void _galario_interpolate(int nx, int ncol, void* image, int nd, void* u, void* v, dreal duv, void* vis)
     void _galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, void* u, void* v, void* vis)
-    void _galario_reduce_chi2(int nd, void* vis_obs_re, void* vis_obs_im, void* vis, void* vis_obs_w, dreal* chi2)
+    dreal _galario_reduce_chi2(int nd, void* fobs_re, void* fobs_im, void* fint, void* weights);
 
 cdef extern from "galario.h":
     void galario_init();
@@ -628,11 +629,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     if check:
         check_image_size(u, v, nxy, dxy, duv)
 
-    cdef dreal chi2
-
-    _galario_chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
-
-    return chi2
+    return _galario_chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
@@ -734,11 +731,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     if check:
         check_image_size(u, v, nxy, dxy, duv)
 
-    cdef dreal chi2
-
-    _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0], &chi2)
-
-    return chi2
+    return _galario_chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
 def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
@@ -961,10 +954,7 @@ def reduce_chi2(dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs
     """
     check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis)
 
-    cdef dreal chi2
-    _galario_reduce_chi2(len(vis), <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis[0], <void*>&vis_obs_w[0], &chi2)
-
-    return chi2
+    return _galario_reduce_chi2(len(vis), <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis[0], <void*>&vis_obs_w[0])
 
 
 

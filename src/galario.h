@@ -10,10 +10,10 @@ extern "C"
     void galario_sample_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                                 dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint);
     void galario_sample_image(int nx, int ny, const dreal* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint);
-    void galario_chi2_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
+    dreal galario_chi2_profile(int nr, dreal *const ints, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                                   dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *fobs_re,
-                                  const dreal *fobs_im, const dreal *weights, dreal *chi2);
-    void galario_chi2_image(int nx, int ny, const dreal* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights, dreal* chi2);
+                                  const dreal *fobs_im, const dreal *weights);
+    dreal galario_chi2_image(int nx, int ny, const dreal* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights);
     void galario_sweep(int nr, dreal *const ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex *image);
     void galario_uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int nd, const dreal* u, const dreal* v, dreal* urot, dreal* vrot);
 
@@ -26,7 +26,7 @@ extern "C"
     void galario_interpolate(int nrow, int ncol, const dcomplex *image, int nd, const dreal *u, const dreal *v,
                              const dreal duv, dcomplex *fint);
     void galario_apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* fint);
-    void galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2);
+    dreal galario_reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights);
 
     /* Required for multithreading */
     void galario_init();
