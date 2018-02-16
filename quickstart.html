@@ -2,20 +2,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>A quickstart example &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.02',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -31,8 +23,7 @@
     
     
 
-  </head>
-  <body>
+  </head><body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -62,7 +53,7 @@ image, leaving to the user the freedom to choose the most appropriate statistica
 parameter space and to produce a sampling of the posterior probability function. In particular, we will use the MCMC
 implementation in the <a class="reference external" href="http://dfm.io/emcee/current/">emcee</a> Python package.</p>
 <p>In this page we will show how to fit the mock observations of a protoplanetary disk. In particular, in the example we will
-analyse mock visibilities of the disk continuum emission at <span class="math">\(\lambda=\)</span> 1 mm whose synthetized map is shown in this figure:</p>
+analyse mock visibilities of the disk continuum emission at <span class="math notranslate">\(\lambda=\)</span> 1 mm whose synthetized map is shown in this figure:</p>
 <a class="reference internal image-reference" href="_images/disk_example.jpg"><img alt="Protoplanetary disk continuum map" class="align-center" src="_images/disk_example.jpg" style="width: 605.7px; height: 590.4px;" /></a>
 <hr class="docutils" />
 <div class="section" id="fit-of-a-single-wavelength-data-set">
@@ -70,9 +61,9 @@ analyse mock visibilities of the disk continuum emission at <span class="math">\
 <p><strong>1) Import the uv table</strong></p>
 <blockquote>
 <div><p>First, let’s import the table containing the interferometric observations. Typically, an interferometric data set
-can be exported to a table containing the <span class="math">\((u_j, v_j)\)</span> coordinates (<span class="math">\(j=1...M\)</span>), the Real and Imaginary part of the complex visibilities
-<span class="math">\(V_{obs\ j}\)</span>, and their theoretical weight <span class="math">\(w_{j}\)</span>, for example:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">u</span>  <span class="p">[</span><span class="n">m</span><span class="p">]</span>          <span class="n">v</span>  <span class="p">[</span><span class="n">m</span><span class="p">]</span>          <span class="n">Re</span>  <span class="p">[</span><span class="n">Jy</span><span class="p">]</span>        <span class="n">Im</span>  <span class="p">[</span><span class="n">Jy</span><span class="p">]</span>        <span class="n">w</span>
+can be exported to a table containing the <span class="math notranslate">\((u_j, v_j)\)</span> coordinates (<span class="math notranslate">\(j=1...M\)</span>), the Real and Imaginary part of the complex visibilities
+<span class="math notranslate">\(V_{obs\ j}\)</span>, and their theoretical weight <span class="math notranslate">\(w_{j}\)</span>, for example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span>  <span class="p">[</span><span class="n">m</span><span class="p">]</span>          <span class="n">v</span>  <span class="p">[</span><span class="n">m</span><span class="p">]</span>          <span class="n">Re</span>  <span class="p">[</span><span class="n">Jy</span><span class="p">]</span>        <span class="n">Im</span>  <span class="p">[</span><span class="n">Jy</span><span class="p">]</span>        <span class="n">w</span>
 <span class="o">-------------------------------------------------------------------------</span>
 <span class="o">-</span><span class="mf">155.90093</span>      <span class="mf">234.34887</span>        <span class="mf">0.01810</span>         <span class="mf">0.13799</span>        <span class="mf">200.05723</span>
 <span class="mf">9.290660</span>        <span class="mf">362.97853</span>       <span class="o">-</span><span class="mf">0.05827</span>         <span class="mf">0.02820</span>        <span class="mf">216.95405</span>
@@ -91,29 +82,29 @@ can be exported to a table containing the <span class="math">\((u_j, v_j)\)</spa
 </pre></div>
 </div>
 <p>A table like this one can be read with:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">wle</span> <span class="o">=</span> <span class="mf">1e-3</span>  <span class="c1"># [m]</span>
 <span class="n">u</span> <span class="o">/=</span> <span class="n">wle</span>
 <span class="n">v</span> <span class="o">/=</span> <span class="n">wle</span>
 </pre></div>
 </div>
-<p>where the <span class="math">\(u_j\)</span> and <span class="math">\(v_j\)</span> coordinates have been converted in units of the observing wavelength, 1 mm in this example.</p>
+<p>where the <span class="math notranslate">\(u_j\)</span> and <span class="math notranslate">\(v_j\)</span> coordinates have been converted in units of the observing wavelength, 1 mm in this example.</p>
 </div></blockquote>
 <dl class="docutils">
 <dt><strong>2) Determine the image size</strong></dt>
 <dd><p class="first">Once imported the uv table, we can start using <strong>galario</strong> to compute the optimal image size</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">get_image_size</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">get_image_size</span>
 
 <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="last">where the returned values are the number of pixels (<code class="code docutils literal"><span class="pre">nxy</span></code>) and the pixel size (<code class="code docutils literal"><span class="pre">dxy</span></code>) in radians.
-<code class="code docutils literal"><span class="pre">nxy</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> are chosen to fulfil criteria that ensure a correct computation of the synthetic visibilities.
+<p class="last">where the returned values are the number of pixels (<code class="code docutils literal notranslate"><span class="pre">nxy</span></code>) and the pixel size (<code class="code docutils literal notranslate"><span class="pre">dxy</span></code>) in radians.
+<code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> are chosen to fulfil criteria that ensure a correct computation of the synthetic visibilities.
 For more details, refer to Sect. 3.2 in <a class="reference external" href="LINK">Tazzari, Beaujean and Testi (2017)</a>.</p>
 </dd>
 <dt><strong>3) Define the brightness model</strong></dt>
 <dd><p class="first">Let us define the model: for this example, we will use a very simple Gaussian profile:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">arcsec</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">arcsec</span>
 
 <span class="k">def</span> <span class="nf">GaussianProfile</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nR</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Gaussian brightness profile. &quot;&quot;&quot;</span>
@@ -124,16 +115,16 @@ For more details, refer to Sect. 3.2 in <a class="reference external" href="LINK
     <span class="k">return</span> <span class="n">f0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">R</span><span class="o">/</span><span class="n">sigma</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="last">where <code class="code docutils literal"><span class="pre">f0</span></code> (Jy/sr) is a normalization, <code class="code docutils literal"><span class="pre">sigma</span></code> is the width of the Gaussian, <code class="code docutils literal"><span class="pre">Rmin</span></code> is the
-innermost radius of the grid, <code class="code docutils literal"><span class="pre">dR</span></code> is the size of radial grid and <code class="code docutils literal"><span class="pre">nR</span></code> is the number of radial grid cells.
-<code class="code docutils literal"><span class="pre">sigma</span></code>, <code class="code docutils literal"><span class="pre">Rmin</span></code>, <code class="code docutils literal"><span class="pre">dR</span></code> should be passed to <code class="code docutils literal"><span class="pre">GaussianProfile()</span></code> in arcseconds and <code class="code docutils literal"><span class="pre">f0</span></code> in Jy/sr.</p>
+<p class="last">where <code class="code docutils literal notranslate"><span class="pre">f0</span></code> (Jy/sr) is a normalization, <code class="code docutils literal notranslate"><span class="pre">sigma</span></code> is the width of the Gaussian, <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> is the
+innermost radius of the grid, <code class="code docutils literal notranslate"><span class="pre">dR</span></code> is the size of radial grid and <code class="code docutils literal notranslate"><span class="pre">nR</span></code> is the number of radial grid cells.
+<code class="code docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code>, <code class="code docutils literal notranslate"><span class="pre">dR</span></code> should be passed to <code class="code docutils literal notranslate"><span class="pre">GaussianProfile()</span></code> in arcseconds and <code class="code docutils literal notranslate"><span class="pre">f0</span></code> in Jy/sr.</p>
 </dd>
 <dt><strong>4) Setup the MCMC Ensemble Sampler</strong></dt>
-<dd><p class="first">In our fit we will have 6 free parameters: on top of the model parameters <code class="code docutils literal"><span class="pre">f0</span></code> and <code class="code docutils literal"><span class="pre">sigma</span></code> we want to fit
-the inclination <code class="code docutils literal"><span class="pre">inc</span></code>, the position angle <code class="code docutils literal"><span class="pre">PA</span></code>, and the angular offsets <span class="math">\((\Delta RA, \Delta Dec)\)</span>
+<dd><p class="first">In our fit we will have 6 free parameters: on top of the model parameters <code class="code docutils literal notranslate"><span class="pre">f0</span></code> and <code class="code docutils literal notranslate"><span class="pre">sigma</span></code> we want to fit
+the inclination <code class="code docutils literal notranslate"><span class="pre">inc</span></code>, the position angle <code class="code docutils literal notranslate"><span class="pre">PA</span></code>, and the angular offsets <span class="math notranslate">\((\Delta RA, \Delta Dec)\)</span>
 with respect to the phase center.
 Following the notation of the <a class="reference external" href="http://dfm.io/emcee/current/">emcee</a> documentation, we initialise the EnsembleSampler</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">emcee</span> <span class="kn">import</span> <span class="n">EnsembleSampler</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">emcee</span> <span class="kn">import</span> <span class="n">EnsembleSampler</span>
 
 <span class="c1"># radial grid parameters</span>
 <span class="n">Rmin</span> <span class="o">=</span> <span class="mf">1e-4</span>  <span class="c1"># arcsec</span>
@@ -161,17 +152,17 @@ Following the notation of the <a class="reference external" href="http://dfm.io/
 <p>where:</p>
 <blockquote class="last">
 <div><ul class="simple">
-<li><code class="code docutils literal"><span class="pre">p_ranges</span></code> is a rectangular domain in the parameter space that defines the search region;</li>
-<li><code class="code docutils literal"><span class="pre">lnpostfn</span></code> is the posterior probability function;</li>
-<li><code class="code docutils literal"><span class="pre">args</span></code> defines an array of fixed parameters that <code class="code docutils literal"><span class="pre">lnpostfn</span></code> takes additionally in input.</li>
+<li><code class="code docutils literal notranslate"><span class="pre">p_ranges</span></code> is a rectangular domain in the parameter space that defines the search region;</li>
+<li><code class="code docutils literal notranslate"><span class="pre">lnpostfn</span></code> is the posterior probability function;</li>
+<li><code class="code docutils literal notranslate"><span class="pre">args</span></code> defines an array of fixed parameters that <code class="code docutils literal notranslate"><span class="pre">lnpostfn</span></code> takes additionally in input.</li>
 </ul>
 </div></blockquote>
 </dd>
 <dt><strong>5) Define the posterior and the prior probability functions</strong></dt>
-<dd><p class="first">Let us now implement the posterior function, using <strong>galario</strong> to compute the <span class="math">\(\chi^2\)</span>. Since in this example
-we are assuming an axisymmetric brightness profile we will use the <code class="code docutils literal"><span class="pre">chi2Profile</span></code> function, but the same design holds
-for the <code class="code docutils literal"><span class="pre">chi2Image</span></code> function that should be used for non-axisymmetric profiles.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">deg</span><span class="p">,</span> <span class="n">arcsec</span>
+<dd><p class="first">Let us now implement the posterior function, using <strong>galario</strong> to compute the <span class="math notranslate">\(\chi^2\)</span>. Since in this example
+we are assuming an axisymmetric brightness profile we will use the <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> function, but the same design holds
+for the <code class="code docutils literal notranslate"><span class="pre">chi2Image</span></code> function that should be used for non-axisymmetric profiles.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">deg</span><span class="p">,</span> <span class="n">arcsec</span>
 <span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">chi2Profile</span>
 
 <span class="k">def</span> <span class="nf">lnpostfn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p_ranges</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
@@ -204,9 +195,9 @@ for the <code class="code docutils literal"><span class="pre">chi2Image</span></
     <span class="k">return</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">chi2</span> <span class="o">+</span> <span class="n">lnprior</span>
 </pre></div>
 </div>
-<p>where the normalization <code class="code docutils literal"><span class="pre">f0</span></code> is explored in the logarithmic space to achieve a faster convergence and <code class="code docutils literal"><span class="pre">lnpriorfn</span></code>
+<p>where the normalization <code class="code docutils literal notranslate"><span class="pre">f0</span></code> is explored in the logarithmic space to achieve a faster convergence and <code class="code docutils literal notranslate"><span class="pre">lnpriorfn</span></code>
 is the prior probability function defined as a uniform prior:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lnpriorfn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">par_ranges</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lnpriorfn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">par_ranges</span><span class="p">):</span>
 <span class="sd">&quot;&quot;&quot; Uniform prior probability function &quot;&quot;&quot;</span>
 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)):</span>
@@ -218,11 +209,11 @@ is the prior probability function defined as a uniform prior:</p>
 <span class="k">return</span> <span class="n">jacob</span>
 </pre></div>
 </div>
-<p class="last">which, up to a constant, basically checks that <code class="code docutils literal"><span class="pre">p</span></code> lies inside the rectangular domain defined by the extents in <code class="code docutils literal"><span class="pre">p_ranges</span></code>.</p>
+<p class="last">which, up to a constant, basically checks that <code class="code docutils literal notranslate"><span class="pre">p</span></code> lies inside the rectangular domain defined by the extents in <code class="code docutils literal notranslate"><span class="pre">p_ranges</span></code>.</p>
 </dd>
 <dt><strong>6) Ready to go: run the MCMC!</strong></dt>
 <dd><p class="first">We are now ready to start the MCMC:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">nsteps</span> <span class="o">=</span> <span class="mi">3000</span>     <span class="c1"># total number of MCMC steps</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">nsteps</span> <span class="o">=</span> <span class="mi">3000</span>     <span class="c1"># total number of MCMC steps</span>
 
 <span class="c1"># initial guess for the parameters</span>
 <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">70.</span><span class="p">,</span> <span class="mf">60.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]</span> <span class="c1">#  3 parameters for the model + 4 (inc, PA, dRA, dDec)</span>
@@ -242,7 +233,7 @@ is the prior probability function defined as a uniform prior:</p>
 </pre></div>
 </div>
 <p>At the end of the run, which takes approx. 5-8 mins. on a laptop with an Intel i5 2.9GHz, you should obtain an image of
-the MCMC like the one below, on the left. As a check of the fit, using <code class="code docutils literal"><span class="pre">sampleProfile</span></code> instead of <code class="code docutils literal"><span class="pre">chi2Profile</span></code>
+the MCMC like the one below, on the left. As a check of the fit, using <code class="code docutils literal notranslate"><span class="pre">sampleProfile</span></code> instead of <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code>
 in the right figure we compute the bestfit model (here taken as the median of the MCMC) and plot its deprojected visibilities against the data.</p>
 <table border="1" class="last docutils">
 <colgroup>
@@ -260,7 +251,7 @@ in the right figure we compute the bestfit model (here taken as the median of th
 </dd>
 <dt><strong>7) CPU vs GPU execution</strong></dt>
 <dd><p class="first">So far we have run <strong>galario</strong> on the CPU. Running it on a GPU can be done by just changing the import at the beginning:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span> <span class="k">as</span> <span class="n">g_double</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span> <span class="k">as</span> <span class="n">g_double</span>
 </pre></div>
 </div>
 <p>All the rest of the code remains the same!</p>
@@ -302,12 +293,14 @@ in the right figure we compute the bestfit model (here taken as the median of th
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -330,8 +323,8 @@ in the right figure we compute the bestfit model (here taken as the median of th
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
     </div>
   </body>
 </html>

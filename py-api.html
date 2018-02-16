@@ -2,20 +2,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Python API reference &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.02',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -31,8 +23,7 @@
     
     
 
-  </head>
-  <body>
+  </head><body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -57,16 +48,16 @@
 <h1>Python API reference<a class="headerlink" href="#python-api-reference" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="computing-synthetic-visibilities">
 <h2>Computing synthetic visibilities<a class="headerlink" href="#computing-synthetic-visibilities" title="Permalink to this headline">¶</a></h2>
-<p>To compute the synthetic visibilities of a model use the <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal"><span class="pre">sampleImage()</span></code></a> and
-<a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal"><span class="pre">sampleProfile()</span></code></a> functions.</p>
+<p>To compute the synthetic visibilities of a model use the <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a> and
+<a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a> functions.</p>
 <dl class="function">
 <dt id="galario.double.sampleImage">
 <code class="descclassname">galario.double.</code><code class="descname">sampleImage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleImage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the synthetic visibilities of a model image at the specified (u, v) locations.</p>
-<p>The 2D surface brightness in <code class="code docutils literal"><span class="pre">image</span></code> is Fourier transformed and sampled in the
-(u, v) locations given in the <code class="code docutils literal"><span class="pre">u</span></code> and <code class="code docutils literal"><span class="pre">v</span></code> arrays.</p>
+<p>The 2D surface brightness in <code class="code docutils literal notranslate"><span class="pre">image</span></code> is Fourier transformed and sampled in the
+(u, v) locations given in the <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code> arrays.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -77,7 +68,7 @@
 <li><strong>image</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Square matrix of shape (nxy, nxy) containing the 2D surface brightness of the model.
 Assume the x-axis (R.A.) increases from right (West) to left (East)
 and the y-axis (Dec.) increases from bottom (South) to top (North).
-<code class="code docutils literal"><span class="pre">nxy</span></code> must be even.
+<code class="code docutils literal notranslate"><span class="pre">nxy</span></code> must be even.
 <strong>units</strong>: Jy/pixel</li>
 <li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
 <strong>units</strong>: wavelength</li>
@@ -94,13 +85,13 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <strong>units</strong>: rad</li>
 <li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal"><span class="pre">u</span></code> and <code class="code docutils literal"><span class="pre">v</span></code>.
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code>.
 <strong>units</strong>: Jy</p>
 </td>
 </tr>
@@ -115,12 +106,12 @@ Default is False since the check might take time. For executions where speed is 
 <dt id="galario.double.sampleProfile">
 <code class="descclassname">galario.double.</code><code class="descname">sampleProfile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleProfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the synthetic visibilities of a model with an axisymmetric brightness profile.</p>
-<p>The brightness profile <code class="code docutils literal"><span class="pre">intensity</span></code> is used to build a 2D image of the model, which is
-then Fourier transformed and sampled in the (u, v) locations given in the <code class="code docutils literal"><span class="pre">u</span></code> and <code class="code docutils literal"><span class="pre">v</span></code> arrays.</p>
-<p>The image is created as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal"><span class="pre">sweep()</span></code></a> assuming that the x-axis (R.A.) increases
+<p>The brightness profile <code class="code docutils literal notranslate"><span class="pre">intensity</span></code> is used to build a 2D image of the model, which is
+then Fourier transformed and sampled in the (u, v) locations given in the <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code> arrays.</p>
+<p>The image is created as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a> assuming that the x-axis (R.A.) increases
 from right (West) to left (East) and the y-axis (Dec.) increases from bottom (South) to top (North).</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
                     <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -131,7 +122,7 @@ from right (West) to left (East) and the y-axis (Dec.) increases from bottom (So
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>intensity</strong> (<em>(</em><em>M</em><em>,</em><em>) </em><em>array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
 The profile is assumed to be sampled on a linear radial grid starting
-at <code class="code docutils literal"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal"><span class="pre">dR</span></code>.
+at <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal notranslate"><span class="pre">dR</span></code>.
 <strong>units</strong>: Jy/sr</li>
 <li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
 <strong>units</strong>: rad</li>
@@ -157,13 +148,13 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal"><span class="pre">u</span></code> and <code class="code docutils literal"><span class="pre">v</span></code>.
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code>.
 <strong>units</strong>: Jy</p>
 </td>
 </tr>
@@ -174,7 +165,7 @@ Default is False since the check might take time. For executions where speed is 
 </table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal"><span class="pre">sweep()</span></code></a></p>
+<p class="last"><a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a></p>
 </div>
 </dd></dl>
 
@@ -184,26 +175,26 @@ Default is False since the check might take time. For executions where speed is 
 with extra interpolations of the model image, but rather applied in the Fourier plane.</p>
 <p>The offset is achieved by applying a complex phase to the sampled visibilities.
 To rotation is achieved by internally rotating the (u, v) locations by -PA.</p>
-<p class="last"><strong>Suggestion</strong> We recommend starting with <code class="code docutils literal"><span class="pre">uvcheck</span></code> set to True to ensure the results obtained are correct.
-Once a combination of matrix size and <code class="code docutils literal"><span class="pre">dxy</span></code> for the given data has been found, <code class="code docutils literal"><span class="pre">uvcheck</span></code>
+<p class="last"><strong>Suggestion</strong> We recommend starting with <code class="code docutils literal notranslate"><span class="pre">uvcheck</span></code> set to True to ensure the results obtained are correct.
+Once a combination of matrix size and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> for the given data has been found, <code class="code docutils literal notranslate"><span class="pre">uvcheck</span></code>
 can be safely set to False.</p>
 </div>
 </div>
 <div class="section" id="computing-directly-the-chi-square">
 <h2>Computing directly the chi square<a class="headerlink" href="#computing-directly-the-chi-square" title="Permalink to this headline">¶</a></h2>
-<p>To compute the <span class="math">\(\chi^2\)</span> of a model use the <a class="reference internal" href="#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal"><span class="pre">chi2Image()</span></code></a> and
-<a class="reference internal" href="#galario.double.chi2Profile" title="galario.double.chi2Profile"><code class="xref py py-func docutils literal"><span class="pre">chi2Profile()</span></code></a> functions.</p>
+<p>To compute the <span class="math notranslate">\(\chi^2\)</span> of a model use the <a class="reference internal" href="#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> and
+<a class="reference internal" href="#galario.double.chi2Profile" title="galario.double.chi2Profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code></a> functions.</p>
 <dl class="function">
 <dt id="galario.double.chi2Image">
 <code class="descclassname">galario.double.</code><code class="descname">chi2Image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the chi square of a model image given the observed visibilities.</p>
 <p>The chi square is computed from the observed and synthetic visibilities as:</p>
-<div class="math">
+<div class="math notranslate">
 \[\chi^2 = \sum_{j=1}^N w_j * [(Re V_{obs\ j}-Re V_{mod\ j})^2 + (Im V_{obs\ j}-Im V_{mod\ j})^2]\]</div>
-<p>where <span class="math">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
-as in <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal"><span class="pre">sampleImage()</span></code></a>.</p>
+<p>where <span class="math notranslate">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
+as in <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a>.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
                  <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -215,22 +206,22 @@ as in <a class="reference internal" href="#galario.double.sampleImage" title="ga
 <li><strong>image</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Square matrix of shape (nxy, nxy) containing the 2D surface brightness of the model.
 Assume the x-axis (R.A.) increases from right (West) to left (East)
 and the y-axis (Dec.) increases from bottom (South) to top (North).
-<code class="code docutils literal"><span class="pre">nxy</span></code> must be even.
+<code class="code docutils literal notranslate"><span class="pre">nxy</span></code> must be even.
 <strong>units</strong>: Jy/pixel</li>
 <li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal and uniform in both x and y direction.
 <strong>units</strong>: rad</li>
 <li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
 <strong>units</strong>: wavelength</li>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
-The length of <code class="code docutils literal"><span class="pre">v</span></code> must be equal to the length of <code class="code docutils literal"><span class="pre">u</span></code>.
+The length of <code class="code docutils literal notranslate"><span class="pre">v</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">u</span></code>.
 <strong>units</strong>: wavelength</li>
 <li><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
 <strong>units</strong>: Jy</li>
 <li><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
-The length of <code class="code docutils literal"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal"><span class="pre">vis_obs_re</span></code>.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
 <strong>units</strong>: Jy</li>
 <li><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
-The length of <code class="code docutils literal"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal"><span class="pre">vis_obs_re</span></code>.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
 <strong>units</strong>:</li>
 <li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
@@ -240,7 +231,7 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <strong>units</strong>: rad</li>
 <li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
 </ul>
@@ -256,7 +247,7 @@ Default is False since the check might take time. For executions where speed is 
 </table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal"><span class="pre">sampleImage()</span></code></a></p>
+<p class="last"><a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a></p>
 </div>
 </dd></dl>
 
@@ -265,14 +256,14 @@ Default is False since the check might take time. For executions where speed is 
 <code class="descclassname">galario.double.</code><code class="descname">chi2Profile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the chi square of a model with an axisymmetric brightness profile
 given the observed visibilities.</p>
-<p>The image is created from the intensity profile as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal"><span class="pre">sweep()</span></code></a>.
+<p>The image is created from the intensity profile as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a>.
 The chi square is computed from the observed and synthetic visibilities as:</p>
-<div class="math">
+<div class="math notranslate">
 \[\chi^2 = \sum_{j=1}^N w_j * [(Re V_{obs\ j}-Re V_{mod\ j})^2 + (Im V_{obs\ j}-Im V_{mod\ j})^2]\]</div>
-<p>where <span class="math">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
-as in <a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal"><span class="pre">sampleProfile()</span></code></a>.</p>
+<p>where <span class="math notranslate">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
+as in <a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a>.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
                    <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -283,9 +274,9 @@ as in <a class="reference internal" href="#galario.double.sampleProfile" title="
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>intensity</strong> (<em>array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
 The profile is assumed to be sampled on a linear radial grid starting
-at <code class="code docutils literal"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal"><span class="pre">dR</span></code>.
+at <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal notranslate"><span class="pre">dR</span></code>.
 <strong>units</strong>: Jy/sr</li>
-<li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is <code class="code docutils literal"><span class="pre">intensity[0]</span></code>.
+<li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is <code class="code docutils literal notranslate"><span class="pre">intensity[0]</span></code>.
 <strong>units</strong>: rad</li>
 <li><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
 <strong>units</strong>: rad</li>
@@ -296,15 +287,15 @@ at <code class="code docutils literal"><span class="pre">Rmin</span></code> with
 <li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
 <strong>units</strong>: wavelength</li>
 <li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
-The length of <code class="code docutils literal"><span class="pre">v</span></code> must be equal to the length of <code class="code docutils literal"><span class="pre">u</span></code>.
+The length of <code class="code docutils literal notranslate"><span class="pre">v</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">u</span></code>.
 <strong>units</strong>: wavelength</li>
 <li><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
 <strong>units</strong>: Jy</li>
 <li><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
-The length of <code class="code docutils literal"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal"><span class="pre">vis_obs_re</span></code>.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
 <strong>units</strong>: Jy</li>
 <li><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
-The length of <code class="code docutils literal"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal"><span class="pre">vis_obs_re</span></code>.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
 <strong>units</strong>:</li>
 <li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
@@ -317,7 +308,7 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal"><span class="pre">image</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
 the synthetic visibilities in the (u, v) locations provided.
 Default is False since the check might take time. For executions where speed is important, set to False.</li>
 </ul>
@@ -333,7 +324,7 @@ Default is False since the check might take time. For executions where speed is 
 </table>
 <div class="admonition seealso">
 <p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal"><span class="pre">sampleProfile()</span></code></a>, <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal"><span class="pre">sweep()</span></code></a></p>
+<p class="last"><a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a>, <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a></p>
 </div>
 </dd></dl>
 
@@ -344,8 +335,8 @@ Default is False since the check might take time. For executions where speed is 
 <dt id="galario.HAVE_CUDA">
 <code class="descclassname">galario.</code><code class="descname">HAVE_CUDA</code><a class="headerlink" href="#galario.HAVE_CUDA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Global variable (bool).
-It is <code class="code docutils literal"><span class="pre">True</span></code> if the GPU libraries (<code class="code docutils literal"><span class="pre">galario.double_cuda</span></code> and <code class="code docutils literal"><span class="pre">galario.single_cuda</span></code>) are available, <code class="code docutils literal"><span class="pre">False</span></code> otherwise.
-On a machine without a CUDA-enabled GPU it is always <code class="code docutils literal"><span class="pre">False</span></code>.</p>
+It is <code class="code docutils literal notranslate"><span class="pre">True</span></code> if the GPU libraries (<code class="code docutils literal notranslate"><span class="pre">galario.double_cuda</span></code> and <code class="code docutils literal notranslate"><span class="pre">galario.single_cuda</span></code>) are available, <code class="code docutils literal notranslate"><span class="pre">False</span></code> otherwise.
+On a machine without a CUDA-enabled GPU it is always <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -369,7 +360,7 @@ On a machine without a CUDA-enabled GPU it is always <code class="code docutils 
 <code class="descclassname">galario.double.</code><code class="descname">use_gpu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.use_gpu" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select the GPU to be used for the computation.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use_gpu</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_gpu</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -381,11 +372,11 @@ On a machine without a CUDA-enabled GPU it is always <code class="code docutils 
 </tbody>
 </table>
 <p class="rubric">Notes</p>
-<p>If more than one GPU is present, <code class="code docutils literal"><span class="pre">device_id</span></code> might not coincide with the <code class="code docutils literal"><span class="pre">ID</span></code>
-reported by the <code class="code docutils literal"><span class="pre">nvidia-smi</span></code> command, which reflects the PCI order.
-If the system administrator does not provide instructions on how to set the <code class="code docutils literal"><span class="pre">device_id</span></code>,
-we recommend to start from <code class="code docutils literal"><span class="pre">device_id=0</span></code> and simultaneously check which GPU is used with
-<code class="code docutils literal"><span class="pre">watch</span> <span class="pre">-n0.1</span> <span class="pre">nvidia-smi</span></code>.</p>
+<p>If more than one GPU is present, <code class="code docutils literal notranslate"><span class="pre">device_id</span></code> might not coincide with the <code class="code docutils literal notranslate"><span class="pre">ID</span></code>
+reported by the <code class="code docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command, which reflects the PCI order.
+If the system administrator does not provide instructions on how to set the <code class="code docutils literal notranslate"><span class="pre">device_id</span></code>,
+we recommend to start from <code class="code docutils literal notranslate"><span class="pre">device_id=0</span></code> and simultaneously check which GPU is used with
+<code class="code docutils literal notranslate"><span class="pre">watch</span> <span class="pre">-n0.1</span> <span class="pre">nvidia-smi</span></code>.</p>
 </dd></dl>
 
 </div>
@@ -395,9 +386,9 @@ we recommend to start from <code class="code docutils literal"><span class="pre"
 <dt id="galario.double.threads">
 <code class="descclassname">galario.double.</code><code class="descname">threads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.threads" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set and get the number of threads to be used in parallel sections of the code.</p>
-<p>To set, pass <code class="code docutils literal"><span class="pre">num&gt;0</span></code>. To get the current setting, call without any argument.</p>
+<p>To set, pass <code class="code docutils literal notranslate"><span class="pre">num&gt;0</span></code>. To get the current setting, call without any argument.</p>
 <p>Typical call signatures:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">default_nthreads</span> <span class="o">=</span> <span class="n">threads</span><span class="p">()</span> <span class="c1"># in the first call, a default is preset</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">default_nthreads</span> <span class="o">=</span> <span class="n">threads</span><span class="p">()</span> <span class="c1"># in the first call, a default is preset</span>
 <span class="n">threads</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span> <span class="c1"># now change the default</span>
 </pre></div>
 </div>
@@ -405,23 +396,23 @@ we recommend to start from <code class="code docutils literal"><span class="pre"
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>On the <em>GPU</em>, <code class="code docutils literal"><span class="pre">num</span></code> is the square root of the number of threads per block to be used.
-1D kernels are launched with linear blocks of size <code class="code docutils literal"><span class="pre">num*num</span></code>.
-2D Kernels are launched with square blocks of size <code class="code docutils literal"><span class="pre">num*num</span></code>.</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>On the <em>GPU</em>, <code class="code docutils literal notranslate"><span class="pre">num</span></code> is the square root of the number of threads per block to be used.
+1D kernels are launched with linear blocks of size <code class="code docutils literal notranslate"><span class="pre">num*num</span></code>.
+2D Kernels are launched with square blocks of size <code class="code docutils literal notranslate"><span class="pre">num*num</span></code>.</p>
 <p>On the <em>CPU</em>, this sets the number of openMP threads. The default is
-<code class="code docutils literal"><span class="pre">omp_get_max_threads()</span></code> which can be set through the <code class="code docutils literal"><span class="pre">OMP_NUM_THREADS</span></code>
-environment variable. If compiled without openMP support, <code class="code docutils literal"><span class="pre">num</span></code> is
+<code class="code docutils literal notranslate"><span class="pre">omp_get_max_threads()</span></code> which can be set through the <code class="code docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code>
+environment variable. If compiled without openMP support, <code class="code docutils literal notranslate"><span class="pre">num</span></code> is
 ignored and this function always returns 1.</p>
 </td>
 </tr>
 </tbody>
 </table>
 <p class="rubric">Notes</p>
-<p>The CUDA documentation suggests starting with <code class="code docutils literal"><span class="pre">num*num</span></code>&gt;=64 and multiples of 32,
+<p>The CUDA documentation suggests starting with <code class="code docutils literal notranslate"><span class="pre">num*num</span></code>&gt;=64 and multiples of 32,
 e.g. 128, 256. GPU cards with compute capability between 2 and 6.2 have
-maximum number of threads per block of 1024, which is achieved for <code class="code docutils literal"><span class="pre">num=32</span></code>.</p>
+maximum number of threads per block of 1024, which is achieved for <code class="code docutils literal notranslate"><span class="pre">num=32</span></code>.</p>
 <p>Check the maximum number of threads per block of your GPU by running
-the <code class="code docutils literal"><span class="pre">deviceQuery</span></code> command.</p>
+the <code class="code docutils literal notranslate"><span class="pre">deviceQuery</span></code> command.</p>
 <p>On the CPU, it may useful to experiment with more threads than available
 cores to see if hyperthreading provides any benefit.</p>
 </dd></dl>
@@ -431,7 +422,7 @@ cores to see if hyperthreading provides any benefit.</p>
 <code class="descclassname">galario.double.</code><code class="descname">get_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_image_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the recommended image size given the (u, v) locations.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -452,10 +443,10 @@ of view covered by the image. Recommended to be larger than 3 for better results
 <strong>units</strong>: pure number</li>
 <li><strong>f_max</strong> (<em>float</em>) – Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
 the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
-The maximum (u, v)-distance covered is <code class="code docutils literal"><span class="pre">f_max</span></code> times the maximum (u, v)-distance
+The maximum (u, v)-distance covered is <code class="code docutils literal notranslate"><span class="pre">f_max</span></code> times the maximum (u, v)-distance
 of the observed visibilities.
 <strong>units</strong>: pure number</li>
-<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal"><span class="pre">nxy</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code>.</li>
+<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -478,7 +469,7 @@ Size of the image cell, assumed equal and uniform in both x and y direction.
 <code class="descclassname">galario.double.</code><code class="descname">check_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.check_image_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">check_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">PB</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">check_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">PB</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -495,7 +486,7 @@ The length of v must be equal to the length of u.
 <strong>units</strong>: pixel</li>
 <li><strong>duv</strong> (<em>float</em>) – Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
 <strong>units</strong>: wavelength</li>
-<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal"><span class="pre">nxy</span></code> and <code class="code docutils literal"><span class="pre">dxy</span></code>.</li>
+<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -511,7 +502,7 @@ The length of v must be equal to the length of u.
 from right (West) to left (East) and the y-axis (Dec.) increases
 from bottom (South) to top (North).</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">image</span> <span class="o">=</span> <span class="n">sweep</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span> <span class="o">=</span> <span class="n">sweep</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -521,7 +512,7 @@ from bottom (South) to top (North).</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>intensity</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
 The brightness profile is assumed to be sampled on a linear radial grid
-starting at <code class="code docutils literal"><span class="pre">Rmin</span></code> and with spacing <code class="code docutils literal"><span class="pre">dR</span></code>.
+starting at <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> and with spacing <code class="code docutils literal notranslate"><span class="pre">dR</span></code>.
 <strong>units</strong>: Jy/sr</li>
 <li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
 <strong>units</strong>: rad</li>
@@ -555,7 +546,7 @@ If inc=0. the image is face-on; if inc=90. the image is edge-on.
 space by an offset dRA along Right Ascension (R.A.) and dDec along Declination.
 R.A. increases towards left (East), thus dRA&gt;0 translates the image towards East.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vis_shifted</span> <span class="o">=</span> <span class="n">apply_phase_vis</span><span class="p">(</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vis_shifted</span> <span class="o">=</span> <span class="n">apply_phase_vis</span><span class="p">(</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -625,12 +616,14 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -653,8 +646,8 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
     </div>
   </body>
 </html>

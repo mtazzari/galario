@@ -2,20 +2,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>galario Cookbook &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.02',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -31,8 +23,7 @@
     
     
 
-  </head>
-  <body>
+  </head><body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -59,19 +50,19 @@
 <span id="cookbook-gpu-cpu-version"></span><h2>Using the GPU and CPU version<a class="headerlink" href="#using-the-gpu-and-cpu-version" title="Permalink to this headline">¶</a></h2>
 <p>The CPU version of <strong>galario</strong> is always compiled, even on a system without a CUDA-enabled GPU. In this case you can import
 the double and single precision CPU versions of the library with:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double</span>
 <span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">single</span>
 </pre></div>
 </div>
 <p>If built on a machine with a CUDA-enabled GPU, <strong>galario</strong> is compiled also for the GPU. You can still import
 the CPU version as above, and the GPU version as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span>
 <span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">single_cuda</span>
 </pre></div>
 </div>
-<p>To check programmatically whether the GPU version is available, you can read the global variable <a class="reference internal" href="py-api.html#galario.HAVE_CUDA" title="galario.HAVE_CUDA"><code class="xref py py-data docutils literal"><span class="pre">galario.HAVE_CUDA</span></code></a>.</p>
+<p>To check programmatically whether the GPU version is available, you can read the global variable <a class="reference internal" href="py-api.html#galario.HAVE_CUDA" title="galario.HAVE_CUDA"><code class="xref py py-data docutils literal notranslate"><span class="pre">galario.HAVE_CUDA</span></code></a>.</p>
 <p>The following snippet imports the GPU version of galario if it is available, otherwise it imports the CPU version:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">galario</span><span class="o">.</span><span class="n">HAVE_CUDA</span><span class="p">:</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">galario</span><span class="o">.</span><span class="n">HAVE_CUDA</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span> <span class="k">as</span> <span class="n">g_double</span>
     <span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">single_cuda</span> <span class="k">as</span> <span class="n">g_single</span>
 <span class="k">else</span><span class="p">:</span>
@@ -79,28 +70,28 @@ the CPU version as above, and the GPU version as follows:</p>
     <span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">single</span> <span class="k">as</span> <span class="n">g_single</span>
 </pre></div>
 </div>
-<p>This snippet simplifies the development of portable code. Since the functions in <code class="code docutils literal"><span class="pre">double</span></code>, <code class="code docutils literal"><span class="pre">double_cuda</span></code>, <code class="code docutils literal"><span class="pre">single</span></code> and <code class="code docutils literal"><span class="pre">single_cuda</span></code>
+<p>This snippet simplifies the development of portable code. Since the functions in <code class="code docutils literal notranslate"><span class="pre">double</span></code>, <code class="code docutils literal notranslate"><span class="pre">double_cuda</span></code>, <code class="code docutils literal notranslate"><span class="pre">single</span></code> and <code class="code docutils literal notranslate"><span class="pre">single_cuda</span></code>
 have the same interfaces, by adding this snippet to the imports of the module you can develop and test your code on a machine even
 without a GPU, then move to a machine with a GPU and run it on the GPU without any change.</p>
 </div>
 <div class="section" id="selecting-the-gpu">
 <h2>Selecting the GPU<a class="headerlink" href="#selecting-the-gpu" title="Permalink to this headline">¶</a></h2>
 <p><strong>galario</strong> can be used on machines with one or more CUDA-capable GPUs. The number of GPUs available on the machine can be
-obtained with the <a class="reference internal" href="py-api.html#galario.double.ngpus" title="galario.double.ngpus"><code class="xref py py-func docutils literal"><span class="pre">ngpus()</span></code></a> function:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">ngpus</span><span class="p">()</span>   <span class="c1"># or single_cuda.ngpus()</span>
+obtained with the <a class="reference internal" href="py-api.html#galario.double.ngpus" title="galario.double.ngpus"><code class="xref py py-func docutils literal notranslate"><span class="pre">ngpus()</span></code></a> function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">ngpus</span><span class="p">()</span>   <span class="c1"># or single_cuda.ngpus()</span>
 </pre></div>
 </div>
 <p>which returns an integer number.</p>
-<p>It is possible to tell <strong>galario</strong> to use a particular GPU for the computation the <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal"><span class="pre">use_gpu()</span></code></a> function:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">use_gpu</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+<p>It is possible to tell <strong>galario</strong> to use a particular GPU for the computation the <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code></a> function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">use_gpu</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal"><span class="pre">ID</span></code> is an integer number representing the GPU ID. By default, <strong>galario</strong> uses the GPU with <code class="code docutils literal"><span class="pre">ID=0</span></code>. This means that on machines
-with only one CUDA-capable GPU it is not necessary to call <code class="code docutils literal"><span class="pre">double_cuda.use_GPU(0)</span></code> as this is the default behaviour.</p>
+<p>where <code class="code docutils literal notranslate"><span class="pre">ID</span></code> is an integer number representing the GPU ID. By default, <strong>galario</strong> uses the GPU with <code class="code docutils literal notranslate"><span class="pre">ID=0</span></code>. This means that on machines
+with only one CUDA-capable GPU it is not necessary to call <code class="code docutils literal notranslate"><span class="pre">double_cuda.use_GPU(0)</span></code> as this is the default behaviour.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <code class="code docutils literal"><span class="pre">ID</span></code> to be used in <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal"><span class="pre">use_gpu()</span></code></a> might differ from the device ID reported by the <code class="code docutils literal"><span class="pre">nvidia-smi</span></code> command.
-See the documentation of <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal"><span class="pre">use_gpu()</span></code></a> for more details.</p>
+<p class="last">The <code class="code docutils literal notranslate"><span class="pre">ID</span></code> to be used in <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code></a> might differ from the device ID reported by the <code class="code docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command.
+See the documentation of <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code></a> for more details.</p>
 </div>
 </div>
 <div class="section" id="parallelization-setting-the-threads">
@@ -109,36 +100,36 @@ See the documentation of <a class="reference internal" href="py-api.html#galario
 <h3>On the CPU<a class="headerlink" href="#on-the-cpu" title="Permalink to this headline">¶</a></h3>
 <p>The CPU version of <strong>galario</strong> uses OpenMP to parallelize its operations by distributing the workload to different threads.</p>
 <p>Once you imported the CPU version of <strong>galario</strong> (either double or single precision), you can set the number of threads with
-the <a class="reference internal" href="py-api.html#galario.double.threads" title="galario.double.threads"><code class="xref py py-func docutils literal"><span class="pre">threads()</span></code></a> function:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">double</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">N_OMP</span><span class="p">)</span>
+the <a class="reference internal" href="py-api.html#galario.double.threads" title="galario.double.threads"><code class="xref py py-func docutils literal notranslate"><span class="pre">threads()</span></code></a> function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">N_OMP</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal"><span class="pre">N_OMP</span></code> is the number of threads to be used. Calling <code class="code docutils literal"><span class="pre">double.threads(1)</span></code> ensures a serial execution of <strong>galario</strong>.</p>
-<p>By default, if <code class="code docutils literal"><span class="pre">double.threads(N_OMP)</span></code> is not called by the user, <strong>galario</strong> does not set the number of OpenMP threads to be used.
+<p>where <code class="code docutils literal notranslate"><span class="pre">N_OMP</span></code> is the number of threads to be used. Calling <code class="code docutils literal notranslate"><span class="pre">double.threads(1)</span></code> ensures a serial execution of <strong>galario</strong>.</p>
+<p>By default, if <code class="code docutils literal notranslate"><span class="pre">double.threads(N_OMP)</span></code> is not called by the user, <strong>galario</strong> does not set the number of OpenMP threads to be used.
 This means that, at runtime, OpenMP is free to set the number of threads dynamically. Some OpenMP implementations default to one thread, others to as many threads as there are physical cores.</p>
-<p>It is possible to retrieve the number of threads used by galario by calling <code class="code docutils literal"><span class="pre">double.threads()</span></code> without argument.</p>
+<p>It is possible to retrieve the number of threads used by galario by calling <code class="code docutils literal notranslate"><span class="pre">double.threads()</span></code> without argument.</p>
 <blockquote>
 <div><div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>Setting <code class="code docutils literal"><span class="pre">N_OMP</span></code> larger than the number of <strong>physical</strong> cores, one can use  the HyperThreading technology,
+<p>Setting <code class="code docutils literal notranslate"><span class="pre">N_OMP</span></code> larger than the number of <strong>physical</strong> cores, one can use  the HyperThreading technology,
 which can give anything from a moderate boost to a significant performance penalty. This depends on the image size, the memory latency and bandwidth, and other parameters. Experiment around what works best.</p>
-<p>In most cases, a considerable speedup can be obtained by setting <code class="code docutils literal"><span class="pre">N_OMP</span></code> equal to the number of <strong>physical</strong> cores, which for matrix sizes up to 4k x 4k
+<p>In most cases, a considerable speedup can be obtained by setting <code class="code docutils literal notranslate"><span class="pre">N_OMP</span></code> equal to the number of <strong>physical</strong> cores, which for matrix sizes up to 4k x 4k
 yields an almost linear scaling in our benchmark results.</p>
 <p class="last"><strong>Suggestion</strong>: if <strong>galario</strong> is to be used in a code that already uses <strong>MPI</strong> to parallelize the tasks over multiple processes,
-setting <code class="code docutils literal"><span class="pre">double.threads(1)</span></code> might turn out to give a better overall performance.</p>
+setting <code class="code docutils literal notranslate"><span class="pre">double.threads(1)</span></code> might turn out to give a better overall performance.</p>
 </div>
 </div></blockquote>
 </div>
 <div class="section" id="on-the-gpu">
 <h3>On the GPU<a class="headerlink" href="#on-the-gpu" title="Permalink to this headline">¶</a></h3>
 <p>It is possible to change the number of threads per block used to launch 1D and 2D kernels on the GPU with:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal"><span class="pre">N</span></code> is the square root of the number of threads for block to be used. By default, <code class="code docutils literal"><span class="pre">N</span></code> is set to 16, which implies
-256 threads per block. Due to the physical structure of the current NVIDIA cards, <code class="code docutils literal"><span class="pre">N</span></code> must be equal to 8, 16 or 32.</p>
+<p>where <code class="code docutils literal notranslate"><span class="pre">N</span></code> is the square root of the number of threads for block to be used. By default, <code class="code docutils literal notranslate"><span class="pre">N</span></code> is set to 16, which implies
+256 threads per block. Due to the physical structure of the current NVIDIA cards, <code class="code docutils literal notranslate"><span class="pre">N</span></code> must be equal to 8, 16 or 32.</p>
 <p>This is an advanced feature, for most cases the default value should be sufficient. More details are given in the
-documentation of <a class="reference internal" href="py-api.html#galario.double.threads" title="galario.double.threads"><code class="xref py py-func docutils literal"><span class="pre">threads()</span></code></a>.</p>
+documentation of <a class="reference internal" href="py-api.html#galario.double.threads" title="galario.double.threads"><code class="xref py py-func docutils literal notranslate"><span class="pre">threads()</span></code></a>.</p>
 </div>
 </div>
 </div>
@@ -181,12 +172,14 @@ documentation of <a class="reference internal" href="py-api.html#galario.double.
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -209,8 +202,8 @@ documentation of <a class="reference internal" href="py-api.html#galario.double.
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
     </div>
   </body>
 </html>

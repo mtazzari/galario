@@ -2,20 +2,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>C API reference &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.02',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -31,8 +23,7 @@
     
     
 
-  </head>
-  <body>
+  </head><body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -68,14 +59,14 @@
 <dt>
 <code class="descname">const dreal *v, dcomplex *fint);</code></dt>
 <dd><p>Compute visibilities for a model defined by a radial profile.</p>
-<p>Most parameters are described in detail in the python function <code class="xref py py-func docutils literal"><span class="pre">sampleProfile()</span></code>. Here we focus on the parameters that are not present in the python function.</p>
+<p>Most parameters are described in detail in the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code>. Here we focus on the parameters that are not present in the python function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>nr</strong> – The number of points of the radial profile.</li>
-<li><strong>ints</strong> – The intensities of the radial profile. Size: <code class="code docutils literal"><span class="pre">nr</span></code></li>
+<li><strong>ints</strong> – The intensities of the radial profile. Size: <code class="code docutils literal notranslate"><span class="pre">nr</span></code></li>
 <li><strong>Rmin</strong> – Inner edge of radial grid.</li>
 <li><strong>dR</strong> – Radial-grid cell size.</li>
 <li><strong>dxy</strong> – Image cell size.</li>
@@ -83,12 +74,12 @@
 <li><strong>inc</strong> – Inclination.</li>
 <li><strong>dRa</strong> – Rectascension offset.</li>
 <li><strong>dDec</strong> – Dec. offset.</li>
-<li><strong>duv</strong> – The size of a pixel, uniform in u- and v-direction. Units: same as <code class="code docutils literal"><span class="pre">u,</span> <span class="pre">v</span></code>.</li>
+<li><strong>duv</strong> – The size of a pixel, uniform in u- and v-direction. Units: same as <code class="code docutils literal notranslate"><span class="pre">u,</span> <span class="pre">v</span></code>.</li>
 <li><strong>PA</strong> – Position angle.</li>
 <li><strong>nd</strong> – Number of visibility points.</li>
 <li><strong>u</strong> – u coordinate of visibility points.</li>
 <li><strong>v</strong> – v coordinate of visibility points.</li>
-<li><strong>fint</strong> – Interpolated visibilities at the points <code class="code docutils literal"><span class="pre">u,</span> <span class="pre">v</span></code>.</li>
+<li><strong>fint</strong> – Interpolated visibilities at the points <code class="code docutils literal notranslate"><span class="pre">u,</span> <span class="pre">v</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -109,15 +100,15 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>nx</strong> – The number of points of <code class="code docutils literal"><span class="pre">image</span></code> in x-direction</li>
-<li><strong>ny</strong> – The number of points of <code class="code docutils literal"><span class="pre">image</span></code> in y-direction</li>
-<li><strong>image</strong> – A rectangular image of size <code class="code docutils literal"><span class="pre">nx*ny</span></code>.</li>
+<li><strong>nx</strong> – The number of points of <code class="code docutils literal notranslate"><span class="pre">image</span></code> in x-direction</li>
+<li><strong>ny</strong> – The number of points of <code class="code docutils literal notranslate"><span class="pre">image</span></code> in y-direction</li>
+<li><strong>image</strong> – A rectangular image of size <code class="code docutils literal notranslate"><span class="pre">nx*ny</span></code>.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>For the other parameters, see <code class="xref c c-func docutils literal"><span class="pre">galario_sample_profile()</span></code>.</p>
+<p>For the other parameters, see <code class="xref c c-func docutils literal notranslate"><span class="pre">galario_sample_profile()</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -132,9 +123,9 @@
 <dt>
 <code class="descname">const dreal* weights, dreal* chi2);</code></dt>
 <dd><p>Compute the chi2 between observed visibilities and the
-interpolation based on a radial profile and return in <code class="code docutils literal"><span class="pre">chi2</span></code>.</p>
-<p>For details, see <code class="xref py py-func docutils literal"><span class="pre">chi2Profile()</span></code>.</p>
-<p>All parameters are identical to <code class="xref c c-func docutils literal"><span class="pre">galario_sample_profile()</span></code>
+interpolation based on a radial profile and return in <code class="code docutils literal notranslate"><span class="pre">chi2</span></code>.</p>
+<p>For details, see <code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code>.</p>
+<p>All parameters are identical to <code class="xref c c-func docutils literal notranslate"><span class="pre">galario_sample_profile()</span></code>
 except that the model visibilities are not returned but directly
 compared to weighted observations.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -142,9 +133,9 @@ compared to weighted observations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fobs_re</strong> – The real part of the visibilities. Size: <code class="code docutils literal"><span class="pre">nd</span></code>.</li>
-<li><strong>fobs_im</strong> – The imaginary part of the visibilities. Size: <code class="code docutils literal"><span class="pre">nd</span></code>.</li>
-<li><strong>weights</strong> – The weights of the observations. Size: <code class="code docutils literal"><span class="pre">nd</span></code>.</li>
+<li><strong>fobs_re</strong> – The real part of the visibilities. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</li>
+<li><strong>fobs_im</strong> – The imaginary part of the visibilities. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</li>
+<li><strong>weights</strong> – The weights of the observations. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</li>
 </ul>
 </td>
 </tr>
@@ -162,9 +153,9 @@ compared to weighted observations.</p>
 <dt>
 <code class="descname">const dreal* weights, dreal* chi2);</code></dt>
 <dd><p>Compute the chi2 between observed visibilities and the
-interpolation based on the input <code class="code docutils literal"><span class="pre">image</span></code> and return in <code class="code docutils literal"><span class="pre">chi2</span></code>.</p>
-<p>For details, see <code class="xref py py-func docutils literal"><span class="pre">chi2Image()</span></code>, <code class="xref c c-func docutils literal"><span class="pre">galario_sample_image()</span></code>
-and <code class="xref c c-func docutils literal"><span class="pre">galario_chi2_profile()</span></code>.</p>
+interpolation based on the input <code class="code docutils literal notranslate"><span class="pre">image</span></code> and return in <code class="code docutils literal notranslate"><span class="pre">chi2</span></code>.</p>
+<p>For details, see <code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code>, <code class="xref c c-func docutils literal notranslate"><span class="pre">galario_sample_image()</span></code>
+and <code class="xref c c-func docutils literal notranslate"><span class="pre">galario_chi2_profile()</span></code>.</p>
 </dd></dl>
 
 </div>
@@ -181,19 +172,19 @@ and <code class="xref c c-func docutils literal"><span class="pre">galario_chi2_
 <dt>
 <code class="descname">void galario_cleanup();</code></dt>
 <dd><p>Free memory and clean up environment created by
-<code class="xref c c-func docutils literal"><span class="pre">galario_init()</span></code>. Call after all computations in galario.</p>
+<code class="xref c c-func docutils literal notranslate"><span class="pre">galario_init()</span></code>. Call after all computations in galario.</p>
 </dd></dl>
 
 <dl class="function">
 <dt>
 <code class="descname">int galario_threads(int num = 0);</code></dt>
-<dd><p>Set the number of <code class="code docutils literal"><span class="pre">openMP</span></code> threads that galario uses in parallel
-regions to <code class="code docutils literal"><span class="pre">num</span></code>. The default of 0 doesn’t change the number of
+<dd><p>Set the number of <code class="code docutils literal notranslate"><span class="pre">openMP</span></code> threads that galario uses in parallel
+regions to <code class="code docutils literal notranslate"><span class="pre">num</span></code>. The default of 0 doesn’t change the number of
 threads. Return the current number of threads.</p>
-<p>By default, use the settings in the <code class="code docutils literal"><span class="pre">openMP</span></code> runtime that can be
-affected for example by setting the <code class="code docutils literal"><span class="pre">OMP_NUM_THREADS</span></code> variable.</p>
+<p>By default, use the settings in the <code class="code docutils literal notranslate"><span class="pre">openMP</span></code> runtime that can be
+affected for example by setting the <code class="code docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> variable.</p>
 <p>For the cuda version, this sets the number of threads per block in cuda kernels.</p>
-<p>For details, see the python function <code class="xref py py-func docutils literal"><span class="pre">threads()</span></code>.</p>
+<p>For details, see the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">threads()</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -206,13 +197,13 @@ affected for example by setting the <code class="code docutils literal"><span cl
 <dt>
 <code class="descname">void galario_use_gpu(int device_id);</code></dt>
 <dd><p>Set the GPU to be used for the computations.</p>
-<p>For details, see the python function <code class="xref py py-func docutils literal"><span class="pre">use_gpu()</span></code>.</p>
+<p>For details, see the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code>.</p>
 </dd></dl>
 
 </div>
 <div class="section" id="individual-operations">
 <h2>Individual operations<a class="headerlink" href="#individual-operations" title="Permalink to this headline">¶</a></h2>
-<p>The following functions provide low-level access to individual operations performed by the <code class="code docutils literal"><span class="pre">sample</span></code> and <code class="code docutils literal"><span class="pre">chi2</span></code> functions. A standard user will likely have little use for them. Refer to the python API documentation of the wrappers for details on the individual functions.</p>
+<p>The following functions provide low-level access to individual operations performed by the <code class="code docutils literal notranslate"><span class="pre">sample</span></code> and <code class="code docutils literal notranslate"><span class="pre">chi2</span></code> functions. A standard user will likely have little use for them. Refer to the python API documentation of the wrappers for details on the individual functions.</p>
 <dl class="function">
 <dt>
 <code class="descname">void galario_sweep(int nr, dreal* ints, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image);</code></dt>
@@ -302,12 +293,14 @@ affected for example by setting the <code class="code docutils literal"><span cl
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -330,8 +323,8 @@ affected for example by setting the <code class="code docutils literal"><span cl
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
     </div>
   </body>
 </html>

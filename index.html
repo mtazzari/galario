@@ -2,20 +2,12 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>galario &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.02',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -30,8 +22,7 @@
     
     
 
-  </head>
-  <body>
+  </head><body>
     <div class="related">
       <h3>Navigation</h3>
       <ul>
@@ -84,34 +75,34 @@ and has already been employed in <a class="reference internal" href="studies.htm
 </div>
 <div class="section" id="basic-usage">
 <h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
-<p>Let’s say you have an observational dataset of <code class="code docutils literal"><span class="pre">M</span></code> visibility points located at <span class="math">\((u_j, v_j)\)</span>, with <span class="math">\(j=1...M\)</span> and <span class="math">\(u_j\)</span>, <span class="math">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math">\(V_{obs\ j}\)</span> (Jy) is the <span class="math">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math">\(w_j\)</span>.
+<p>Let’s say you have an observational dataset of <code class="code docutils literal notranslate"><span class="pre">M</span></code> visibility points located at <span class="math notranslate">\((u_j, v_j)\)</span>, with <span class="math notranslate">\(j=1...M\)</span> and <span class="math notranslate">\(u_j\)</span>, <span class="math notranslate">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math notranslate">\(V_{obs\ j}\)</span> (Jy) is the <span class="math notranslate">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math notranslate">\(w_j\)</span>.
 With <strong>galario</strong> you can:</p>
 <p><strong>1) Compute visibilities from a model image</strong></p>
 <blockquote>
-<div><p>If you want to compute the visibilities of a model <code class="code docutils literal"><span class="pre">image</span></code> (Jy/px) with pixel size <code class="code docutils literal"><span class="pre">dxy</span></code> (rad) in the same <span class="math">\((u_j, v_j)\)</span> locations of the observations, you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
+<div><p>If you want to compute the visibilities of a model <code class="code docutils literal notranslate"><span class="pre">image</span></code> (Jy/px) with pixel size <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> (rad) in the same <span class="math notranslate">\((u_j, v_j)\)</span> locations of the observations, you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal"><span class="pre">vis</span></code> is a complex array of length <span class="math">\(N\)</span> containing the real (<code class="code docutils literal"><span class="pre">vis.real</span></code>) and imaginary (<code class="code docutils literal"><span class="pre">vis.imag</span></code>) part of the synthetic visibilities.</p>
+<p>where <code class="code docutils literal notranslate"><span class="pre">vis</span></code> is a complex array of length <span class="math notranslate">\(N\)</span> containing the real (<code class="code docutils literal notranslate"><span class="pre">vis.real</span></code>) and imaginary (<code class="code docutils literal notranslate"><span class="pre">vis.imag</span></code>) part of the synthetic visibilities.</p>
 </div></blockquote>
 <p><strong>2) Compute visibilities from an axisymmetric brightness profile</strong></p>
 <blockquote>
 <div><p>If you want to compare the observations with a model characterized by an <strong>axisymmetric brightness profile</strong>, <strong>galario</strong> offers dedicated functions that exploit the symmetry of the model to accelerate the image creation.</p>
-<p>If <span class="math">\(I(R)\)</span> (Jy/sr) is the radial brightness profile, the command is as simple as:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleProfile</span>
+<p>If <span class="math notranslate">\(I(R)\)</span> (Jy/sr) is the radial brightness profile, the command is as simple as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleProfile</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal"><span class="pre">Rmin</span></code> and <code class="code docutils literal"><span class="pre">dR</span></code> are expressed in radians and are the innermost radius and the cell size of the grid on which <span class="math">\(I(R)\)</span> is computed. An analogous function
-<code class="code docutils literal"><span class="pre">chi2Profile</span></code> allows one to compute directly the chi square.</p>
+<p>where <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> and <code class="code docutils literal notranslate"><span class="pre">dR</span></code> are expressed in radians and are the innermost radius and the cell size of the grid on which <span class="math notranslate">\(I(R)\)</span> is computed. An analogous function
+<code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> allows one to compute directly the chi square.</p>
 </div></blockquote>
-<p><strong>3) Compute the</strong> <span class="math">\(\chi^2\)</span> <strong>of a model (image or brightness profile)</strong></p>
+<p><strong>3) Compute the</strong> <span class="math notranslate">\(\chi^2\)</span> <strong>of a model (image or brightness profile)</strong></p>
 <blockquote>
-<div><p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <span class="math">\(\chi^2\)</span> for the likelihood computation, you can use directly one of these:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">chi2Image</span>
+<div><p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <span class="math notranslate">\(\chi^2\)</span> for the likelihood computation, you can use directly one of these:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">chi2Image</span>
 
 <span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
 <span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
@@ -122,8 +113,8 @@ With <strong>galario</strong> you can:</p>
 <blockquote>
 <div><p>To translate the model image in Right Ascension and Declination direction by (dRA, dDec) offsets (rad),
 or to rotate the image by a Position Angle PA (rad) (defined East of North), you can specify them as optional parameters.</p>
-<p>This works for all the <code class="code docutils literal"><span class="pre">sampleImage</span></code>, <code class="code docutils literal"><span class="pre">sampleProfile</span></code>, <code class="code docutils literal"><span class="pre">chi2Image</span></code> and <code class="code docutils literal"><span class="pre">chi2Profile</span></code> functions:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
+<p>This works for all the <code class="code docutils literal notranslate"><span class="pre">sampleImage</span></code>, <code class="code docutils literal notranslate"><span class="pre">sampleProfile</span></code>, <code class="code docutils literal notranslate"><span class="pre">chi2Image</span></code> and <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> functions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="n">dDec</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="n">PA</span><span class="p">)</span>
 </pre></div>
@@ -132,7 +123,7 @@ or to rotate the image by a Position Angle PA (rad) (defined East of North), you
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you work on a machine <strong>without</strong> a CUDA-enabled GPU, don’t worry: you can use the CPU version
-of <strong>galario</strong> by just removing the subscript <code class="code docutils literal"><span class="pre">&quot;_cuda&quot;</span></code> from the imports above and benefit from the openMP parallelization.
+of <strong>galario</strong> by just removing the subscript <code class="code docutils literal notranslate"><span class="pre">&quot;_cuda&quot;</span></code> from the imports above and benefit from the openMP parallelization.
 All the function names and interfaces are the same for GPU and CPU version!</p>
 </div>
 </div>
@@ -140,7 +131,7 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
 <h2>License and Attribution<a class="headerlink" href="#license-and-attribution" title="Permalink to this headline">¶</a></h2>
 <p>If you use <strong>galario</strong> for your research, please cite <a class="reference external" href="https://arxiv.org/abs/1709.06999">Tazzari, Beaujean and Testi (2017)</a> .
 The BibTeX entry for the paper is:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>@ARTICLE{Tazzari:galario,
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@ARTICLE{Tazzari:galario,
 Adsurl = {http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1709.06999},
 Archiveprefix = {arXiv},
 Arxivurl = {http://arxiv.org/abs/1709.06999v1},
@@ -247,12 +238,14 @@ version of <strong>galario</strong> used in a paper.</p>
    </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -272,8 +265,8 @@ version of <strong>galario</strong> used in a paper.</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.5.
+        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
     </div>
   </body>
 </html>
