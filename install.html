@@ -2,7 +2,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>How to build and install galario &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
@@ -336,6 +336,9 @@ If you still have problems, remove the <code class="code docutils literal notran
 </div>
 <p>The <strong>galario</strong> library needs to be imported when building the documentation (the
 import would fail otherwise) to extract docstrings.</p>
+<p>To delete the sphinx cache in case the docs don’t update as expected</p>
+<blockquote>
+<div>rm -rf docs/_doctrees/</div></blockquote>
 </div>
 </div>
 <div class="section" id="install">
@@ -494,7 +497,7 @@ Failed to initialize NVML: Driver/library version mismatch
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
     </div>
   </body>
 </html>

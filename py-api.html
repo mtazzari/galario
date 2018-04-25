@@ -2,7 +2,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Python API reference &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
@@ -85,9 +85,11 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <strong>units</strong>: rad</li>
 <li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
-the synthetic visibilities in the (u, v) locations provided.
-Default is False since the check might take time. For executions where speed is important, set to False.</li>
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+computing the synthetic visibilities in the (u, v) locations provided.
+Additionally check that the (u, v) points fall in the image to avoid
+segmentation violations. Default is False since the check might take
+time. For executions where speed is important, set to False.</li>
 </ul>
 </td>
 </tr>
@@ -148,9 +150,11 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
-the synthetic visibilities in the (u, v) locations provided.
-Default is False since the check might take time. For executions where speed is important, set to False.</li>
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+computing the synthetic visibilities in the (u, v) locations provided.
+Additionally check that the (u, v) points fall in the image to avoid
+segmentation violations. Default is False since the check might take
+time. For executions where speed is important, set to False.</li>
 </ul>
 </td>
 </tr>
@@ -175,9 +179,10 @@ Default is False since the check might take time. For executions where speed is 
 with extra interpolations of the model image, but rather applied in the Fourier plane.</p>
 <p>The offset is achieved by applying a complex phase to the sampled visibilities.
 To rotation is achieved by internally rotating the (u, v) locations by -PA.</p>
-<p class="last"><strong>Suggestion</strong> We recommend starting with <code class="code docutils literal notranslate"><span class="pre">uvcheck</span></code> set to True to ensure the results obtained are correct.
-Once a combination of matrix size and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> for the given data has been found, <code class="code docutils literal notranslate"><span class="pre">uvcheck</span></code>
-can be safely set to False.</p>
+<p class="last"><strong>Suggestion</strong>: We recommend starting with <code class="code docutils literal notranslate"><span class="pre">check</span></code> set to <code class="code docutils literal notranslate"><span class="pre">True</span></code> to ensure
+the results obtained are correct. Once a combination of matrix size and
+<code class="code docutils literal notranslate"><span class="pre">dxy</span></code> for the given data has been found, <code class="code docutils literal notranslate"><span class="pre">uvcheck</span></code> can be safely set to
+<code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </div>
 </div>
 <div class="section" id="computing-directly-the-chi-square">
@@ -231,9 +236,11 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <strong>units</strong>: rad</li>
 <li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
-the synthetic visibilities in the (u, v) locations provided.
-Default is False since the check might take time. For executions where speed is important, set to False.</li>
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+computing the synthetic visibilities in the (u, v) locations provided.
+Additionally check that the (u, v) points fall in the image to avoid
+segmentation violations. Default is False since the check might take
+time. For executions where speed is important, set to False.</li>
 </ul>
 </td>
 </tr>
@@ -308,9 +315,11 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
 <strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for computing
-the synthetic visibilities in the (u, v) locations provided.
-Default is False since the check might take time. For executions where speed is important, set to False.</li>
+<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+computing the synthetic visibilities in the (u, v) locations provided.
+Additionally check that the (u, v) points fall in the image to avoid
+segmentation violations. Default is False since the check might take
+time. For executions where speed is important, set to False.</li>
 </ul>
 </td>
 </tr>
@@ -334,9 +343,9 @@ Default is False since the check might take time. For executions where speed is 
 <dl class="data">
 <dt id="galario.HAVE_CUDA">
 <code class="descclassname">galario.</code><code class="descname">HAVE_CUDA</code><a class="headerlink" href="#galario.HAVE_CUDA" title="Permalink to this definition">¶</a></dt>
-<dd><p>Global variable (bool).
-It is <code class="code docutils literal notranslate"><span class="pre">True</span></code> if the GPU libraries (<code class="code docutils literal notranslate"><span class="pre">galario.double_cuda</span></code> and <code class="code docutils literal notranslate"><span class="pre">galario.single_cuda</span></code>) are available, <code class="code docutils literal notranslate"><span class="pre">False</span></code> otherwise.
-On a machine without a CUDA-enabled GPU it is always <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<dd><p>Global variable (<code class="code docutils literal notranslate"><span class="pre">bool</span></code>). It is <code class="code docutils literal notranslate"><span class="pre">True</span></code> if the GPU libraries
+(<code class="code docutils literal notranslate"><span class="pre">galario.double_cuda</span></code> and <code class="code docutils literal notranslate"><span class="pre">galario.single_cuda</span></code>) are available, <code class="code docutils literal notranslate"><span class="pre">False</span></code>
+otherwise. On a machine without a CUDA-enabled GPU it is always <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -647,7 +656,7 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
     </div>
   </body>
 </html>

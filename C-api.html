@@ -2,7 +2,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>C API reference &#8212; galario 1.02 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
@@ -158,6 +158,14 @@ interpolation based on the input <code class="code docutils literal notranslate"
 and <code class="xref c c-func docutils literal notranslate"><span class="pre">galario_chi2_profile()</span></code>.</p>
 </dd></dl>
 
+<div class="admonition danger">
+<p class="first admonition-title">Danger</p>
+<p class="last">The values of <code class="code docutils literal notranslate"><span class="pre">duv</span></code> and and <code class="code docutils literal notranslate"><span class="pre">u</span></code>, <code class="code docutils literal notranslate"><span class="pre">v</span></code> have to be consistent; i.e., <span class="math notranslate">\(\max
+|u| \leq \frac{n}{2} + 1\)</span> and <span class="math notranslate">\(v \leq \frac{n}{2}\)</span>, where <span class="math notranslate">\(n\)</span> is
+the number of rows and columns of the real input image. For performance
+reasons, the interpolate function does not check this. Inconsistent values
+may lead to segfaults.</p>
+</div>
 </div>
 <div class="section" id="management-functions">
 <h2>Management functions<a class="headerlink" href="#management-functions" title="Permalink to this headline">¶</a></h2>
@@ -324,7 +332,7 @@ affected for example by setting the <code class="code docutils literal notransla
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.0.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
     </div>
   </body>
 </html>
