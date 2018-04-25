@@ -2,7 +2,7 @@
 #include "galario_py.h"
 
 // full function makes code hard to read
-#define tpb threads()
+#define tpb galario::threads()
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -25,6 +25,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <stdexcept>
 
 #else // CPU
 // general min function already available in cuda
@@ -116,15 +117,15 @@ namespace {
 #endif // _OPENMP && TIMING
 
 #ifdef __CUDACC__
-    void throw_exception(const char *file, const int line, const char* source, const char* msg) {
+    void throw_exception(const char *file, const int line, const char* source, const std::string& msg) {
         std::stringstream ss;
         ss << file << ":" << line << ": ";
-        ss << "Error in " << source " call:\n" << msg;
+        ss << "Error in " << source << " call:\n" << msg;
 
-        std::string msg;
-        ss >> msg;
+        std::string res;
+        ss >> res;
 
-        throw std::runtime_error(msg);
+        throw std::runtime_error(res);
     }
 
     void throw_exception(const char *file, const int line, const char* source, const int err) {
@@ -211,16 +212,12 @@ namespace {
                 CCheck(cudaEventRecord(start, 0));
             }
 
-            void Stop() {
-                CCheck(cudaEventRecord(stop, 0));
-            }
-
             void Elapsed(const std::string& msg) {
                 CCheck(cudaEventRecord(stop, 0));
                 CCheck(cudaEventSynchronize(stop));
                 float elapsed;
                 CCheck(cudaEventElapsedTime(&elapsed, start, stop));
-                ::out() << "[GPU] " << msg << ": " <<elapsed << " ms\n";
+                ::out() << "[GPU] " << msg << ": " << elapsed << " ms\n";
                 Start();
             }
         };
@@ -229,7 +226,6 @@ namespace {
         {
             GPUTimer() {}
             void Start() {}
-            void Stop() {}
             void Elapsed(const std::string& msg) {}
         };
     #endif // TIMING
