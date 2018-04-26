@@ -80,18 +80,24 @@ def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0., ori
     # We use RectBivariateSpline to do only linear interpolation, which is faster
     # than interp2d for our case of a regular grid.
     # RectBivariateSpline does not work for complex input, so we need to run it twice.
-    f_re = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.real, kx=1, ky=1, s=0)
-    ReInt = f_re.ev(vroti, uroti)
-    f_im = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.imag, kx=1, ky=1, s=0)
-    ImInt = f_im.ev(vroti, uroti)
+    ###> f_re = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.real, kx=1, ky=1, s=0)
+    ###> ReInt = f_re.ev(vroti, uroti)
+    ###> f_im = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.imag, kx=1, ky=1, s=0)
+    ###> ImInt = f_im.ev(vroti, uroti)
+    f_amp = RectBivariateSpline(v_axis, u_axis, np.amp(fft_r2c_shifted), kx=1, ky=1, s=0)
+    AmpInt = f_amp.ev(vroti, uroti)
+    f_phase = RectBivariateSpline(v_axis, u_axis, np.angle(fft_r2c_shifted), kx=1, ky=1, s=0)
+    PhaseInt = f_phase.ev(vroti, uroti)
 
     # correct for Real to Complex frequency mapping
     uneg = urot < 0.
-    ImInt[uneg] *= -1.
+    ###> ImInt[uneg] *= -1.
+    PhaseInt[uneg] *= -1. 
 
     # apply the phase change
     theta = urot*dRArot + vrot*dDecrot
-    vis = (ReInt + 1j*ImInt) * (np.cos(theta) + 1j*np.sin(theta))
+    ###> vis = (ReInt + 1j*ImInt) * (np.cos(theta) + 1j*np.sin(theta))
+    vis = AmpInt*(np.cos(theta+PhaseInt)+1j*np.sin(theta+PhaseInt))
 
     return vis
 
