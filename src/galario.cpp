@@ -788,13 +788,31 @@ inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex 
     dcomplex const final_add2 = CMPLXADD(term2, term3);
     dcomplex const final_add1 = CMPLXADD(term1, final_add2);
 
-    dcomplex interpolated = CMPLXADD(final_add1, y0);
+    dcomplex phaseInterp = CMPLXADD(final_add1, y0);
 
     if (u < 0.) {
-        interpolated = CMPLXCONJ(interpolated);
+        phaseInterp = CMPLXCONJ(phaseInterp);
     }
 
+    dreal angleInterp = arg(phaseInterp);
+
+    dreal const tr = indv - fl_v;
+    dreal const qr = indu - fl_u;
+
+    dreal const y0r = abs(y0);
+    dreal const y1r = abs(y1);
+    dreal const y2r = abs(y2);
+    dreal const y3r = abs(y3);
+
+    dreal ampInterp = y0r;
+    ampInterp += (y3r-y0r)*qr;
+    ampInterp += (y1r-y0r)*tr;
+    ampInterp += (y0r-y1r+y2r-y3r)*tr*qr;
+
+    dcomplex interpolated = dcomplex{ampInterp*dreal(cos(angleInterp)), ampInterp*dreal(sin(angleInterp))};
+
     return interpolated;
+    
 }
 
 #ifdef __CUDACC__
