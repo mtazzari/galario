@@ -8,12 +8,13 @@
 #include <omp.h>
 #endif
 
-#include <cassert>
 #include <cstring>
 #include <cmath>
 #include <iosfwd>
 #include <iostream>
 #include <sstream>
+
+using std::to_string;
 
 #ifdef __CUDACC__
 #include <cuda_runtime_api.h>
@@ -66,21 +67,28 @@ namespace {
         out(true);
     }
 
+    template <class T = std::runtime_error>
+    void throw_exception(const char *file, const int line, const char* source, const std::string& msg) {
+        std::stringstream ss;
+        ss << file << ":" << line << ":\n";
+        ss << "Error in " << source << ": " << msg;
+
+        throw T(ss.str());
+    }
+
    /**
     * Macros to check input image lengths.
     */
-    #define CHECK_INPUT(nx)   \
-    do {                      \
-        assert(nx >= 2);      \
-        assert(nx % 2 == 0);  \
+    #define CHECK_INPUT(nx) \
+    do { \
+        if (nx < 2) { throw_exception<std::invalid_argument>(__FILE__, __LINE__, "check input image", "x dimension = " + to_string(nx) + " is less than 2"); } \
+        if (nx % 2 != 0) { throw_exception<std::invalid_argument>(__FILE__, __LINE__, "check input image", "x dimension = " + to_string(nx) + " is odd"); } \
     } while (0)
 
     #define CHECK_INPUTXY(nx, ny) \
-    do {                      \
-        assert(nx >= 2);      \
-        assert(ny >= 2);      \
-        assert(nx % 2 == 0);  \
-        assert(ny % 2 == 0);  \
+    do { \
+        if (nx != ny) { throw_exception<std::invalid_argument>(__FILE__, __LINE__, "check input image", "Expect a square image but got shape (" + to_string(nx) + ", " + to_string(ny) + ")"); } \
+        CHECK_INPUT(nx); \
     } while (0)
 
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
@@ -117,44 +125,24 @@ namespace {
 #endif // _OPENMP && TIMING
 
 #ifdef __CUDACC__
-    void throw_exception(const char *file, const int line, const char* source, const std::string& msg) {
-        std::stringstream ss;
-        ss << file << ":" << line << ": ";
-        ss << "Error in " << source << " call:\n" << msg;
-
-        std::string res;
-        ss >> res;
-
-        throw std::runtime_error(res);
-    }
 
     void throw_exception(const char *file, const int line, const char* source, const int err) {
         std::stringstream ss;
         ss << "Failed with error code " << err;
-        std::string msg;
-        ss >> msg;
-        throw_exception(file, line, source, msg);
+        throw_exception(file, line, source, ss.str());
     }
 
     #define CCheck(err) __cudaSafeCall((err), __FILE__, __LINE__)
     inline void __cudaSafeCall(cudaError err, const char *file, const int line)  {
     #ifndef NDEBUG
+        if (err == cudaErrorInitializationError) {
+            throw_exception(file, line, "cuda", "Could not initialize cuda. Is a CUDA GPU available at all?");
+        }
+        if (err == cudaErrorMemoryAllocation) {
+            throw std::bad_alloc();
+        }
         if (cudaSuccess != err) {
             throw_exception(file, line, "cuda", cudaGetErrorString(err));
-            // std::stringstream ss;
-            // ss << file << ":" << line << ": ";
-            // ss << "Error in cuda call:\n" << cudaGetErrorString(err);
-
-            // if (err == cudaErrorMemoryAllocation) {
-            //     ss << "Cuda memory allocation error";
-            // } else {
-            //     ss << "Error in cuda call:\n" << cudaGetErrorString(err);
-            // }
-
-            // std::string msg;
-            // ss >> msg;
-
-            // throw std::runtime_error(msg);
         }
     #endif
     }
@@ -162,10 +150,14 @@ namespace {
     #define CBlasCheck(err) __cublasSafeCall((err), __FILE__, __LINE__)
     inline void __cublasSafeCall(cublasStatus_t err, const char *file, const int line) {
     #ifndef NDEBUG
-        if(CUBLAS_STATUS_SUCCESS != err) {
+        if (err == CUBLAS_STATUS_NOT_INITIALIZED) {
+            throw_exception(file, line, "cublas", "Could not initialize cublas. Is a cuda GPU available at all?");
+        }
+        if (err == CUBLAS_STATUS_ALLOC_FAILED) {
+            throw std::bad_alloc();
+        }
+        if (CUBLAS_STATUS_SUCCESS != err) {
             throw_exception(file, line, "cublas", err);
-           // fprintf(stderr, "[ERROR] Cublas call %s: %d failed with code %d\n", file, line, err);
-           // exit(43);
         }
     #endif
     }
@@ -173,10 +165,11 @@ namespace {
     #define CUFFTCheck(err) __cufftwSafeCall((err), __FILE__, __LINE__)
     inline void __cufftwSafeCall(cufftResult_t err, const char *file, const int line) {
     #ifndef NDEBUG
+        if (err == CUFFT_ALLOC_FAILED) {
+            throw std::bad_alloc();
+        }
        if (CUFFT_SUCCESS != err) {
            throw_exception(file, line, "cufftw", err);
-           // fprintf(stderr, "[ERROR] Cufftw call %s: %d\n failed with code %d\n", file, line, err);
-           // exit(44);
        }
     #endif
     }
