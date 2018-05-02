@@ -51,13 +51,13 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
 
     """
     # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
+    intensity = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
 
     nrow, ncol = nxy, nxy
 
-    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
+    image_ref = sweep_ref(intensity, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
-    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc)
+    image_sweep_galario = g_double.sweep(intensity, Rmin, dR, nxy, dxy, inc)
 
     # uncomment for debugging
     # plot images
@@ -148,7 +148,7 @@ def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
 def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     """
     Test the interpolation of the output FT.
-    
+
     """
     nsamples = 10000
     maxuv = 1000.
@@ -346,8 +346,8 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     PA *= deg
     inc *= deg
 
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
-    reference_image = sweep_ref(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
+    intensity = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
+    reference_image = sweep_ref(intensity, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
 
     # test sampleImage
     vis_py_sampleImage = py_sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
@@ -358,8 +358,8 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     assert_allclose(vis_py_sampleImage.imag, vis_g_sampleImage.imag, rtol=rtol, atol=np.abs(np.mean(vis_g_sampleImage.real))*rtol)
 
     # test sampleProfile
-    vis_py_sampleProfile = py_sampleProfile(ints.copy(), Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
-    vis_g_sampleProfile = acc_lib.sampleProfile(ints, Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    vis_py_sampleProfile = py_sampleProfile(intensity.copy(), Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    vis_g_sampleProfile = acc_lib.sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
 
     # check galario vs python implementation
     assert_allclose(vis_g_sampleProfile.real, vis_py_sampleProfile.real, rtol=rtol, atol=atol)
@@ -376,8 +376,8 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     chi2_g_chi2Image = acc_lib.chi2Image(reference_image, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
 
     # test chi2Profile
-    chi2_pychi2Profile = py_chi2Profile(ints, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
-    chi2_g_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    chi2_pychi2Profile = py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    chi2_g_chi2Profile = acc_lib.chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
 
     # check galario vs python implementation
     assert_allclose(chi2_pychi2Profile, chi2_g_chi2Profile, rtol=rtol, atol=atol)
@@ -487,4 +487,3 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # # atol = 0.5
     # assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
     # assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
-

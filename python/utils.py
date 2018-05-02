@@ -133,17 +133,17 @@ def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, vis_obs_re, vis_ob
     return chi2
 
 def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_width=100):
-    """ Compute a radial brightness profile. Returns int in Jy/sr """
+    """ Compute a radial brightness profile. Returns intensity in Jy/sr """
     gridrad = np.linspace(Rmin, Rmin + delta_R * (nrad - 1), nrad).astype(dtype)
 
     if mode == 'Gauss':
         # a simple Gaussian
-        ints = np.exp(-(gridrad/delta_R/gauss_width)**2)
+        intensity = np.exp(-(gridrad/delta_R/gauss_width)**2)
     elif mode == 'Cos-Gauss':
         # a cos-tapered Gaussian
-        ints = np.cos(2.*np.pi*gridrad/(50.*delta_R))**2. * np.exp(-(gridrad/delta_R/80)**2)
+        intensity = np.cos(2.*np.pi*gridrad/(50.*delta_R))**2. * np.exp(-(gridrad/delta_R/80)**2)
 
-    return ints
+    return intensity
 
 
 def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):

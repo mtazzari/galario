@@ -105,9 +105,9 @@ def setup_chi2Profile(nxy, nsamples):
     # nxy, dxy = g_double.get_image_size(udat/wle_m, vdat/wle_m)
 
     # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.)
+    intensity = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.)
 
-    return ints, Rmin, dR, nxy, dxy, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
+    return intensity, Rmin, dR, nxy, dxy, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
 
 def do_timing(options, input_data, gpu=False, tpb=0, omp_num_threads=0):
     if gpu:
