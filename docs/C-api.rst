@@ -9,7 +9,7 @@ C API reference
 Sample and chi2 functions
 -------------------------
 
-These are four main functions that should serve the standard use of galario.
+There are four main functions that should serve the standard use of galario.
 
 .. function::
    void galario_sample_profile(int nr, dreal* const intensity,
@@ -54,11 +54,11 @@ These are four main functions that should serve the standard use of galario.
 
 
 .. function::
-   void galario_chi2_profile(int nr, dreal* const intensity,
+   dreal galario_chi2_profile(int nr, dreal* const intensity,
    dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc,
    dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal *u,
    const dreal *v, const dreal* fobs_re, const dreal* fobs_im,
-   const dreal* weights, dreal* chi2);
+   const dreal* weights);
 
    Compute the chi2 between observed visibilities and the
    interpolation based on a radial profile and return in `chi2`.
@@ -74,10 +74,10 @@ These are four main functions that should serve the standard use of galario.
    :param weights: The weights of the observations. Size: `nd`.
 
 .. function::
-   void galario_chi2_image(int nx, int ny, const dreal* image,
+   dreal galario_chi2_image(int nx, int ny, const dreal* image,
    dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u,
    const dreal* v, const dreal* fobs_re, const dreal* fobs_im,
-   const dreal* weights, dreal* chi2);
+   const dreal* weights);
 
    Compute the chi2 between observed visibilities and the
    interpolation based on the input `image` and return in `chi2`.
