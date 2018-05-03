@@ -1,4 +1,3 @@
-cimport numpy as np
 include "galario_config.pxi"
 
 cdef extern from "galario_py.h" namespace "galario":

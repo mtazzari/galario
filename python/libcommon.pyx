@@ -1,9 +1,9 @@
 cimport numpy as np
-import numpy as np
 from cpython cimport PyObject, Py_INCREF
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
+import numpy as np
 np.import_array()
 
 include "galario_config.pxi"

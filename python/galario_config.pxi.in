@@ -1,5 +1,9 @@
 DEF DOUBLE_PRECISION = ${GALARIO_DOUBLE_PRECISION}
 
+# I don't understand why I have to import numpy here even it was already
+# imported in the file including this one...
+import numpy as np
+
 IF DOUBLE_PRECISION:
     ctypedef double dreal
     real_dtype = np.float64
