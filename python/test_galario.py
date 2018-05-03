@@ -465,8 +465,13 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uroti, vroti = uv_idx_r2c(udat, vdat, du, size/2.)
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
+    AmpInt = int_bilin_MT(np.abs(py_shift_cmplx), uroti, vroti).astype(real_type)
     uneg = udat < 0.
     ImInt[uneg] *= -1.
+
+    PhaseInt = np.angle(ReInt+1jImInt)
+    ReInt = AmpInt*np.cos(PhaseInt)
+    ImInt = AmpInt*np.sin(PhaseInt)
 
     complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
                                      du,
