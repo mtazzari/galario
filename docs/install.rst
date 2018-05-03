@@ -333,6 +333,13 @@ To manually enable or disable checking for cuda, do
    cmake -DGALARIO_CHECK_CUDA=0 .. # don't check
    cmake -DGALARIO_CHECK_CUDA=1 .. # check
 
+If cuda is installed in a non-standard directory or you want to specify the
+exact version, you can point cmake
+
+.. code-block:: bash
+
+   cmake -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-9.1 ..
+
 Timing
 ~~~~~~
 For testing purposes, you can activate the timing features embedded in the code that produce detailed printouts to `stdout` of various
