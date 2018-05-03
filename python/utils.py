@@ -59,7 +59,7 @@ def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0.):
     ReInt = f_re.ev(vroti, uroti)
     f_im = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.imag, kx=1, ky=1, s=0)
     ImInt = f_im.ev(vroti, uroti)
-    f_amp = RectBivariateSpline(v_axis, u_axis, np.amp(fft_r2c_shifted), kx=1, ky=1, s=0)
+    f_amp = RectBivariateSpline(v_axis, u_axis, np.abs(fft_r2c_shifted), kx=1, ky=1, s=0)
     AmpInt = f_amp.ev(vroti, uroti)
 
     # correct for Real to Complex frequency mapping
