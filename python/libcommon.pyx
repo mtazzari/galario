@@ -10,9 +10,6 @@ include "galario_config.pxi"
 
 cimport galario_defs as cpp
 
-cdef extern from "fftw3.h":
-    void fftw_free(void*)
-
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup',
            'ngpus', 'use_gpu', 'threads',

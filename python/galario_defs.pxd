@@ -19,9 +19,9 @@ cdef extern from "galario_py.h" namespace "galario":
     void _reduce_chi2(int nd, void* vis_obs_re, void* vis_obs_im, void* vis, void* vis_obs_w, dreal* chi2) except +
 
 cdef extern from "galario.h" namespace "galario":
-    void init();
-    void cleanup();
-    int  threads(int num);
-    void galario_free(void*);
-    void use_gpu(int device_id)
-    int  ngpus()
+    void init() except +
+    void cleanup() except +
+    int  threads(int num) except +
+    void galario_free(void*) except +
+    void use_gpu(int device_id) except +
+    int  ngpus() except +
