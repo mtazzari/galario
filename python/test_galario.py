@@ -199,9 +199,14 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
 
     ReInt = int_bilin_MT(ft.real, uroti, vroti)
     ImInt = int_bilin_MT(ft.imag, uroti, vroti)
+    AmpInt = int_bilin_MT(np.abs(ft), uroti, vroti)
     uneg = udat < 0.
     ImInt[uneg] *= -1.
-
+    PhaseInt = np.angle(ReInt+1j*ImInt)
+        
+    ReInt = AmpInt*np.cos(PhaseInt)
+    ImInt = AmpInt*np.sin(PhaseInt)
+    
     complexInt = acc_lib.interpolate(ft, du,
                                      udat.astype(real_type),
                                      vdat.astype(real_type))
