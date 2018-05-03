@@ -493,3 +493,16 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # # atol = 0.5
     # assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
     # assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
+
+def test_exception():
+    """
+    Make sure exceptions propagate from C++ to python
+    """
+    with pytest.raises(ValueError, message="Image can't be too small"):
+        g_double._fft2d(np.ones((1, 1), dtype=np.float64))
+
+    with pytest.raises(ValueError, message="Unequal image lengths are not permitted"):
+        g_double._fft2d(np.ones((10, 9), dtype=np.float64))
+
+    with pytest.raises(ValueError, message="Odd image lengths are not permitted"):
+        g_double._fft2d(np.ones((9, 9), dtype=np.float64))
