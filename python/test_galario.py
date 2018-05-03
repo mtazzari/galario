@@ -469,7 +469,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uneg = udat < 0.
     ImInt[uneg] *= -1.
 
-    PhaseInt = np.angle(ReInt+1jImInt)
+    PhaseInt = np.angle(ReInt+1j*ImInt)
     ReInt = AmpInt*np.cos(PhaseInt)
     ImInt = AmpInt*np.sin(PhaseInt)
 
