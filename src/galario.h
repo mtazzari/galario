@@ -26,8 +26,8 @@ void interpolate(int nrow, int ncol, const dcomplex *image, int nd,
                  dcomplex *fint);
 void apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u,
                          const dreal* v, dcomplex* fint);
-void reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im,
-                 const dcomplex* fint, const dreal* weights, dreal* chi2);
+dreal reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im,
+                 const dcomplex* fint, const dreal* weights);
 
 /* Required for multithreading */
 void init();

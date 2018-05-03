@@ -13,7 +13,7 @@ cimport galario_defs as cpp
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup',
            'ngpus', 'use_gpu', 'threads',
-           'check_image', 'check_obs', 'check_image_size', 'get_image_size',
+           'check_obs', 'check_image_size', 'get_image_size',
            'sampleImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
            '_fft2d', '_fftshift', '_fftshift_axis0']
@@ -172,15 +172,6 @@ def threads(int num=0):
 #                                    CHECKS                                    #
 #                                                                              #
 # ############################################################################ #
-
-def check_image(image):
-    """ Checks whether the image is square has even number of cells on both sides. """
-    nx, ny = image.shape
-    assert nx == ny, "Expect a square image but got shape {}".format(image.shape)
-    assert nx % 2 == 0, "Expect an even size but got shape {}".format(image.shape)
-
-    return True
-
 
 def check_obs(vis_obs_re, vis_obs_im, vis_obs_w, vis=None, u=None, v=None):
     """ Checks whether the observed visibilities are consistent. """
@@ -397,7 +388,6 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         **units**: Jy
 
     """
-    check_image(image)
     nxy = image.shape[0]
 
     duv = 1 / (dxy*nxy)
@@ -576,7 +566,6 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
     """
     check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
-    check_image(image)
     nxy = image.shape[0]
 
     duv = 1 / (dxy*nxy)
@@ -915,7 +904,6 @@ def reduce_chi2(dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs
 def _fft2d(dreal[:,::1] image):
     """ Wrapper for the 2D Real to Complex FFT """
     # require contiguous arrays with stride=1 in buffer[::1]
-    check_image(image)
     nx, ny = image.shape[0], image.shape[1]
     cdef void* res = cpp._copy_input(nx, ny, <void*>&image[0,0])
 
@@ -942,7 +930,6 @@ def _fftshift(dreal[:,::1] matrix):
     The swapped matrix.
 
     """
-    check_image(matrix)
     nx, ny = matrix.shape[0], matrix.shape[1]
     assert nx % 2 == 0 and ny % 2 == 0, "Expect even matrix size but got {}".format(matrix.shape)
 
