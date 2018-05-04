@@ -128,7 +128,9 @@ def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
     uroti_c2c, vroti_c2c = uv_idx(urot, vrot, du, nxy/2.)
     ReInt_c2c = int_bilin_MT(fft_c2c_shifted.real, uroti_c2c, vroti_c2c)
     ImInt_c2c = int_bilin_MT(fft_c2c_shifted.imag, uroti_c2c, vroti_c2c)
-    vis_c2c = ReInt_c2c + 1j*ImInt_c2c
+    AmpInt_c2c = int_bilin_MT(np.abs(fft_c2c_shifted), uroti_c2c, vroti_c2c)
+    PhaseInt_c2c = np.angle(ReInt_c2c + 1j*ImInt_c2c)
+    vis_c2c = AmpInt_c2c * (np.cos(PhaseInt_c2c) + 1j*np.sin(PhaseInt_c2c))
     vis_c2c_shifted = apply_phase_array(urot, vrot, vis_c2c, dRArot, dDecrot)
 
     # CPU/GPU version (galario)
@@ -175,11 +177,11 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     AmpInt = int_bilin_MT(np.abs(ft), uroti, vroti)
     uneg = udat < 0.
     ImInt[uneg] *= -1.
-    PhaseInt = np.angle(ReInt+1j*ImInt)
-        
-    ReInt = AmpInt*np.cos(PhaseInt)
-    ImInt = AmpInt*np.sin(PhaseInt)
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
     
+    ReInt = AmpInt * np.cos(PhaseInt)
+    ImInt = AmpInt * np.sin(PhaseInt)
+
     complexInt = acc_lib.interpolate(ft, du,
                                      udat.astype(real_type),
                                      vdat.astype(real_type))
@@ -451,7 +453,10 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uroti, vroti = uv_idx(udat, vdat, du, size/2.)
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
-    fint = ReInt + 1j*ImInt
+    AmpInt = int_bilin_MT(np.abs(py_shift_cmplx), uroti, vroti).astype(real_type)
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
+
+    fint = AmpInt * (np.cos(PhaseInt) + 1j*np.sin(PhaseInt))
     fint_acc = fint.copy()
     fint_shifted = apply_phase_array(udat, vdat, fint, dRA, dDec)
     fint_acc_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, fint_acc)
@@ -471,12 +476,13 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
     AmpInt = int_bilin_MT(np.abs(py_shift_cmplx), uroti, vroti).astype(real_type)
+
     uneg = udat < 0.
     ImInt[uneg] *= -1.
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
 
-    PhaseInt = np.angle(ReInt+1j*ImInt)
-    ReInt = AmpInt*np.cos(PhaseInt)
-    ImInt = AmpInt*np.sin(PhaseInt)
+    ReInt = AmpInt * np.cos(PhaseInt)
+    ImInt = AmpInt * np.sin(PhaseInt)
 
     complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
                                      du,

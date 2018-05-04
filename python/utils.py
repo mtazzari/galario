@@ -65,8 +65,7 @@ def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0.):
     # correct for Real to Complex frequency mapping
     uneg = urot < 0.
     ImInt[uneg] *= -1.
-           
-    PhaseInt = np.angle(ReInt+1j*ImInt)
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
 
     # apply the phase change
     theta = urot*dRArot + vrot*dDecrot
