@@ -812,7 +812,6 @@ inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex 
     dcomplex interpolated = dcomplex{ampInterp*dreal(cos(angleInterp)), ampInterp*dreal(sin(angleInterp))};
 
     return interpolated;
-    
 }
 
 #ifdef __CUDACC__
