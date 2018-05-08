@@ -306,7 +306,10 @@ int threads(int num) {
 
 void init() {
 #ifdef __CUDACC__
-    cublas_handle();
+    // Avoid initializing cublas unconditionally. It takes a lot of memory and
+    // fails if cuda is not available. Let the initialization be done when
+    // cublas is actually needed.
+    // cublas_handle();
 #else
     #ifdef _OPENMP
     FFTWCheck(fftw_init_threads());
