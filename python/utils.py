@@ -271,14 +271,23 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
     # we shrink the x axis, since PA is the angle East of North of the
     # the plane of the disk (orthogonal to the angular momentum axis)
     # PA=0 is a disk with vertical orbital node (aligned along North-South)
+<<<<<<< HEAD
     xxx, yyy = np.meshgrid((x - Dx) / inc_cos, (y - Dy))
+=======
+    xxx, yyy = np.meshgrid((x - Dx) / inc_cos,
+                           (y - Dy))
+>>>>>>> [utils] Add central_pixel() to compute brightness as average flux
     x_meshgrid = np.sqrt(xxx ** 2. + yyy ** 2.)
 
     f = interp1d(gridrad, I, kind='linear', fill_value=0.,
                  bounds_error=False, assume_sorted=True)
     intensmap = f(x_meshgrid)
 
+<<<<<<< HEAD
     # central pixel: compute the average intensity
+=======
+    # central pixel: compute the average brightness
+>>>>>>> [utils] Add central_pixel() to compute brightness as average flux
     intensmap[int(nrow / 2 + Dy / dxy), int(ncol / 2 - Dx / dxy)] = central_pixel(I, Rmin, dR, dxy)
 
     # convert to Jansky
