@@ -64,7 +64,7 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
 
     image_sweep_galario = g_double.sweep(intensity, Rmin, dR, nxy, dxy, inc)
 
-    image_prototype = g_sweep_prototype(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
+    image_prototype = g_sweep_prototype(intensity, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
     # uncomment for debugging
     # plot images
