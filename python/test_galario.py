@@ -86,7 +86,7 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
     # plt.savefig("./profile_intensity_ref.pdf")
     # plt.clf()
 
-    assert_allclose(image_ref, image_prototype, rtol=1.e-12, atol=0)
+    assert_allclose(image_ref, image_prototype, rtol=1.e-13, atol=0)
     assert_allclose(image_prototype, image_sweep_galario, rtol=1.e-12, atol=0)
 
 
