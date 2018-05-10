@@ -100,9 +100,7 @@ def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, dRA=0., dDec=0.,
                  bounds_error=False, assume_sorted=True)
     intensmap = f(x_meshgrid)
 
-    f_center = interp1d(gridrad, intensity, kind='linear', fill_value='extrapolate',
-                 bounds_error=False, assume_sorted=True)
-    intensmap[int(nrow/2), int(ncol/2)] = f_center(0.)
+    intensmap[int(nrow / 2), int(ncol / 2)] = central_pixel(intensity, Rmin, dR, dxy)
 
     vis = py_sampleImage(intensmap, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
 
@@ -121,7 +119,6 @@ def py_chi2Image(reference_image, dxy, udat, vdat, vis_obs_re, vis_obs_im, weigh
     return chi2
 
 
-
 def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, dRA=0., dDec=0., PA=0, inc=0.):
     """
     Python implementation of chi2Profile.
@@ -133,18 +130,53 @@ def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, vis_obs_re, vis_ob
 
     return chi2
 
+
 def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_width=100):
     """ Compute a radial brightness profile. Returns intensity in Jy/sr """
     gridrad = np.linspace(Rmin, Rmin + delta_R * (nrad - 1), nrad).astype(dtype)
 
     if mode == 'Gauss':
         # a simple Gaussian
-        intensity = np.exp(-(gridrad/delta_R/gauss_width)**2)
+        intensity = np.exp(-(gridrad/gauss_width)**2)
     elif mode == 'Cos-Gauss':
         # a cos-tapered Gaussian
-        intensity = np.cos(2.*np.pi*gridrad/(50.*delta_R))**2. * np.exp(-(gridrad/delta_R/80)**2)
+        intensity = np.cos(2.*np.pi*gridrad/(gauss_width))**2. * np.exp(-(gridrad/gauss_width)**2)
 
     return intensity
+
+
+def central_pixel(I, Rmin, dR, dxy):
+    """
+    Compute brightness in the central pixel as the average flux in the pixel.
+
+    """
+    # with quadrature method: tends to over-estimate it
+    # area = np.pi*((dxy/2.)**2-Rmin**2)
+    # flux, _ = quadrature(lambda z: f(z)*z, Rmin, dxy/2., tol=1.49e-25, maxiter=200)
+    # flux *= 2.*np.pi
+    # intensmap[int(nrow/2+Dy/dxy), int(ncol/2-Dx/dxy)] = flux/area
+
+    # with trapezoidal rule: it's the same implementation as in galario.cpp
+    iIN = int(np.floor((dxy / 2 - Rmin) // dR))
+    flux = 0.
+    for i in range(1, iIN):
+        flux += (Rmin + dR * i) * I[i]
+
+    flux *= 2.
+    flux += Rmin * I[0] + (Rmin + iIN * dR) * I[iIN]
+    flux *= dR
+
+    # add flux between Rmin+iIN*dR and dxy/2
+    I_interp = (I[iIN + 1] - I[iIN]) / (dR) * (dxy / 2. - (Rmin + dR * (iIN))) + \
+               I[iIN]  # brightness at R=dxy/2
+    flux += ((Rmin + iIN * dR) * I[iIN] + dxy / 2. * I_interp) * (
+                dxy / 2. - (Rmin + iIN * dR))
+
+    # flux *= 2 * np.pi / 2.  # to complete trapezoidal rule (***)
+    area = ((dxy / 2.) ** 2 - Rmin ** 2)
+    # area *= np.pi  # elides (***)
+
+    return flux/area
 
 
 def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
@@ -175,8 +207,7 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
                 image[irow+row_offset, jcol+col_offset] = I[iR] + (rr - iR * dR - Rmin) * (I[iR + 1] - I[iR]) / dR
 
     # central pixel
-    if Rmin != 0.:
-        image[irow_center, icol_center] = I[0] + Rmin * (I[0] - I[1]) / dR
+    image[irow_center, icol_center] = central_pixel(I, Rmin, dR, dxy)
 
     sr_to_px = dxy**2.
     image *= sr_to_px
@@ -239,17 +270,16 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
     # we shrink the x axis, since PA is the angle East of North of the
     # the plane of the disk (orthogonal to the angular momentum axis)
     # PA=0 is a disk with vertical orbital node (aligned along North-South)
-    xxx, yyy = np.meshgrid((x - Dx * dxy) / inc_cos,
-                           (y - Dy * dxy))
+    xxx, yyy = np.meshgrid((x - Dx) / inc_cos,
+                           (y - Dy))
     x_meshgrid = np.sqrt(xxx ** 2. + yyy ** 2.)
 
     f = interp1d(gridrad, I, kind='linear', fill_value=0.,
                  bounds_error=False, assume_sorted=True)
     intensmap = f(x_meshgrid)
 
-    f_center = interp1d(gridrad, I, kind='linear', fill_value='extrapolate',
-                 bounds_error=False, assume_sorted=True)
-    intensmap[int(nrow/2), int(ncol/2)] = f_center(0.)
+    # central pixel: compute the average brightness
+    intensmap[int(nrow / 2 + Dy / dxy), int(ncol / 2 - Dx / dxy)] = central_pixel(I, Rmin, dR, dxy)
 
     # convert to Jansky
     intensmap *= dxy**2.
