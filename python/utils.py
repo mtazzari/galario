@@ -6,6 +6,7 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 
 from scipy.interpolate import interp1d, RectBivariateSpline
+from scipy.integrate import trapz, quadrature
 
 __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image",
            "radial_profile", "g_sweep_prototype", "sweep_ref",
@@ -154,7 +155,7 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     nrad = len(I)
     irow_center = int(nrow / 2)
     icol_center = int(ncol / 2)
-    inc_cos = np.cos(inc/180.*np.pi)
+    inc_cos = np.cos(inc)
 
     # radial extent in number of image pixels covered by the profile
     rmax = min(np.int(np.ceil((Rmin+nrad*dR)/dxy)), irow_center)
@@ -187,19 +188,43 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
     """
     Compute the intensity map (i.e. the image) given the radial profile I(R)=ints.
     We assume an axisymmetric profile.
+    The output image is assumed with origin in the upper left corner.
 
     Parameters
     ----------
     I: 1D float array
         Intensity radial profile I(R).
-    gridrad: array
-        Radial grid
-    inc: float
-        Inclination, degree
+    Rmin : float
+        Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
+        **units**: rad
+    dR : float
+        Size of the cell of the radial grid, assumed linear.
+        **units**: rad
+    nrow : int
+        Number of rows of the output image.
+        **units**: pixel
+    ncol : int
+        Number of columns of the output image.
+        **units**: pixel
+    dxy : float
+        Size of the image cell, assumed equal and uniform in both x and y direction.
+        **units**: rad
+    inc : float
+        Inclination along North-South axis.
+        **units**: rad
+    Dx : optional, float
+        Right Ascension offset (positive towards East, left).
+        **units**: rad
+    Dy : optional, float
+        Declination offset (positive towards North, top).
+        **units**: rad
+    dtype : optional, str
+        Data type of the output image.
+
     Returns
     -------
     intensmap: 2D float array
-        Image of the disk, i.e. the intensity map.
+        The intensity map, sweeped by 2pi.
 
     """
     inc_cos = np.cos(inc)

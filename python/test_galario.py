@@ -40,9 +40,9 @@ g_double.threads()
 ########################################################
 
 @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type",
-                          [(0.1, 3.5, 500, 1024, 8.2, 20., 'Gauss', 'float64'),
+                          [(0.1, 3.5, 1000, 1024, 8.2, 20., 'Gauss', 'float64'),
                            (2., 0.3, 1000, 2048, 3., 44.23, 'Cos-Gauss', 'float64'),
-                           (0.1, 3.5, 50, 256, 8.2, 20., 'Gauss', 'float64'),
+                           (0.1, 3.5, 1000, 256, 8.2, 20., 'Gauss', 'float64'),
                            (0.1, 3.5, 1000, 16, 8.2, 20., 'Gauss', 'float64')],
                           ids=["{}".format(i) for i in range(4)])
 def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type):
@@ -50,6 +50,11 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
     Test the image creation algorithm, `sweep`.
 
     """
+    Rmin *= arcsec
+    dR *= arcsec
+    dxy *= arcsec
+    inc = np.radians(inc)
+    
     # compute radial profile
     intensity = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
 
@@ -58,6 +63,8 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
     image_ref = sweep_ref(intensity, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
     image_sweep_galario = g_double.sweep(intensity, Rmin, dR, nxy, dxy, inc)
+
+    image_prototype = g_sweep_prototype(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
     # uncomment for debugging
     # plot images
@@ -79,6 +86,7 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
     # plt.savefig("./profile_intensity_ref.pdf")
     # plt.clf()
 
+    assert_allclose(image_ref, image_prototype, rtol=1.e-13, atol=1.e-12)
     assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
 
 
