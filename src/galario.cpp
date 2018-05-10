@@ -1042,11 +1042,29 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
     auto const nblocks = (2*rmax) / tpb + 1;
     sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, sr_to_px, *addr_image_d);
-    CCheck(cudaDeviceSynchronize());
+    CCheck(cudaDeviceSynchronize()); // TODO: can be moved after central pixel computation?
     t.Elapsed("create_image_d::sweep");
 
-    // central pixel needs special treatment
-    auto const value = sr_to_px * (ints[0] + Rmin * (ints[0] - ints[1]) / dR);
+    // central pixel
+    auto const iIN = int(floor((dxy / 2 - Rmin) / dR));
+    dreal flux = 0.;
+    for (auto i=1; i<iIN; ++i) {
+        flux += (Rmin + dR * i) * ints[i];
+    };
+
+    flux *= 2.;
+    flux += Rmin * ints[0] + (Rmin + iIN * dR) * ints[iIN];
+    flux *= dR;
+
+    // add flux between Rmin+iIN*dR and dxy/2
+    dreal I_interp = (ints[iIN + 1] - ints[iIN]) / (dR) * (dxy / 2. - (Rmin + dR * (iIN))) + ints[iIN];
+    flux += ((Rmin + iIN * dR) * ints[iIN] + dxy / 2. * I_interp) * (dxy / 2. - (Rmin + iIN * dR));
+    // flux *= 2 * np.pi / 2.  # to complete trapezoidal rule (***)
+
+    dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
+    // area *= np.pi  # elides (***)
+
+    auto const value = sr_to_px * flux/area;
     central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
     t.Elapsed("create_image_d::central_pixel");
 
@@ -1082,9 +1100,25 @@ void create_image_h(int const nr, const dreal *const ints, dreal const Rmin, dre
     }
 
     // central pixel
-    if (Rmin != 0.)
-        real_image[nxy/2*rowsize+nxy/2] = sr_to_px * (ints[0] + Rmin * (ints[0] - ints[1]) / dR);
+    auto const iIN = int(floor((dxy / 2 - Rmin) / dR));
+    dreal flux = 0.;
+    for (auto i=1; i<iIN; ++i) {
+        flux += (Rmin + dR * i) * ints[i];
+    };
 
+    flux *= 2.;
+    flux += Rmin * ints[0] + (Rmin + iIN * dR) * ints[iIN];
+    flux *= dR;
+
+    // add flux between Rmin+iIN*dR and dxy/2
+    dreal I_interp = (ints[iIN + 1] - ints[iIN]) / (dR) * (dxy / 2. - (Rmin + dR * (iIN))) + ints[iIN];
+    flux += ((Rmin + iIN * dR) * ints[iIN] + dxy / 2. * I_interp) * (dxy / 2. - (Rmin + iIN * dR));
+    // flux *= 2 * np.pi / 2.  # to complete trapezoidal rule (***)
+
+    dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
+    // area *= np.pi  # elides (***)
+
+    real_image[nxy/2*rowsize+nxy/2] = sr_to_px * flux/area;
 
     t.Elapsed("create_image");
 }
