@@ -1023,6 +1023,7 @@ __global__ void sweep_d(int const nr, const dreal* const intensity, dreal const 
 
 /**
  * Allocate memory on device for `intensity` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
+ * For the central pixel computation: see details in create_image_h() docstring.
  */
 void create_image_d(int nr, const dreal* const intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
     GPUTimer t, t_start;
@@ -1145,7 +1146,7 @@ void create_image_h(int const nr, const dreal *const intensity, dreal const Rmin
 
     dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
 
-    real_image[nxy/2*rowsize+nxy/2] = sr_to_px * flux / area;
+    real_image[nxy/2*rowsize + nxy/2] = sr_to_px * flux / area;
 
     t.Elapsed("create_image");
 }
