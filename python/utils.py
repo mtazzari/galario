@@ -100,7 +100,7 @@ def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, dRA=0., dDec=0.,
                  bounds_error=False, assume_sorted=True)
     intensmap = f(x_meshgrid)
 
-    intensmap[int(nrow / 2), int(ncol / 2)] = central_pixel(intensity, Rmin, dR, dxy)
+    intensmap[nrow//2, ncol//2] = central_pixel(intensity, Rmin, dR, dxy)
 
     vis = py_sampleImage(intensmap, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
 
@@ -173,10 +173,10 @@ def central_pixel(I, Rmin, dR, dxy):
                 dxy / 2. - (Rmin + iIN * dR))
 
     # flux *= 2 * np.pi / 2.  # to complete trapezoidal rule (***)
-    area = ((dxy / 2.) ** 2 - Rmin ** 2)
+    area = (dxy / 2.) ** 2 - Rmin ** 2
     # area *= np.pi  # elides (***)
 
-    return flux/area
+    return flux / area
 
 
 def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
@@ -185,8 +185,8 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     image = np.zeros((nrow, ncol), dtype=dtype_image)
 
     nrad = len(I)
-    irow_center = int(nrow / 2)
-    icol_center = int(ncol / 2)
+    irow_center = nrow // 2
+    icol_center = ncol // 2
     inc_cos = np.cos(inc)
 
     # radial extent in number of image pixels covered by the profile
@@ -217,16 +217,17 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
 
 def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='float64'):
     """
-    Compute the intensity map (i.e. the image) given the radial profile I(R)=ints.
+    Compute the intensity map (i.e. the image) given the radial profile I(R).
     We assume an axisymmetric profile.
-    The output image is assumed with origin in the upper left corner.
+    The origin of the output image is in the upper left corner.
 
     Parameters
     ----------
     I: 1D float array
         Intensity radial profile I(R).
     Rmin : float
-        Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
+        Inner edge of the radial grid. At R=Rmin the intensity is intensity[0].
+        For R<Rmin the intensity is assumed to be 0.
         **units**: rad
     dR : float
         Size of the cell of the radial grid, assumed linear.
@@ -249,8 +250,8 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
     Dy : optional, float
         Declination offset (positive towards North, top).
         **units**: rad
-    dtype : optional, str
-        Data type of the output image.
+    dtype_image : optional, str
+        numpy dtype specification for the output image.
 
     Returns
     -------
@@ -270,15 +271,14 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
     # we shrink the x axis, since PA is the angle East of North of the
     # the plane of the disk (orthogonal to the angular momentum axis)
     # PA=0 is a disk with vertical orbital node (aligned along North-South)
-    xxx, yyy = np.meshgrid((x - Dx) / inc_cos,
-                           (y - Dy))
+    xxx, yyy = np.meshgrid((x - Dx) / inc_cos, (y - Dy))
     x_meshgrid = np.sqrt(xxx ** 2. + yyy ** 2.)
 
     f = interp1d(gridrad, I, kind='linear', fill_value=0.,
                  bounds_error=False, assume_sorted=True)
     intensmap = f(x_meshgrid)
 
-    # central pixel: compute the average brightness
+    # central pixel: compute the average intensity
     intensmap[int(nrow / 2 + Dy / dxy), int(ncol / 2 - Dx / dxy)] = central_pixel(I, Rmin, dR, dxy)
 
     # convert to Jansky
@@ -290,7 +290,7 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
 def create_reference_image(size, x0=10., y0=-3., sigma_x=50., sigma_y=30., dtype='float64',
                            reverse_xaxis=False, correct_axes=True, sizey=None, **kwargs):
     """
-    Creates a reference image: a gaussian brightness with elliptical
+    Creates a reference image: a gaussian intensity with elliptical
     """
     inc_cos = np.cos(0./180.*np.pi)
 
