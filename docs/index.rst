@@ -143,7 +143,7 @@ version of |galario| used in a paper.
 
 |galario| is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
 
-© Copyright 2017 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+© Copyright 2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
 
 Contents
 --------
@@ -154,8 +154,8 @@ Contents
     quickstart
     cookbook
     py-api
-    C-api
-    C-example
+    C++-api
+    C++-example
     studies
     license
 
@@ -164,4 +164,3 @@ Indices
 -------
 * :ref:`genindex`
 * :ref:`search`
-
