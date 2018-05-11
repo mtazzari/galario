@@ -13,7 +13,7 @@ int main()
 {
     init();
     constexpr int nx = 128;
-    constexpr int ny = 128;
+    constexpr int ny = nx;
 
     // vector initializes to 0
     std::vector<dreal> realdata(nx*ny);
@@ -26,13 +26,6 @@ int main()
     dcomplex* cp = res;
     dreal r = realdata[0];
 
-    // TODO all checks involving interpolate can segfault when accessing invalid adresses
-    // due to invalid inputs in u, v, and duv.
-
-    // sample_profile(n, rp, r, r, r, n, r, r, r, r, r, n, rp, rp, cp);
-    // sample_image(n, n, rp, r, r, r, r, n, rp, rp, cp);
-    // chi2_profile(n, rp, r, r, r, n, r, r, r, r, r, n, rp, rp, rp, rp, rp, rp);
-    // chi2_image(n, n, rp, r, r, r, r, n, rp, rp, rp, rp, rp, rp);
     dreal dxy = 0.2;
     sweep(nx, rp, dxy/100., dxy/10.5, nx, dxy, 0.5, cp);
     uv_rotate(r, r, r, rp, rp, n, rp, rp ,rp, rp);
