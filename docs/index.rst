@@ -118,7 +118,7 @@ With |galario| you can:
 .. note::
     If you work on a machine **without** a CUDA-enabled GPU, don't worry: you can use the CPU version
     of |galario| by just removing the subscript `"_cuda"` from the imports above and benefit from the openMP parallelization.
-    All the function names and interfaces are the same for GPU and CPU version!
+    All the function names and interfaces are the same for the GPU and CPU versions!
 
 
 License and Attribution
