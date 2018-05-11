@@ -13,7 +13,7 @@ Installing via conda
 By far the easiest way to install |galario| is via `conda <https://conda.io>`_.
 If you are new to `conda`, you may want to start with the minimal `miniconda
 <https://repo.continuum.io/miniconda/>`_. With `conda` all dependencies are
-installed automatically and you get access to |galario|'s C/C++ and python
+installed automatically and you get access to |galario|'s C++ core and python
 bindings, both with support for multithreading.
 
 .. code-block:: bash
@@ -30,7 +30,7 @@ Build requirements
 To compile |galario| you will need:
 
 * a working internet connection (to download 1.5 MB of an external library)
-* a C and C++ compiler such as `gcc` or `clang`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
+* a C++ compiler such as `g++` or `clang++`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
 * `cmake <https://cmake.org>`_ and `make`
 * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`
 * [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_
@@ -85,13 +85,6 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
 
     If the installation fails due to permission problems, you either have to use `sudo make install`, or see the :ref:`instructions below <install_details>` to specify an alternate installation path.
 
-..        CC="/path/to/gcc" CXX="/path/to/g++" cmake -DCMAKE_PREFIX_PATH="${FFTW_HOME};${CONDA_PREFIX}" ../ && make all
-       ..
-          where typically CC="/usr/local/bin/gcc" and CXX="/usr/local/bin/g++" but may be different on your system.
-          `FFT_HOME` should contain the path to the FFTW libraries installed on your system and
-          `CONDA_PREFIX` is automatically set to the conda environment `/anaconda/envs/galario3`.
-
-
 These instructions should be sufficient in most cases, but if you have problems
 or want more fine-grained control, check out the details below. If you find
 issues or are stuck in one of these steps, consider writing us an email or
@@ -139,6 +132,8 @@ Set the C and C++ compiler
 
    # alternative
    cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=/path/to/g++ ..
+
+When changing the compiler, it is best to start with a fresh empty build directory.
 
 Optimization level
 ~~~~~~~~~~~~~~~~~~
