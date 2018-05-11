@@ -1042,13 +1042,13 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
     auto const nblocks = (2*rmax) / tpb + 1;
     sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, ints_d, Rmin, dR, rmax, nxy, dxy, inc, sr_to_px, *addr_image_d);
-    CCheck(cudaDeviceSynchronize()); // TODO: can be moved after central pixel computation?
+    CCheck(cudaDeviceSynchronize());
     t.Elapsed("create_image_d::sweep");
 
     // central pixel
     auto const iIN = int(floor((dxy / 2 - Rmin) / dR));
     dreal flux = 0.;
-    for (auto i=1; i<iIN; ++i) {
+    for (auto i = 1; i < iIN; ++i) {
         flux += (Rmin + dR * i) * ints[i];
     };
 
@@ -1056,16 +1056,16 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     flux += Rmin * ints[0] + (Rmin + iIN * dR) * ints[iIN];
     flux *= dR;
 
-    // add flux between Rmin+iIN*dR and dxy/2
+    // add flux in the radial cell fraction between Rmin+iIN*dR and dxy/2 by linear interpolation
+    // note that dxy/2 falls between Rmin+iIN*dR and Rmin+(iIN+1)*dR
     dreal I_interp = (ints[iIN + 1] - ints[iIN]) / (dR) * (dxy / 2. - (Rmin + dR * (iIN))) + ints[iIN];
     flux += ((Rmin + iIN * dR) * ints[iIN] + dxy / 2. * I_interp) * (dxy / 2. - (Rmin + iIN * dR));
-    // flux *= 2 * np.pi / 2.  # to complete trapezoidal rule (***)
 
     dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
-    // area *= np.pi  # elides (***)
 
-    auto const value = sr_to_px * flux/area;
+    auto const value = sr_to_px * flux / area;
     central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
+    CCheck(cudaDeviceSynchronize());
     t.Elapsed("create_image_d::central_pixel");
 
     CCheck(cudaFree(ints_d)); t.Elapsed("create_image_d::free_ints");
@@ -1074,6 +1074,27 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
 #else
 
+
+/**
+ * Create 2D image from intensity profile.
+ * For the central pixel, we compute the average intensity inside the pixel, i.e.:
+ *
+ *                 / dxy/2
+ *                 |
+ *                 | 2 pi I(R) R dR
+ *                 |
+ *                 / Rmin
+ * central_pixel =  ---------------------
+ *                 / dxy/2
+ *                 |
+ *                 | 2 pi R dR
+ *                 |
+ *                 / Rmin
+ *
+ * This formulation is based on the condition that the flux is conserved inside the central pixel.
+ * The top integral is solved with the trapezoidal rule.
+ *
+ */
 void create_image_h(int const nr, const dreal *const ints, dreal const Rmin, dreal const dR, int const nxy, dreal const dxy,
                     dreal const inc, dcomplex *const image) {
     CPUTimer t;
@@ -1102,7 +1123,7 @@ void create_image_h(int const nr, const dreal *const ints, dreal const Rmin, dre
     // central pixel
     auto const iIN = int(floor((dxy / 2 - Rmin) / dR));
     dreal flux = 0.;
-    for (auto i=1; i<iIN; ++i) {
+    for (auto i = 1; i < iIN; ++i) {
         flux += (Rmin + dR * i) * ints[i];
     };
 
@@ -1110,15 +1131,14 @@ void create_image_h(int const nr, const dreal *const ints, dreal const Rmin, dre
     flux += Rmin * ints[0] + (Rmin + iIN * dR) * ints[iIN];
     flux *= dR;
 
-    // add flux between Rmin+iIN*dR and dxy/2
+    // add flux in the radial cell fraction between Rmin+iIN*dR and dxy/2 by linear interpolation
+    // note that dxy/2 falls between Rmin+iIN*dR and Rmin+(iIN+1)*dR
     dreal I_interp = (ints[iIN + 1] - ints[iIN]) / (dR) * (dxy / 2. - (Rmin + dR * (iIN))) + ints[iIN];
     flux += ((Rmin + iIN * dR) * ints[iIN] + dxy / 2. * I_interp) * (dxy / 2. - (Rmin + iIN * dR));
-    // flux *= 2 * np.pi / 2.  # to complete trapezoidal rule (***)
 
     dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
-    // area *= np.pi  # elides (***)
 
-    real_image[nxy/2*rowsize+nxy/2] = sr_to_px * flux/area;
+    real_image[nxy/2*rowsize+nxy/2] = sr_to_px * flux / area;
 
     t.Elapsed("create_image");
 }
