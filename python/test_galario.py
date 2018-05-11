@@ -40,22 +40,29 @@ g_double.threads()
 ########################################################
 
 @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type",
-                          [(0.1, 3.5, 500, 1024, 8.2, 20., 'Gauss', 'float64'),
-                           (2., 0.3, 1000, 2048, 3., 44.23, 'Cos-Gauss', 'float64'),
-                           (0.1, 3.5, 50, 256, 8.2, 20., 'Gauss', 'float64'),
-                           (0.1, 3.5, 1000, 16, 8.2, 20., 'Gauss', 'float64')],
+                          [(1e-6, 0.001, 2000, 1024, 0.2, 20., 'Gauss', 'float64'),
+                           (1e-6, 0.001, 2000, 2048, 0.2, 44.23, 'Cos-Gauss', 'float64'),
+                           (1e-6, 0.001, 2000, 2048, 0.5, 20., 'Gauss', 'float64'),
+                           (1e-6, 0.001, 2000, 1024, 0.3, 20., 'Gauss', 'float64')],
                           ids=["{}".format(i) for i in range(4)])
 def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type):
     """
     Test the image creation algorithm, `sweep`.
 
     """
+    Rmin *= arcsec
+    dR *= arcsec
+    dxy *= arcsec
+    inc = np.radians(inc)
+
     # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=dxy*6)
 
     nrow, ncol = nxy, nxy
 
     image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
+
+    image_prototype = g_sweep_prototype(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
     image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc)
 
@@ -79,7 +86,8 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
     # plt.savefig("./profile_intensity_ref.pdf")
     # plt.clf()
 
-    assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
+    assert_allclose(image_ref, image_prototype, rtol=1.e-12, atol=0)
+    assert_allclose(image_prototype, image_sweep_galario, rtol=1.e-12, atol=0)
 
 
 @pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
@@ -338,22 +346,20 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     _, minuv, maxuv = matrix_size(udat, vdat)
 
     dxy = 1. / maxuv # pixel size (rad)
-
     # create intensity profile and model image
-    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/2., dxy/3., 500, 20., 'Gauss', 'float64',
+    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/100., dxy/10., 10000, 20., 'Gauss', 'float64',
     dRA *= arcsec
     dDec *= arcsec
     PA *= deg
     inc *= deg
 
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=dxy*10)
     reference_image = sweep_ref(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
 
     # test sampleImage
     vis_py_sampleImage = py_sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
     vis_g_sampleImage = acc_lib.sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
 
-    np.testing.assert_allclose(vis_py_sampleImage.real, vis_g_sampleImage.real, rtol=rtol, atol=atol)
     assert_allclose(vis_py_sampleImage.real, vis_g_sampleImage.real, rtol=rtol, atol=atol)
     assert_allclose(vis_py_sampleImage.imag, vis_g_sampleImage.imag, rtol=rtol, atol=np.abs(np.mean(vis_g_sampleImage.real))*rtol)
 

@@ -707,7 +707,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         **units**: rad
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
-        If inc=0. the image is face-on; if inc=90. the image is edge-on.
+        If inc=0. the image is face-on; if inc=pi/2 the image is edge-on.
         **units**: rad
     check : bool, optional
         If True, check whether `image` and `dxy` satisfy Nyquist criterion for
@@ -774,7 +774,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
         **units**: rad
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
-        If inc=0. the image is face-on; if inc=90. the image is edge-on.
+        If inc=0. the image is face-on; if inc=pi/2 the image is edge-on.
         **units**: rad
 
     Returns

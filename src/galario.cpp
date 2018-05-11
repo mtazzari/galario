@@ -1,3 +1,20 @@
+/*
+ *  GALARIO - Gpu Accelerated Library for Analysing Radio Interferometer Observations
+ *  Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the Lesser GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ *  For more details see the LICENSE file.
+ *  For documentation see https://mtazzari.github.io/galario/
+ */
+
 #include "galario.h"
 #include "galario_py.h"
 
@@ -1045,9 +1062,27 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
     CCheck(cudaDeviceSynchronize());
     t.Elapsed("create_image_d::sweep");
 
-    // central pixel needs special treatment
-    auto const value = sr_to_px * (ints[0] + Rmin * (ints[0] - ints[1]) / dR);
+    // central pixel
+    auto const iIN = int(floor((dxy / 2 - Rmin) / dR));
+    dreal flux = 0.;
+    for (auto i = 1; i < iIN; ++i) {
+        flux += (Rmin + dR * i) * ints[i];
+    };
+
+    flux *= 2.;
+    flux += Rmin * ints[0] + (Rmin + iIN * dR) * ints[iIN];
+    flux *= dR;
+
+    // add flux in the radial cell fraction between Rmin+iIN*dR and dxy/2 by linear interpolation
+    // note that dxy/2 falls between Rmin+iIN*dR and Rmin+(iIN+1)*dR
+    dreal I_interp = (ints[iIN + 1] - ints[iIN]) / (dR) * (dxy / 2. - (Rmin + dR * (iIN))) + ints[iIN];
+    flux += ((Rmin + iIN * dR) * ints[iIN] + dxy / 2. * I_interp) * (dxy / 2. - (Rmin + iIN * dR));
+
+    dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
+
+    auto const value = sr_to_px * flux / area;
     central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
+    CCheck(cudaDeviceSynchronize());
     t.Elapsed("create_image_d::central_pixel");
 
     CCheck(cudaFree(ints_d)); t.Elapsed("create_image_d::free_ints");
@@ -1056,6 +1091,27 @@ void create_image_d(int nr, const dreal* const ints, dreal Rmin, dreal dR, int n
 
 #else
 
+
+/**
+ * Create 2D image from intensity profile.
+ * For the central pixel, we compute the average intensity inside the pixel, i.e.:
+ *
+ *                 / dxy/2
+ *                 |
+ *                 | 2 pi I(R) R dR
+ *                 |
+ *                 / Rmin
+ * central_pixel =  ---------------------
+ *                 / dxy/2
+ *                 |
+ *                 | 2 pi R dR
+ *                 |
+ *                 / Rmin
+ *
+ * This formulation is based on the condition that the flux is conserved inside the central pixel.
+ * The top integral is solved with the trapezoidal rule.
+ *
+ */
 void create_image_h(int const nr, const dreal *const ints, dreal const Rmin, dreal const dR, int const nxy, dreal const dxy,
                     dreal const inc, dcomplex *const image) {
     CPUTimer t;
@@ -1082,9 +1138,24 @@ void create_image_h(int const nr, const dreal *const ints, dreal const Rmin, dre
     }
 
     // central pixel
-    if (Rmin != 0.)
-        real_image[nxy/2*rowsize+nxy/2] = sr_to_px * (ints[0] + Rmin * (ints[0] - ints[1]) / dR);
+    auto const iIN = int(floor((dxy / 2 - Rmin) / dR));
+    dreal flux = 0.;
+    for (auto i = 1; i < iIN; ++i) {
+        flux += (Rmin + dR * i) * ints[i];
+    };
 
+    flux *= 2.;
+    flux += Rmin * ints[0] + (Rmin + iIN * dR) * ints[iIN];
+    flux *= dR;
+
+    // add flux in the radial cell fraction between Rmin+iIN*dR and dxy/2 by linear interpolation
+    // note that dxy/2 falls between Rmin+iIN*dR and Rmin+(iIN+1)*dR
+    dreal I_interp = (ints[iIN + 1] - ints[iIN]) / (dR) * (dxy / 2. - (Rmin + dR * (iIN))) + ints[iIN];
+    flux += ((Rmin + iIN * dR) * ints[iIN] + dxy / 2. * I_interp) * (dxy / 2. - (Rmin + iIN * dR));
+
+    dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
+
+    real_image[nxy/2*rowsize+nxy/2] = sr_to_px * flux / area;
 
     t.Elapsed("create_image");
 }

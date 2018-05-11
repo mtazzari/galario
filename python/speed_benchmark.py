@@ -9,7 +9,7 @@ import timeit
 
 from utils import generate_random_vis, create_reference_image, create_sampling_points
 import galario
-from galario import au, pc, cgs_to_Jy
+from galario import au, pc, cgs_to_Jy, arcsec
 from utils import *
 
 import argparse
@@ -83,9 +83,9 @@ def setup_chi2Image(nxy, nsamples):
 def setup_chi2Profile(nxy, nsamples):
 
     pars = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88.}
-    Rmin, dR, nrad, inc, profile_mode = 0.1, 1., 500, 20., 'Gauss'
-    Rmin *= au
-    dR *= au
+    Rmin, dR, nrad, inc, profile_mode = 0.001, 0.001, 2000, 20., 'Gauss'
+    Rmin *= arcsec
+    dR *= arcsec
 
     wle_m = pars['wle_m']
     dRA = pars['dRA']
@@ -100,12 +100,12 @@ def setup_chi2Profile(nxy, nsamples):
     _, _, maxuv = matrix_size(udat, vdat)
     maxuv /= wle_m
     dxy = 1 / maxuv
-
+    print(dxy)
     # compute the matrix size and maxuv
     # nxy, dxy = g_double.get_image_size(udat/wle_m, vdat/wle_m)
 
     # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.)
+    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.*arcsec)
 
     return ints, Rmin, dR, nxy, dxy, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
 

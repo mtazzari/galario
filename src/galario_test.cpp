@@ -30,7 +30,8 @@ int main()
     // galario_sample_image(n, n, rp, r, r, r, r, n, rp, rp, cp);
     // galario_chi2_profile(n, rp, r, r, r, n, r, r, r, r, r, n, rp, rp, rp, rp, rp, rp);
     // galario_chi2_image(n, n, rp, r, r, r, r, n, rp, rp, rp, rp, rp, rp);
-    galario_sweep(n, rp, r, r, n, r, r, cp);
+    dreal dxy = 0.2;
+    galario_sweep(nx, rp, dxy/100., dxy/10.5, nx, dxy, 0.5, cp);
     galario_uv_rotate(r, r, r, rp, rp, n, rp, rp ,rp, rp);
 
     galario_fft2d(nx, ny, res);
