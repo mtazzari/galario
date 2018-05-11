@@ -269,16 +269,6 @@ namespace {
     }
 
 #else // CPU
-    #define FFTWCheck(status) __fftwSafeCall((status), __FILE__, __LINE__)
-
-    inline void __fftwSafeCall(int status, const char *file, const int line) {
-    #ifndef NDEBUG
-        if(status == 0) {
-            fprintf(stderr, "[ERROR] FFTW call %s: %d\n", file, line);
-            exit(45);
-        }
-    #endif // NDEBUG
-    }
 
     #define CMPLXSUB(a, b) ((a) - (b))
     #define CMPLXADD(a, b) ((a) + (b))
@@ -325,12 +315,15 @@ int threads(int num) {
 void init() {
 #ifdef __CUDACC__
     // Avoid initializing cublas unconditionally. It takes a lot of memory and
-    // fails if cuda is not available. Let the initialization be done when
+    // fails if cuda is not available. Let the initialization be done only if
     // cublas is actually needed.
     // cublas_handle();
 #else
     #ifdef _OPENMP
-    FFTWCheck(fftw_init_threads());
+    const int status = FFTW(init_threads)();
+    if (status == 0) {
+        throw_exception(__FILE__, __LINE__, "fftw", "fftw_init_threads() failed");
+    }
     #endif
 #endif
 }
