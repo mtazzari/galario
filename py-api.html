@@ -187,16 +187,16 @@ the results obtained are correct. Once a combination of matrix size and
 </div>
 <div class="section" id="computing-directly-the-chi-square">
 <h2>Computing directly the chi square<a class="headerlink" href="#computing-directly-the-chi-square" title="Permalink to this headline">¶</a></h2>
-<p>To compute the <span class="math notranslate">\(\chi^2\)</span> of a model use the <a class="reference internal" href="#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> and
+<p>To compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> of a model use the <a class="reference internal" href="#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> and
 <a class="reference internal" href="#galario.double.chi2Profile" title="galario.double.chi2Profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code></a> functions.</p>
 <dl class="function">
 <dt id="galario.double.chi2Image">
 <code class="descclassname">galario.double.</code><code class="descname">chi2Image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the chi square of a model image given the observed visibilities.</p>
 <p>The chi square is computed from the observed and synthetic visibilities as:</p>
-<div class="math notranslate">
+<div class="math notranslate nohighlight">
 \[\chi^2 = \sum_{j=1}^N w_j * [(Re V_{obs\ j}-Re V_{mod\ j})^2 + (Im V_{obs\ j}-Im V_{mod\ j})^2]\]</div>
-<p>where <span class="math notranslate">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
+<p>where <span class="math notranslate nohighlight">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
 as in <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a>.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
@@ -265,9 +265,9 @@ time. For executions where speed is important, set to False.</li>
 given the observed visibilities.</p>
 <p>The image is created from the intensity profile as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a>.
 The chi square is computed from the observed and synthetic visibilities as:</p>
-<div class="math notranslate">
+<div class="math notranslate nohighlight">
 \[\chi^2 = \sum_{j=1}^N w_j * [(Re V_{obs\ j}-Re V_{mod\ j})^2 + (Im V_{obs\ j}-Im V_{mod\ j})^2]\]</div>
-<p>where <span class="math notranslate">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
+<p>where <span class="math notranslate nohighlight">\(V_{mod}\)</span> are the synthetic visibilities, which are computed internally
 as in <a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a>.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
@@ -656,7 +656,7 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

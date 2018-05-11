@@ -53,7 +53,7 @@ image, leaving to the user the freedom to choose the most appropriate statistica
 parameter space and to produce a sampling of the posterior probability function. In particular, we will use the MCMC
 implementation in the <a class="reference external" href="http://dfm.io/emcee/current/">emcee</a> Python package.</p>
 <p>In this page we will show how to fit the mock observations of a protoplanetary disk. In particular, in the example we will
-analyse mock visibilities of the disk continuum emission at <span class="math notranslate">\(\lambda=\)</span> 1 mm whose synthetized map is shown in this figure:</p>
+analyse mock visibilities of the disk continuum emission at <span class="math notranslate nohighlight">\(\lambda=\)</span> 1 mm whose synthetized map is shown in this figure:</p>
 <a class="reference internal image-reference" href="_images/disk_example.jpg"><img alt="Protoplanetary disk continuum map" class="align-center" src="_images/disk_example.jpg" style="width: 605.7px; height: 590.4px;" /></a>
 <hr class="docutils" />
 <div class="section" id="fit-of-a-single-wavelength-data-set">
@@ -61,8 +61,8 @@ analyse mock visibilities of the disk continuum emission at <span class="math no
 <p><strong>1) Import the uv table</strong></p>
 <blockquote>
 <div><p>First, let’s import the table containing the interferometric observations. Typically, an interferometric data set
-can be exported to a table containing the <span class="math notranslate">\((u_j, v_j)\)</span> coordinates (<span class="math notranslate">\(j=1...M\)</span>), the Real and Imaginary part of the complex visibilities
-<span class="math notranslate">\(V_{obs\ j}\)</span>, and their theoretical weight <span class="math notranslate">\(w_{j}\)</span>, for example:</p>
+can be exported to a table containing the <span class="math notranslate nohighlight">\((u_j, v_j)\)</span> coordinates (<span class="math notranslate nohighlight">\(j=1...M\)</span>), the Real and Imaginary part of the complex visibilities
+<span class="math notranslate nohighlight">\(V_{obs\ j}\)</span>, and their theoretical weight <span class="math notranslate nohighlight">\(w_{j}\)</span>, for example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span>  <span class="p">[</span><span class="n">m</span><span class="p">]</span>          <span class="n">v</span>  <span class="p">[</span><span class="n">m</span><span class="p">]</span>          <span class="n">Re</span>  <span class="p">[</span><span class="n">Jy</span><span class="p">]</span>        <span class="n">Im</span>  <span class="p">[</span><span class="n">Jy</span><span class="p">]</span>        <span class="n">w</span>
 <span class="o">-------------------------------------------------------------------------</span>
 <span class="o">-</span><span class="mf">155.90093</span>      <span class="mf">234.34887</span>        <span class="mf">0.01810</span>         <span class="mf">0.13799</span>        <span class="mf">200.05723</span>
@@ -88,7 +88,7 @@ can be exported to a table containing the <span class="math notranslate">\((u_j,
 <span class="n">v</span> <span class="o">/=</span> <span class="n">wle</span>
 </pre></div>
 </div>
-<p>where the <span class="math notranslate">\(u_j\)</span> and <span class="math notranslate">\(v_j\)</span> coordinates have been converted in units of the observing wavelength, 1 mm in this example.</p>
+<p>where the <span class="math notranslate nohighlight">\(u_j\)</span> and <span class="math notranslate nohighlight">\(v_j\)</span> coordinates have been converted in units of the observing wavelength, 1 mm in this example.</p>
 </div></blockquote>
 <dl class="docutils">
 <dt><strong>2) Determine the image size</strong></dt>
@@ -121,7 +121,7 @@ innermost radius of the grid, <code class="code docutils literal notranslate"><s
 </dd>
 <dt><strong>4) Setup the MCMC Ensemble Sampler</strong></dt>
 <dd><p class="first">In our fit we will have 6 free parameters: on top of the model parameters <code class="code docutils literal notranslate"><span class="pre">f0</span></code> and <code class="code docutils literal notranslate"><span class="pre">sigma</span></code> we want to fit
-the inclination <code class="code docutils literal notranslate"><span class="pre">inc</span></code>, the position angle <code class="code docutils literal notranslate"><span class="pre">PA</span></code>, and the angular offsets <span class="math notranslate">\((\Delta RA, \Delta Dec)\)</span>
+the inclination <code class="code docutils literal notranslate"><span class="pre">inc</span></code>, the position angle <code class="code docutils literal notranslate"><span class="pre">PA</span></code>, and the angular offsets <span class="math notranslate nohighlight">\((\Delta RA, \Delta Dec)\)</span>
 with respect to the phase center.
 Following the notation of the <a class="reference external" href="http://dfm.io/emcee/current/">emcee</a> documentation, we initialise the EnsembleSampler</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">emcee</span> <span class="kn">import</span> <span class="n">EnsembleSampler</span>
@@ -159,7 +159,7 @@ Following the notation of the <a class="reference external" href="http://dfm.io/
 </div></blockquote>
 </dd>
 <dt><strong>5) Define the posterior and the prior probability functions</strong></dt>
-<dd><p class="first">Let us now implement the posterior function, using <strong>galario</strong> to compute the <span class="math notranslate">\(\chi^2\)</span>. Since in this example
+<dd><p class="first">Let us now implement the posterior function, using <strong>galario</strong> to compute the <span class="math notranslate nohighlight">\(\chi^2\)</span>. Since in this example
 we are assuming an axisymmetric brightness profile we will use the <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> function, but the same design holds
 for the <code class="code docutils literal notranslate"><span class="pre">chi2Image</span></code> function that should be used for non-axisymmetric profiles.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">deg</span><span class="p">,</span> <span class="n">arcsec</span>
@@ -324,7 +324,7 @@ in the right figure we compute the bestfit model (here taken as the median of th
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

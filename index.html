@@ -75,33 +75,33 @@ and has already been employed in <a class="reference internal" href="studies.htm
 </div>
 <div class="section" id="basic-usage">
 <h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
-<p>Let’s say you have an observational dataset of <code class="code docutils literal notranslate"><span class="pre">M</span></code> visibility points located at <span class="math notranslate">\((u_j, v_j)\)</span>, with <span class="math notranslate">\(j=1...M\)</span> and <span class="math notranslate">\(u_j\)</span>, <span class="math notranslate">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math notranslate">\(V_{obs\ j}\)</span> (Jy) is the <span class="math notranslate">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math notranslate">\(w_j\)</span>.
+<p>Let’s say you have an observational dataset of <code class="code docutils literal notranslate"><span class="pre">M</span></code> visibility points located at <span class="math notranslate nohighlight">\((u_j, v_j)\)</span>, with <span class="math notranslate nohighlight">\(j=1...M\)</span> and <span class="math notranslate nohighlight">\(u_j\)</span>, <span class="math notranslate nohighlight">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math notranslate nohighlight">\(V_{obs\ j}\)</span> (Jy) is the <span class="math notranslate nohighlight">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math notranslate nohighlight">\(w_j\)</span>.
 With <strong>galario</strong> you can:</p>
 <p><strong>1) Compute visibilities from a model image</strong></p>
 <blockquote>
-<div><p>If you want to compute the visibilities of a model <code class="code docutils literal notranslate"><span class="pre">image</span></code> (Jy/px) with pixel size <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> (rad) in the same <span class="math notranslate">\((u_j, v_j)\)</span> locations of the observations, you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
+<div><p>If you want to compute the visibilities of a model <code class="code docutils literal notranslate"><span class="pre">image</span></code> (Jy/px) with pixel size <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> (rad) in the same <span class="math notranslate nohighlight">\((u_j, v_j)\)</span> locations of the observations, you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal notranslate"><span class="pre">vis</span></code> is a complex array of length <span class="math notranslate">\(N\)</span> containing the real (<code class="code docutils literal notranslate"><span class="pre">vis.real</span></code>) and imaginary (<code class="code docutils literal notranslate"><span class="pre">vis.imag</span></code>) part of the synthetic visibilities.</p>
+<p>where <code class="code docutils literal notranslate"><span class="pre">vis</span></code> is a complex array of length <span class="math notranslate nohighlight">\(N\)</span> containing the real (<code class="code docutils literal notranslate"><span class="pre">vis.real</span></code>) and imaginary (<code class="code docutils literal notranslate"><span class="pre">vis.imag</span></code>) part of the synthetic visibilities.</p>
 </div></blockquote>
 <p><strong>2) Compute visibilities from an axisymmetric brightness profile</strong></p>
 <blockquote>
 <div><p>If you want to compare the observations with a model characterized by an <strong>axisymmetric brightness profile</strong>, <strong>galario</strong> offers dedicated functions that exploit the symmetry of the model to accelerate the image creation.</p>
-<p>If <span class="math notranslate">\(I(R)\)</span> (Jy/sr) is the radial brightness profile, the command is as simple as:</p>
+<p>If <span class="math notranslate nohighlight">\(I(R)\)</span> (Jy/sr) is the radial brightness profile, the command is as simple as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleProfile</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> and <code class="code docutils literal notranslate"><span class="pre">dR</span></code> are expressed in radians and are the innermost radius and the cell size of the grid on which <span class="math notranslate">\(I(R)\)</span> is computed. An analogous function
+<p>where <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> and <code class="code docutils literal notranslate"><span class="pre">dR</span></code> are expressed in radians and are the innermost radius and the cell size of the grid on which <span class="math notranslate nohighlight">\(I(R)\)</span> is computed. An analogous function
 <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> allows one to compute directly the chi square.</p>
 </div></blockquote>
-<p><strong>3) Compute the</strong> <span class="math notranslate">\(\chi^2\)</span> <strong>of a model (image or brightness profile)</strong></p>
+<p><strong>3) Compute the</strong> <span class="math notranslate nohighlight">\(\chi^2\)</span> <strong>of a model (image or brightness profile)</strong></p>
 <blockquote>
-<div><p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <span class="math notranslate">\(\chi^2\)</span> for the likelihood computation, you can use directly one of these:</p>
+<div><p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <span class="math notranslate nohighlight">\(\chi^2\)</span> for the likelihood computation, you can use directly one of these:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">chi2Image</span>
 
 <span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
@@ -266,7 +266,7 @@ version of <strong>galario</strong> used in a paper.</p>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>
