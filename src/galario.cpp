@@ -26,6 +26,7 @@ using std::to_string;
 
 #include <cstdio>
 #include <cstdlib>
+#include <mutex>
 #include <stdexcept>
 
 #else // CPU
@@ -174,14 +175,31 @@ namespace {
     #endif
     }
 
-    cublasHandle_t& cublas_handle() {
-        static bool initialized = false;
-        static cublasHandle_t handle;
-        if (!initialized) {
-            CBlasCheck(cublasCreate(&handle));
-            initialized = true;
+    cublasHandle_t cublasHandle = nullptr;
+    std::mutex cublasHandle_mutex;
+
+    bool cublas_initialized() {
+        return cublasHandle != nullptr;
+    }
+
+    void cublas_init() {
+        // lock to prevent data race
+        std::lock_guard<std::mutex> lock(cublasHandle_mutex);
+
+        // check if handle initialized to avoid 2nd thread in race condition to initialize again
+        if (cublas_initialized()) {
+            return;
         }
-        return handle;
+
+        // actually init
+        CBlasCheck(cublasCreate(&cublasHandle));
+    }
+
+    cublasHandle_t& cublas_handle() {
+        if (!cublas_initialized()) {
+            cublas_init();
+        }
+        return cublasHandle;
     }
 
     #ifdef GALARIO_TIMING
@@ -319,7 +337,9 @@ void init() {
 
 void cleanup() {
 #ifdef __CUDACC__
-    CBlasCheck(cublasDestroy(cublas_handle()));
+    if (cublas_initialized()) {
+        CBlasCheck(cublasDestroy(cublas_handle()));
+    }
 #else
     #ifdef _OPENMP
     FFTW(cleanup_threads)();
