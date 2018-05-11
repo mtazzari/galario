@@ -1217,7 +1217,7 @@ void create_image_h(int const nr, const dreal *const intensity, dreal const Rmin
 
 
 namespace galario {
-void sweep(int nr, dreal *const intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex *image) {
+void sweep(int nr, const dreal* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex* image) {
     CHECK_INPUT(nxy);
 
 #ifdef __CUDACC__
@@ -1400,8 +1400,8 @@ void _sample_image(int nx, int ny, void* data, dreal dRA, dreal dDec, dreal duv,
  * return result in `fint`
  *
  */
-void sample_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
-                            dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
+void sample_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
+                    dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint) {
     CPUTimer t_start;
 
     CHECK_INPUT(nxy);
