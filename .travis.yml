@@ -47,7 +47,7 @@ script:
   - ctest -V --output-on-failure
 
   # build and deploy docs only for one python version
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install doctr && pip install sphinx_py3doc_enhanced_theme && make docs && cd .. && doctr deploy . --built-docs build/docs/html/; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.6 ]]; then pip install doctr && pip install sphinx_py3doc_enhanced_theme && pip install sphinxcontrib-fulltoc && make docs && cd .. && doctr deploy . --built-docs build/docs/html/; fi
 
 notifications:
   - email: false
