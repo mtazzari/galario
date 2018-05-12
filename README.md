@@ -15,10 +15,29 @@ given a model image (or an axisymmetric brightness profile) and their comparison
 
 Check out the [documentation](https://mtazzari.github.io/galario/) and the [installation instructions](https://mtazzari.github.io/galario/install.html).
 
-**galario** has been presented in [Tazzari, Beaujean and Testi (2017)](https://arxiv.org/abs/1709.06999).
+If you use **galario** for your research please cite  Tazzari, Beaujean and Testi 2018, MNRAS **476** 4527 [[MNRAS]](https://arxiv.org/abs/1709.06999) [[arXiv]](https://arxiv.org/abs/1709.06999) [[ADS]](http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T):
+```
+@ARTICLE{2018MNRAS.476.4527T,
+   author = {{Tazzari}, M. and {Beaujean}, F. and {Testi}, L.},
+    title = "{GALARIO: a GPU accelerated library for analysing radio interferometer observations}",
+  journal = {\mnras},
+archivePrefix = "arXiv",
+   eprint = {1709.06999},
+ primaryClass = "astro-ph.IM",
+ keywords = {methods: numerical, techniques: interferometric, submillimetre: general},
+     year = 2018,
+    month = jun,
+   volume = 476,
+    pages = {4527-4542},
+      doi = {10.1093/mnras/sty409},
+   adsurl = {http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
+
 
 License
 -------
 **galario** is free software licensed under the LGPLv3 License. For more details see the LICENSE.
 
-© Copyright 2017 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.

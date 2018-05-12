@@ -55,7 +55,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'galario'
 authors = u'Marco Tazzari, Frederik Beaujean, Leonardo Testi'
-copyright = '%d, %s' % (datetime.now().year, authors)
+copyright = '2017-%d, %s' % (datetime.now().year, authors)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
