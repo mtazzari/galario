@@ -25,6 +25,13 @@ configure_file(
 # sphinx requires a _static directory, even if it's empty
 file(MAKE_DIRECTORY "${BINARY_BUILD_DIR}/_static")
 
+# move the _templates directory with overridden templates
+file(MAKE_DIRECTORY "${BINARY_BUILD_DIR}/_templates")
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/_templates/layout.html"
+    "${BINARY_BUILD_DIR}/_templates/layout.html"
+    @ONLY)
+
 # github pages imposes jekyll theme by default. To avoid that, we need
 # a `.nojekyll` file in the gh-pages branch file(WRITE
 # "${SPHINX_HTML_DIR}/.nojekyll" "")
