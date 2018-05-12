@@ -92,6 +92,16 @@ namespace {
         CHECK_INPUT(nx); \
     } while (0)
 
+#define CHECK_CENTRAL_PIXEL(dxy, Rmin, dR) \
+    do { \
+    const dreal ratio_central_pixel = (dxy / 2. - Rmin) / dR; \
+    if (ratio_central_pixel < 5) { \
+        throw_exception<std::invalid_argument>(__FILE__, __LINE__, "create image", \
+                                               "Expect dR at least 5 times larger than (dxy/2-Rmin) to ensure reliable interpolation inside central pixel but got dR only " \
+                                               + to_string(ratio_central_pixel) + " times larger than (dxy/2-Rmin)."); \
+    } \
+    } while (0)
+
 #if defined(_OPENMP) && defined(GALARIO_TIMING)
     struct CPUTimer {
         double start;
@@ -1083,6 +1093,9 @@ __global__ void sweep_d(int const nr, const dreal* const intensity, dreal const 
  */
 void create_image_d(int nr, const dreal* const intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
     GPUTimer t, t_start;
+
+    CHECK_CENTRAL_PIXEL(dxy, Rmin, dR);
+
     auto const ncol = nxy/2+1;
     auto const nbytes = sizeof(dcomplex)*nxy*ncol;
 
@@ -1161,7 +1174,10 @@ void create_image_d(int nr, const dreal* const intensity, dreal Rmin, dreal dR, 
  */
 void create_image_h(int const nr, const dreal *const intensity, dreal const Rmin, dreal const dR, int const nxy, dreal const dxy,
                     dreal const inc, dcomplex *const image) {
+
     CPUTimer t;
+
+    CHECK_CENTRAL_PIXEL(dxy, Rmin, dR);
 
     // start with zero image
     auto const ncol = nxy/2+1;
