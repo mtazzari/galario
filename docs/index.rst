@@ -122,27 +122,32 @@ With |galario| you can:
 
 License and Attribution
 -----------------------
-If you use |galario| for your research, please cite `Tazzari, Beaujean and Testi (2017) <https://arxiv.org/abs/1709.06999>`_ .
+If you use |galario| for your research please cite Tazzari, Beaujean and Testi 2018, MNRAS **476** 4527 `[MNRAS] <https://arxiv.org/abs/1709.06999>`_ `[arXiv] <https://arxiv.org/abs/1709.06999>`_ `[ADS] <http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T>`_:
 The BibTeX entry for the paper is::
 
-    @ARTICLE{Tazzari:galario,
-    Adsurl = {http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1709.06999},
-    Archiveprefix = {arXiv},
-    Arxivurl = {http://arxiv.org/abs/1709.06999v1},
-    Author = {{Tazzari}, Marco and {Beaujean}, Frederik and {Testi}, Leonardo},
-    Eprint = {1709.06999v1},
-    Jornal = {ArXiv e-prints},
-    Month = {Sep},
-    Primaryclass = {astro-ph.IM},
-    Title = {GALARIO: a GPU Accelerated Library for Analysing Radio Interferometer Observations},
-    Year = {2017}}
+    @ARTICLE{2018MNRAS.476.4527T,
+       author = {{Tazzari}, M. and {Beaujean}, F. and {Testi}, L.},
+        title = "{GALARIO: a GPU accelerated library for analysing radio interferometer observations}",
+      journal = {\mnras},
+    archivePrefix = "arXiv",
+       eprint = {1709.06999},
+     primaryClass = "astro-ph.IM",
+     keywords = {methods: numerical, techniques: interferometric, submillimetre: general},
+         year = 2018,
+        month = jun,
+       volume = 476,
+        pages = {4527-4542},
+          doi = {10.1093/mnras/sty409},
+       adsurl = {http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+    }
 
 |galario| has also a `Zenodo DOI <https://doi.org/10.5281/zenodo.891039>`_, which can be used to refer to the exact
 version of |galario| used in a paper.
 
 |galario| is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
 
-© Copyright 2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
 
 Contents
 --------
