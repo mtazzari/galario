@@ -39,7 +39,7 @@ are pushing to the extreme the computational efforts needed to model the observa
 The unprecedented sensitivity and resolution achieved by these observatories deliver huge amount of data that sample a wide range of spatial frequencies.
 In this context, |galario| provides a fast library useful for comparing a model to observations directly in the Fourier plane.
 
-We presented |galario| in `Tazzari, Beaujean and Testi (2017) <https://arxiv.org/abs/1709.06999>`_, where you can find more details about the
+We presented |galario| in `Tazzari, Beaujean and Testi (2018) MNRAS 476 4527 <https://doi.org/10.1093/mnras/sty409>`_, where you can find more details about the
 relevant equations and the algorithm implementation.
 Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to the
 `Synthesis Imaging in Radio Astronomy II <http://aspbooks.org/a/volumes/table_of_contents/180>`_ book.
@@ -122,7 +122,8 @@ With |galario| you can:
 
 License and Attribution
 -----------------------
-If you use |galario| for your research please cite Tazzari, Beaujean and Testi 2018, MNRAS **476** 4527 `[MNRAS] <https://arxiv.org/abs/1709.06999>`_ `[arXiv] <https://arxiv.org/abs/1709.06999>`_ `[ADS] <http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T>`_:
+If you use |galario| for your research please cite Tazzari, Beaujean and Testi (2018) MNRAS **476** 4527 `[MNRAS] <https://doi.org/10.1093/mnras/sty409>`_ `[arXiv] <https://arxiv.org/abs/1709.06999>`_ `[ADS] <http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T>`_.
+
 The BibTeX entry for the paper is::
 
     @ARTICLE{2018MNRAS.476.4527T,
