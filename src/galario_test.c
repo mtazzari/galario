@@ -17,30 +17,23 @@
 * For documentation see https://mtazzari.github.io/galario/                   *
 ******************************************************************************/
 
-#pragma once
+/*
+ * A simple test to make sure we can include, link, and run galario from pure C.
+ */
+#include "galario.h"
 
-#ifdef __CUDACC__
-    #include <cufft.h>
-#else
-    #include <complex>
-#endif
+#include <complex.h>
 
-#ifdef DOUBLE_PRECISION
+#define nx 128
+#define ny 128
 
-    typedef double dreal;
+int main() {
+     galario_init();
+     dreal realdata[nx*ny];
+     dcomplex* res = galario_copy_input(nx, ny, realdata);
+     galario_fft2d(nx, ny, res);
+     galario_free(res);
+     galario_cleanup();
 
-    #ifdef __CUDACC__
-        typedef cufftDoubleComplex dcomplex;
-    #else
-        typedef std::complex<dreal> dcomplex;
-    #endif
-#else
-
-    typedef float dreal;
-
-    #ifdef __CUDACC__
-        typedef cufftComplex dcomplex;
-    #else
-        typedef std::complex<float> dcomplex;
-    #endif
-#endif
+     return 0;
+}
