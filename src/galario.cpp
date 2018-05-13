@@ -12,6 +12,7 @@
 #include <cmath>
 #include <iosfwd>
 #include <iostream>
+#include <stdexcept>
 #include <sstream>
 
 using std::to_string;
@@ -27,7 +28,6 @@ using std::to_string;
 #include <cstdio>
 #include <cstdlib>
 #include <mutex>
-#include <stdexcept>
 
 #else // CPU
 // general min function already available in cuda
