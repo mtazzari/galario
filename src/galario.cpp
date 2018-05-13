@@ -145,7 +145,6 @@ namespace {
 
     #define CCheck(err) __cudaSafeCall((err), __FILE__, __LINE__)
     inline void __cudaSafeCall(cudaError err, const char *file, const int line)  {
-    #ifndef NDEBUG
         if (err == cudaErrorInitializationError) {
             throw_exception(file, line, "cuda", "Could not initialize cuda. Is a CUDA GPU available at all?");
         }
@@ -155,12 +154,10 @@ namespace {
         if (cudaSuccess != err) {
             throw_exception(file, line, "cuda", cudaGetErrorString(err));
         }
-    #endif
     }
 
     #define CBlasCheck(err) __cublasSafeCall((err), __FILE__, __LINE__)
     inline void __cublasSafeCall(cublasStatus_t err, const char *file, const int line) {
-    #ifndef NDEBUG
         if (err == CUBLAS_STATUS_NOT_INITIALIZED) {
             throw_exception(file, line, "cublas", "Could not initialize cublas. Is a cuda GPU available at all?");
         }
@@ -170,19 +167,16 @@ namespace {
         if (CUBLAS_STATUS_SUCCESS != err) {
             throw_exception(file, line, "cublas", err);
         }
-    #endif
     }
 
     #define CUFFTCheck(err) __cufftwSafeCall((err), __FILE__, __LINE__)
     inline void __cufftwSafeCall(cufftResult_t err, const char *file, const int line) {
-    #ifndef NDEBUG
         if (err == CUFFT_ALLOC_FAILED) {
             throw std::bad_alloc();
         }
        if (CUFFT_SUCCESS != err) {
            throw_exception(file, line, "cufftw", err);
        }
-    #endif
     }
 
     cublasHandle_t cublasHandle = nullptr;
