@@ -1,5 +1,21 @@
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
-# these options are understood by both gcc and nvcc
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+  set(min_gcc 4.8.1)
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  if (NOT (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL ${min_gcc}))
+    message(FATAL_ERROR "${PROJECT_NAME} requires g++ >= ${min_gcc} for C++11 support.")
+  endif()
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  set(min_clang 3.3)
+  if (NOT (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL ${min_clang}))
+    message(FATAL_ERROR "${PROJECT_NAME} requires clang++ >= ${min_clang} for C++11 support.")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
+else()
+  message(FATAL_ERROR "Your compiler is not supported for lack of complete C++11 support")
+endif()
+
+# these options are understood by both gcc and nvcc. The latter takes into account ${CMAKE_CXX_FLAGS}
 set(cxx_std "-std=c++11")
 set(CMAKE_CXX_FLAGS "${cxx_std} ${CMAKE_CXX_FLAGS}")
 
