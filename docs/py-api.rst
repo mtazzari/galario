@@ -55,6 +55,7 @@ Other useful functions
 .. autofunction:: galario.double.check_image_size
 .. autofunction:: galario.double.sweep
 .. autofunction:: galario.double.apply_phase_vis
+.. autofunction:: galario.double.reduce_chi2
 
 
 .. _galario_exceptions:
