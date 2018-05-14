@@ -313,7 +313,7 @@ If dDec &gt; 0 translate the image towards the top (North). Default is 0.
 <li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
 <strong>units</strong>: rad</li>
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
-If inc=0. the image is face-on; if inc=90. the image is edge-on.
+If inc=0. the image is face-on; if inc=pi/2 the image is edge-on.
 <strong>units</strong>: rad</li>
 <li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
 computing the synthetic visibilities in the (u, v) locations provided.
@@ -532,7 +532,7 @@ starting at <code class="code docutils literal notranslate"><span class="pre">Rm
 <li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal and uniform in both x and y direction.
 <strong>units</strong>: rad</li>
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
-If inc=0. the image is face-on; if inc=90. the image is edge-on.
+If inc=0. the image is face-on; if inc=pi/2 the image is edge-on.
 <strong>units</strong>: rad</li>
 </ul>
 </td>
