@@ -100,7 +100,6 @@ def setup_chi2Profile(nxy, nsamples):
     _, _, maxuv = matrix_size(udat, vdat)
     maxuv /= wle_m
     dxy = 1 / maxuv
-    print(dxy)
     # compute the matrix size and maxuv
     # nxy, dxy = g_double.get_image_size(udat/wle_m, vdat/wle_m)
 
