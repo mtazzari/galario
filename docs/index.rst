@@ -52,7 +52,7 @@ relevant equations and the algorithm implementation.
 .. Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to the `Synthesis Imaging in Radio Astronomy II <http://aspbooks.org/a/volumes/table_of_contents/180>`_ book.
 
 |galario| is actively developed on `GitHub <https://github.com/mtazzari/galario/>`_
-and has already been employed in :doc:`these published studies <studies>`.
+and has already been employed in :doc:`these publications <publications>`.
 
 .. note:: The Python and C++ bindings of |galario| can be installed easily via `conda <https://conda.io>`_:
 
@@ -145,6 +145,6 @@ Contents
     Python API <py-api>
     C API <C-api>
     C Example <C-example>
-    Publications <studies>
+    Publications <publications>
     License <license>
 
