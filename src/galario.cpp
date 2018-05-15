@@ -96,8 +96,8 @@ namespace {
     const dreal ratio_central_pixel = (dxy / 2. - Rmin) / dR; \
     if (ratio_central_pixel < 5) { \
         throw_exception<std::invalid_argument>(__FILE__, __LINE__, "create image", \
-                                               "Expect dR at least 5 times larger than (dxy/2-Rmin) to ensure reliable interpolation inside central pixel but got dR only " \
-                                               + to_string(ratio_central_pixel) + " times larger than (dxy/2-Rmin)."); \
+                                               "Expect (dxy/2-Rmin)/dR > 5, i.e. dR small enough to ensure reliable interpolation the inside central pixel but got (dxy/2-Rmin)/dR = " \
+                                               + to_string(ratio_central_pixel) + ". Try reducing dR."); \
     } \
     } while (0)
 
