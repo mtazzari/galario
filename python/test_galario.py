@@ -347,7 +347,7 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
 
     dxy = 1. / maxuv # pixel size (rad)
     # create intensity profile and model image
-    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/100., dxy/10., 10000, 20., 'Gauss', 'float64',
+    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/100., dxy/10.5, 10000, 20., 'Gauss', 'float64',
     dRA *= arcsec
     dDec *= arcsec
     PA *= deg
