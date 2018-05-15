@@ -158,7 +158,7 @@ namespace {
     #define CBlasCheck(err) __cublasSafeCall((err), __FILE__, __LINE__)
     inline void __cublasSafeCall(cublasStatus_t err, const char *file, const int line) {
         if (err == CUBLAS_STATUS_NOT_INITIALIZED) {
-            throw_exception(file, line, "cublas", "Could not initialize cublas. Is a cuda GPU available at all?");
+            throw_exception(file, line, "cublas", "Could not initialize cublas. Is a cuda GPU available at all? Or is it ouf memory?");
         }
         if (err == CUBLAS_STATUS_ALLOC_FAILED) {
             throw std::bad_alloc();
@@ -1472,7 +1472,7 @@ dreal reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcom
     /* allocate and copy */
      CudaMemory<dreal> fobs_re_d(nd, fobs_re);
      CudaMemory<dreal> fobs_im_d(nd, fobs_im);
-     CudaMemory<dcomplex> fint_d(nd);
+     CudaMemory<dcomplex> fint_d(nd, fint);
      CudaMemory<dreal> weights_d(nd, weights);
 
      chi2 = reduce_chi2_d(nd, fobs_re_d.ptr, fobs_im_d.ptr, fint_d.ptr, weights_d.ptr);
