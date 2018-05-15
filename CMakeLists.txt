@@ -19,7 +19,7 @@
 
 cmake_minimum_required(VERSION 3.0)
 project(galario)
-set(PACKAGE_VERSION "'1.0.3'")
+set(PACKAGE_VERSION "'1.1'")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING
