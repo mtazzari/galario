@@ -8,16 +8,10 @@
    :alt: Galario logo. Credit: Tazzari, Beaujean, Testi.
    :align: left
 
-<<<<<<< HEAD
-=========
-|galario|
-=========
-=======
 ===================
 |galario| |version|
 ===================
 
->>>>>>> [docs] Refactor homepage, more concise TOC labels.
 --------------
 
 
@@ -58,8 +52,7 @@ and has already been employed in :doc:`these publications <publications>`.
 
     .. code-block:: bash
 
-       conda config --add channels conda-forge
-       conda install galario
+       conda install -c conda-forge galario
 
     Due to technical limitations, the conda package does not support GPUs at the
     moment. If you want to use a GPU, you have to build |galario| by hand.
@@ -71,35 +64,7 @@ Basic functionality of |galario|: see the :doc:`Basic Usage <basic_usage>` page.
 
 How to fit some data with |galario|: check the :doc:`Getting started example <quickstart>`.
 
-<<<<<<< HEAD
-    .. code-block:: python
-
-        from galario.double_cuda import chi2Image
-
-        chi2 = chi2Image(image, dxy, u, v, V_obs.real, V_obs.imag, w)
-        chi2 = chi2Profile(I, Rmin, dR, nxy, dxy, u, v, V_obs.real, V_obs.imag, w)
-
-
-**4) Do all the above operations + translate and rotate the model image**
-
-    To translate the model image in Right Ascension and Declination direction by (dRA, dDec) offsets (rad),
-    or to rotate the image by a Position Angle PA (rad) (defined East of North), you can specify them as optional parameters.
-
-    This works for all the `sampleImage`, `sampleProfile`, `chi2Image` and `chi2Profile` functions:
-
-    .. code-block:: python
-
-        from galario.double_cuda import sampleImage
-
-        vis = sampleImage(image, dxy, u, v, dRA=dRA, dDec=dDec, PA=PA)
-
-.. note::
-    If you work on a machine **without** a CUDA-enabled GPU, don't worry: you can use the CPU version
-    of |galario| by just removing the subscript `"_cuda"` from the imports above and benefit from the openMP parallelization.
-    All the function names and interfaces are the same for the GPU and CPU versions!
-=======
 Some recipes for the CPU/GPU management: see the :doc:`Cookbook <cookbook>` with useful code snippets.
->>>>>>> [docs] Refactor homepage, more concise TOC labels.
 
 
 License and Attribution
@@ -143,8 +108,8 @@ Contents
     Getting Started <quickstart>
     Cookbook <cookbook>
     Python API <py-api>
-    C API <C-api>
-    C Example <C-example>
+    C++ API <C++-api>
+    C++ Example <C++-example>
     Publications <publications>
     License <license>
 

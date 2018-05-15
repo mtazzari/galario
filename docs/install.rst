@@ -18,8 +18,7 @@ bindings, both with support for multithreading.
 
 .. code-block:: bash
 
-   conda config --add channels conda-forge
-   conda install galario
+   conda install -c conda-forge galario
 
 Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build |galario| by hand.
@@ -379,6 +378,8 @@ The |galario| library needs to be imported when building the documentation (the
 import would fail otherwise) to extract docstrings.
 
 To delete the sphinx cache in case the docs don't update as expected
+
+.. code-block:: bash
 
     rm -rf docs/_doctrees/
 
