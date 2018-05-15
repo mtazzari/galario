@@ -22,8 +22,8 @@ analyse mock visibilities of the disk continuum emission at :math:`\lambda=` 1 m
 --------------
 
 
-Fit of a single-wavelength data set
------------------------------------
+Fit a single-wavelength data set
+--------------------------------
 **1) Import the uv table**
 
     First, let's import the table containing the interferometric observations. Typically, an interferometric data set

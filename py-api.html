@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Python API reference &#8212; galario 1.03 documentation</title>
+    <title>Python API reference &#8212; galario 1.1 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -42,7 +42,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
-        <li><a href="index.html">galario 1.03 documentation</a> &#187;</li> 
+        <li><a href="index.html">galario 1.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     
@@ -601,6 +601,42 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="galario.double.reduce_chi2">
+<code class="descclassname">galario.double.</code><code class="descname">reduce_chi2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.reduce_chi2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the chi square of observed and model visibilities.</p>
+<p>Typical call signature:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">reduce_chi2</span><span class="p">(</span><span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
+<strong>units</strong>: Jy</li>
+<li><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
+<strong>units</strong>: Jy</li>
+<li><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.</li>
+<li><strong>vis</strong> (<em>array_like</em><em>, </em><em>complex</em>) – Complex model visibilities.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
+<strong>units</strong>: Jy</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>chi2</strong> – The chi square, not normalized.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="exceptions">
 <span id="galario-exceptions"></span><h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
@@ -643,15 +679,24 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
     
 
   <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Python API reference</a><ul>
-<li><a class="reference internal" href="#computing-synthetic-visibilities">Computing synthetic visibilities</a></li>
-<li><a class="reference internal" href="#computing-chi-squared-directly">Computing chi squared directly</a></li>
-<li><a class="reference internal" href="#gpu-related">GPU related</a></li>
-<li><a class="reference internal" href="#other-useful-functions">Other useful functions</a></li>
-<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#computing-synthetic-visibilities">Computing synthetic visibilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-chi-squared-directly">Computing chi squared directly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gpu-related">GPU related</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-useful-functions">Other useful functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
   <h4>Previous topic</h4>
@@ -699,7 +744,7 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>

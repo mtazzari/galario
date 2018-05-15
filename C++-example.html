@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Using galario from C++ &#8212; galario 1.03 documentation</title>
+    <title>Using galario from C++ &#8212; galario 1.1 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -15,7 +15,7 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Studies that used galario" href="studies.html" />
+    <link rel="next" title="Publications that used galario" href="publications.html" />
     <link rel="prev" title="C++ API reference" href="C++-api.html" />
 
     
@@ -42,7 +42,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
-        <li><a href="index.html">galario 1.03 documentation</a> &#187;</li> 
+        <li><a href="index.html">galario 1.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     
@@ -64,7 +64,26 @@
 <div class="section" id="a-small-example">
 <h2>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this headline">¶</a></h2>
 <p>Here is a small test program that performs the FFT in 2D on an image with random values. It is part of the <strong>galario</strong> test suite.</p>
-<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cm">/*</span>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cm">/******************************************************************************</span>
+<span class="cm">* This file is part of GALARIO:                                               *</span>
+<span class="cm">* Gpu Accelerated Library for Analysing Radio Interferometer Observations     *</span>
+<span class="cm">*                                                                             *</span>
+<span class="cm">* Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  *</span>
+<span class="cm">*                                                                             *</span>
+<span class="cm">* This program is free software: you can redistribute it and/or modify        *</span>
+<span class="cm">* it under the terms of the Lesser GNU General Public License as published by *</span>
+<span class="cm">* the Free Software Foundation, either version 3 of the License, or           *</span>
+<span class="cm">* (at your option) any later version.                                         *</span>
+<span class="cm">*                                                                             *</span>
+<span class="cm">* This program is distributed in the hope that it will be useful,             *</span>
+<span class="cm">* but WITHOUT ANY WARRANTY; without even the implied warranty of              *</span>
+<span class="cm">* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                        *</span>
+<span class="cm">*                                                                             *</span>
+<span class="cm">* For more details see the LICENSE file.                                      *</span>
+<span class="cm">* For documentation see https://mtazzari.github.io/galario/                   *</span>
+<span class="cm">******************************************************************************/</span>
+
+<span class="cm">/*</span>
 <span class="cm"> * A simple test to make sure we can include, link, and run galario from pure C++.</span>
 <span class="cm"> */</span>
 <span class="cp">#include</span> <span class="cpf">&quot;galario.h&quot;</span><span class="cp"></span>
@@ -173,20 +192,29 @@ precision can be built with:</p>
     
 
   <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Using galario from C++</a><ul>
-<li><a class="reference internal" href="#a-small-example">A small example</a></li>
-<li><a class="reference internal" href="#example-walk-through">Example walk-through</a></li>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">C++ Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#a-small-example">A small example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-walk-through">Example walk-through</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="C++-api.html"
                         title="previous chapter">C++ API reference</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="studies.html"
-                        title="next chapter">Studies that used <strong>galario</strong></a></p>
+  <p class="topless"><a href="publications.html"
+                        title="next chapter">Publications that used <strong>galario</strong></a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -217,7 +245,7 @@ precision can be built with:</p>
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="studies.html" title="Studies that used galario"
+          <a href="publications.html" title="Publications that used galario"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="C++-api.html" title="C++ API reference"
@@ -226,7 +254,7 @@ precision can be built with:</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>

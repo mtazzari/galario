@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>galario &#8212; galario 1.03 documentation</title>
+    <title>galario 1.1 &#8212; galario 1.1 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -41,7 +41,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
-        <li><a href="#">galario 1.03 documentation</a> &#187;</li> 
+        <li><a href="#">galario 1.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     
@@ -58,8 +58,8 @@
           <div class="body" role="main">
             
   <a class="reference internal image-reference" href="_images/galario.jpg"><img alt="Galario logo. Credit: Tazzari, Beaujean, Testi." class="align-left" src="_images/galario.jpg" style="width: 216.4px; height: 101.60000000000001px;" /></a>
-<div class="section" id="galario">
-<h1><strong>galario</strong><a class="headerlink" href="#galario" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="galario-version">
+<h1><strong>galario</strong> 1.1<a class="headerlink" href="#galario-version" title="Permalink to this headline">¶</a></h1>
 <hr class="docutils" />
 <div class="section" id="gpu-accelerated-library-for-analysing-radio-interferometer-observations">
 <h2><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong><a class="headerlink" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations" title="Permalink to this headline">¶</a></h2>
@@ -77,97 +77,57 @@ given a model image (or an axisymmetric brightness profile) and their comparison
 are pushing to the extreme the computational efforts needed to model the observations.
 The unprecedented sensitivity and resolution achieved by these observatories deliver huge amount of data that sample a wide range of spatial frequencies.
 In this context, <strong>galario</strong> provides a fast library useful for comparing a model to observations directly in the Fourier plane.</p>
-<p>We presented <strong>galario</strong> in <a class="reference external" href="https://arxiv.org/abs/1709.06999">Tazzari, Beaujean and Testi (2017)</a>, where you can find more details about the
-relevant equations and the algorithm implementation.
-Here we do not aim to summarize the vast literature about Radio Interferometry, but we refer the interested reader to the
-<a class="reference external" href="http://aspbooks.org/a/volumes/table_of_contents/180">Synthesis Imaging in Radio Astronomy II</a> book.</p>
+<p>We presented <strong>galario</strong> in <a class="reference external" href="https://doi.org/10.1093/mnras/sty409">Tazzari, Beaujean and Testi (2018) MNRAS 476 4527</a>, where you can find all the details about the
+relevant equations and the algorithm implementation.</p>
 <p><strong>galario</strong> is actively developed on <a class="reference external" href="https://github.com/mtazzari/galario/">GitHub</a>
-and has already been employed in <a class="reference internal" href="studies.html"><span class="doc">these published studies</span></a>.</p>
-<p>Instructions on how to build and install <strong>galario</strong> can be found <a class="reference internal" href="install.html"><span class="doc">here</span></a>.</p>
-<p>More details on how to get started with <strong>galario</strong> are given in the <a class="reference internal" href="quickstart.html"><span class="doc">Quickstart example</span></a>.</p>
-<p>Be sure to checkout also the <a class="reference internal" href="cookbook.html"><span class="doc">Cookbook</span></a> with many useful code snippets!</p>
-</div>
-<div class="section" id="basic-usage">
-<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
-<p>Let’s say you have an observational dataset of <code class="code docutils literal notranslate"><span class="pre">M</span></code> visibility points located at <span class="math notranslate nohighlight">\((u_j, v_j)\)</span>, with <span class="math notranslate nohighlight">\(j=1...M\)</span> and <span class="math notranslate nohighlight">\(u_j\)</span>, <span class="math notranslate nohighlight">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math notranslate nohighlight">\(V_{obs\ j}\)</span> (Jy) is the <span class="math notranslate nohighlight">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math notranslate nohighlight">\(w_j\)</span>.
-With <strong>galario</strong> you can:</p>
-<p><strong>1) Compute visibilities from a model image</strong></p>
-<blockquote>
-<div><p>If you want to compute the visibilities of a model <code class="code docutils literal notranslate"><span class="pre">image</span></code> (Jy/px) with pixel size <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> (rad) in the same <span class="math notranslate nohighlight">\((u_j, v_j)\)</span> locations of the observations, you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
-
-<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>where <code class="code docutils literal notranslate"><span class="pre">vis</span></code> is a complex array of length <span class="math notranslate nohighlight">\(N\)</span> containing the real (<code class="code docutils literal notranslate"><span class="pre">vis.real</span></code>) and imaginary (<code class="code docutils literal notranslate"><span class="pre">vis.imag</span></code>) part of the synthetic visibilities.</p>
-</div></blockquote>
-<p><strong>2) Compute visibilities from an axisymmetric brightness profile</strong></p>
-<blockquote>
-<div><p>If you want to compare the observations with a model characterized by an <strong>axisymmetric brightness profile</strong>, <strong>galario</strong> offers dedicated functions that exploit the symmetry of the model to accelerate the image creation.</p>
-<p>If <span class="math notranslate nohighlight">\(I(R)\)</span> (Jy/sr) is the radial brightness profile, the command is as simple as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleProfile</span>
-
-<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>where <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> and <code class="code docutils literal notranslate"><span class="pre">dR</span></code> are expressed in radians and are the innermost radius and the cell size of the grid on which <span class="math notranslate nohighlight">\(I(R)\)</span> is computed. An analogous function
-<code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> allows one to compute directly the chi square.</p>
-</div></blockquote>
-<p><strong>3) Compute the</strong> <span class="math notranslate nohighlight">\(\chi^2\)</span> <strong>of a model (image or brightness profile)</strong></p>
-<blockquote>
-<div><p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <span class="math notranslate nohighlight">\(\chi^2\)</span> for the likelihood computation, you can use directly one of these:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">chi2Image</span>
-
-<span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
-<span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
-</pre></div>
-</div>
-</div></blockquote>
-<p><strong>4) Do all the above operations + translate and rotate the model image</strong></p>
-<blockquote>
-<div><p>To translate the model image in Right Ascension and Declination direction by (dRA, dDec) offsets (rad),
-or to rotate the image by a Position Angle PA (rad) (defined East of North), you can specify them as optional parameters.</p>
-<p>This works for all the <code class="code docutils literal notranslate"><span class="pre">sampleImage</span></code>, <code class="code docutils literal notranslate"><span class="pre">sampleProfile</span></code>, <code class="code docutils literal notranslate"><span class="pre">chi2Image</span></code> and <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> functions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
-
-<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="n">dDec</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="n">PA</span><span class="p">)</span>
-</pre></div>
-</div>
-</div></blockquote>
+and has already been employed in <a class="reference internal" href="publications.html"><span class="doc">these publications</span></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you work on a machine <strong>without</strong> a CUDA-enabled GPU, don’t worry: you can use the CPU version
-of <strong>galario</strong> by just removing the subscript <code class="code docutils literal notranslate"><span class="pre">&quot;_cuda&quot;</span></code> from the imports above and benefit from the openMP parallelization.
-All the function names and interfaces are the same for the GPU and CPU versions!</p>
+<p>The Python and C++ bindings of <strong>galario</strong> can be installed easily via <a class="reference external" href="https://conda.io">conda</a>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c conda-forge galario
+</pre></div>
 </div>
+<p>Due to technical limitations, the conda package does not support GPUs at the
+moment. If you want to use a GPU, you have to build <strong>galario</strong> by hand.</p>
+<p class="last">All the details on how to build and install <strong>galario</strong> can be found in the <a class="reference internal" href="install.html"><span class="doc">Setup</span></a> page.</p>
+</div>
+<p>Basic functionality of <strong>galario</strong>: see the <a class="reference internal" href="basic_usage.html"><span class="doc">Basic Usage</span></a> page.</p>
+<p>How to fit some data with <strong>galario</strong>: check the <a class="reference internal" href="quickstart.html"><span class="doc">Getting started example</span></a>.</p>
+<p>Some recipes for the CPU/GPU management: see the <a class="reference internal" href="cookbook.html"><span class="doc">Cookbook</span></a> with useful code snippets.</p>
 </div>
 <div class="section" id="license-and-attribution">
 <h2>License and Attribution<a class="headerlink" href="#license-and-attribution" title="Permalink to this headline">¶</a></h2>
-<p>If you use <strong>galario</strong> for your research, please cite <a class="reference external" href="https://arxiv.org/abs/1709.06999">Tazzari, Beaujean and Testi (2017)</a> .
-The BibTeX entry for the paper is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>@ARTICLE{Tazzari:galario,
-Adsurl = {http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1709.06999},
-Archiveprefix = {arXiv},
-Arxivurl = {http://arxiv.org/abs/1709.06999v1},
-Author = {{Tazzari}, Marco and {Beaujean}, Frederik and {Testi}, Leonardo},
-Eprint = {1709.06999v1},
-Jornal = {ArXiv e-prints},
-Month = {Sep},
-Primaryclass = {astro-ph.IM},
-Title = {GALARIO: a GPU Accelerated Library for Analysing Radio Interferometer Observations},
-Year = {2017}}
+<p>If you use <strong>galario</strong> for your research please cite Tazzari, Beaujean and Testi (2018) MNRAS <strong>476</strong> 4527 <a class="reference external" href="https://doi.org/10.1093/mnras/sty409">[MNRAS]</a> <a class="reference external" href="https://arxiv.org/abs/1709.06999">[arXiv]</a> <a class="reference external" href="http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T">[ADS]</a>.</p>
+<p>The BibTeX entry for the paper is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ARTICLE</span><span class="p">{</span><span class="mi">2018</span><span class="n">MNRAS</span><span class="o">.</span><span class="mf">476.4527</span><span class="n">T</span><span class="p">,</span>
+   <span class="n">author</span> <span class="o">=</span> <span class="p">{{</span><span class="n">Tazzari</span><span class="p">},</span> <span class="n">M</span><span class="o">.</span> <span class="ow">and</span> <span class="p">{</span><span class="n">Beaujean</span><span class="p">},</span> <span class="n">F</span><span class="o">.</span> <span class="ow">and</span> <span class="p">{</span><span class="n">Testi</span><span class="p">},</span> <span class="n">L</span><span class="o">.</span><span class="p">},</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;{GALARIO: a GPU accelerated library for analysing radio interferometer observations}&quot;</span><span class="p">,</span>
+  <span class="n">journal</span> <span class="o">=</span> <span class="p">{</span>\<span class="n">mnras</span><span class="p">},</span>
+<span class="n">archivePrefix</span> <span class="o">=</span> <span class="s2">&quot;arXiv&quot;</span><span class="p">,</span>
+   <span class="n">eprint</span> <span class="o">=</span> <span class="p">{</span><span class="mf">1709.06999</span><span class="p">},</span>
+ <span class="n">primaryClass</span> <span class="o">=</span> <span class="s2">&quot;astro-ph.IM&quot;</span><span class="p">,</span>
+ <span class="n">keywords</span> <span class="o">=</span> <span class="p">{</span><span class="n">methods</span><span class="p">:</span> <span class="n">numerical</span><span class="p">,</span> <span class="n">techniques</span><span class="p">:</span> <span class="n">interferometric</span><span class="p">,</span> <span class="n">submillimetre</span><span class="p">:</span> <span class="n">general</span><span class="p">},</span>
+     <span class="n">year</span> <span class="o">=</span> <span class="mi">2018</span><span class="p">,</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="n">jun</span><span class="p">,</span>
+   <span class="n">volume</span> <span class="o">=</span> <span class="mi">476</span><span class="p">,</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">{</span><span class="mi">4527</span><span class="o">-</span><span class="mi">4542</span><span class="p">},</span>
+      <span class="n">doi</span> <span class="o">=</span> <span class="p">{</span><span class="mf">10.1093</span><span class="o">/</span><span class="n">mnras</span><span class="o">/</span><span class="n">sty409</span><span class="p">},</span>
+   <span class="n">adsurl</span> <span class="o">=</span> <span class="p">{</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">adsabs</span><span class="o">.</span><span class="n">harvard</span><span class="o">.</span><span class="n">edu</span><span class="o">/</span><span class="nb">abs</span><span class="o">/</span><span class="mi">2018</span><span class="n">MNRAS</span><span class="o">.</span><span class="mf">476.4527</span><span class="n">T</span><span class="p">},</span>
+  <span class="n">adsnote</span> <span class="o">=</span> <span class="p">{</span><span class="n">Provided</span> <span class="n">by</span> <span class="n">the</span> <span class="n">SAO</span><span class="o">/</span><span class="n">NASA</span> <span class="n">Astrophysics</span> <span class="n">Data</span> <span class="n">System</span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p><strong>galario</strong> has also a <a class="reference external" href="https://doi.org/10.5281/zenodo.891039">Zenodo DOI</a>, which can be used to refer to the exact
 version of <strong>galario</strong> used in a paper.</p>
 <p><strong>galario</strong> is free software licensed under the LGPLv3 License. For more details see the <a class="reference internal" href="license.html"><span class="doc">LICENSE</span></a>.</p>
-<p>© Copyright 2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.</p>
+<p>© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.</p>
 </div>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="install.html">How to build and install <strong>galario</strong></a><ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="install.html#operating-system">Operating system</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#installing-via-conda">Installing via conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#build-requirements">Build requirements</a></li>
@@ -177,17 +137,18 @@ version of <strong>galario</strong> used in a paper.</p>
 <li class="toctree-l2"><a class="reference internal" href="install.html#tests">Tests</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">A quickstart example</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#fit-of-a-single-wavelength-data-set">Fit of a single-wavelength data set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#fit-a-single-wavelength-data-set">Fit a single-wavelength data set</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cookbook.html"><strong>galario</strong> Cookbook</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cookbook.html#using-the-gpu-and-cpu-version">Using the GPU and CPU version</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook.html#selecting-the-gpu">Selecting the GPU</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cookbook.html#parallelization-setting-the-threads">Parallelization: setting the threads</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API reference</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="py-api.html#computing-synthetic-visibilities">Computing synthetic visibilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="py-api.html#computing-chi-squared-directly">Computing chi squared directly</a></li>
 <li class="toctree-l2"><a class="reference internal" href="py-api.html#gpu-related">GPU related</a></li>
@@ -195,28 +156,21 @@ version of <strong>galario</strong> used in a paper.</p>
 <li class="toctree-l2"><a class="reference internal" href="py-api.html#exceptions">Exceptions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API reference</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="C++-api.html#sample-and-chi2-functions">Sample and chi2 functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="C++-api.html#management-functions">Management functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="C++-api.html#individual-operations">Individual operations</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="C++-example.html">Using galario from C++</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="C++-example.html#a-small-example">A small example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="C++-example.html#example-walk-through">Example walk-through</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="studies.html">Studies that used <strong>galario</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 </div>
-</div>
-<div class="section" id="indices">
-<h2>Indices<a class="headerlink" href="#indices" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
-</ul>
 </div>
 </div>
 
@@ -230,15 +184,17 @@ version of <strong>galario</strong> used in a paper.</p>
     
 
   <h3><a href="#">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#"><strong>galario</strong></a><ul>
-<li><a class="reference internal" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations"><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong></a></li>
-<li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
-<li><a class="reference internal" href="#license-and-attribution">License and Attribution</a></li>
-<li><a class="reference internal" href="#contents">Contents</a></li>
-<li><a class="reference internal" href="#indices">Indices</a></li>
-</ul>
-</li>
+  <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
   <h4>Next topic</h4>
@@ -280,7 +236,7 @@ version of <strong>galario</strong> used in a paper.</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>

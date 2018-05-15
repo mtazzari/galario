@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>How to build and install galario &#8212; galario 1.03 documentation</title>
+    <title>How to build and install galario &#8212; galario 1.1 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -15,8 +15,8 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="A quickstart example" href="quickstart.html" />
-    <link rel="prev" title="galario" href="index.html" />
+    <link rel="next" title="Basic Usage" href="basic_usage.html" />
+    <link rel="prev" title="galario 1.1" href="index.html" />
 
     
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
@@ -42,7 +42,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
-        <li><a href="index.html">galario 1.03 documentation</a> &#187;</li> 
+        <li><a href="index.html">galario 1.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     
@@ -70,8 +70,7 @@
 If you are new to <code class="code docutils literal notranslate"><span class="pre">conda</span></code>, you may want to start with the minimal <a class="reference external" href="https://repo.continuum.io/miniconda/">miniconda</a>. With <code class="code docutils literal notranslate"><span class="pre">conda</span></code> all dependencies are
 installed automatically and you get access to <strong>galario</strong>’s C++ core and python
 bindings, both with support for multithreading.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels conda-forge
-conda install galario
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c conda-forge galario
 </pre></div>
 </div>
 <p>Due to technical limitations, the conda package does not support GPUs at the
@@ -357,8 +356,9 @@ If you still have problems, remove the <code class="code docutils literal notran
 <p>The <strong>galario</strong> library needs to be imported when building the documentation (the
 import would fail otherwise) to extract docstrings.</p>
 <p>To delete the sphinx cache in case the docs don’t update as expected</p>
-<blockquote>
-<div>rm -rf docs/_doctrees/</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -rf docs/_doctrees/
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="install">
@@ -442,41 +442,50 @@ Failed to initialize NVML: Driver/library version mismatch
     
 
   <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">How to build and install <strong>galario</strong></a><ul>
-<li><a class="reference internal" href="#operating-system">Operating system</a></li>
-<li><a class="reference internal" href="#installing-via-conda">Installing via conda</a></li>
-<li><a class="reference internal" href="#build-requirements">Build requirements</a></li>
-<li><a class="reference internal" href="#quick-steps-to-build-and-install">Quick steps to build and install</a></li>
-<li><a class="reference internal" href="#detailed-build-instructions">Detailed build instructions</a><ul>
-<li><a class="reference internal" href="#compiler">Compiler</a></li>
-<li><a class="reference internal" href="#optimization-level">Optimization level</a></li>
-<li><a class="reference internal" href="#python">Python</a></li>
-<li><a class="reference internal" href="#fftw">FFTW</a><ul>
-<li><a class="reference internal" href="#manual-compilation">Manual compilation</a></li>
-<li><a class="reference internal" href="#setting-paths">Setting paths</a></li>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#operating-system">Operating system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-via-conda">Installing via conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-requirements">Build requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-steps-to-build-and-install">Quick steps to build and install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-build-instructions">Detailed build instructions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compiler">Compiler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimization-level">Optimization level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python">Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fftw">FFTW</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#manual-compilation">Manual compilation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setting-paths">Setting paths</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#cuda">CUDA</a></li>
-<li><a class="reference internal" href="#timing">Timing</a></li>
-<li><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cuda">CUDA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#timing">Timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#install">Install</a><ul>
-<li><a class="reference internal" href="#uninstall">Uninstall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install">Install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#uninstall">Uninstall</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#tests">Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tests">Tests</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
-                        title="previous chapter"><strong>galario</strong></a></p>
+                        title="previous chapter"><strong>galario</strong> 1.1</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="quickstart.html"
-                        title="next chapter">A quickstart example</a></p>
+  <p class="topless"><a href="basic_usage.html"
+                        title="next chapter">Basic Usage</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -507,16 +516,16 @@ Failed to initialize NVML: Driver/library version mismatch
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="quickstart.html" title="A quickstart example"
+          <a href="basic_usage.html" title="Basic Usage"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="galario"
+          <a href="index.html" title="galario 1.1"
              accesskey="P">previous</a> |</li>
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
