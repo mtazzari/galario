@@ -54,7 +54,7 @@
 <h2>Installing via conda<a class="headerlink" href="#installing-via-conda" title="Permalink to this headline">¶</a></h2>
 <p>By far the easiest way to install <strong>galario</strong> is via <a class="reference external" href="https://conda.io">conda</a>.
 If you are new to <code class="code docutils literal notranslate"><span class="pre">conda</span></code>, you may want to start with the minimal <a class="reference external" href="https://repo.continuum.io/miniconda/">miniconda</a>. With <code class="code docutils literal notranslate"><span class="pre">conda</span></code> all dependencies are
-installed automatically and you get access to <strong>galario</strong>’s C/C++ and python
+installed automatically and you get access to <strong>galario</strong>’s C++ core and python
 bindings, both with support for multithreading.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels conda-forge
 conda install galario
@@ -68,7 +68,7 @@ moment. If you want to use a GPU, read on as you have to build <strong>galario</
 <p>To compile <strong>galario</strong> you will need:</p>
 <ul class="simple">
 <li>a working internet connection (to download 1.5 MB of an external library)</li>
-<li>a C and C++ compiler such as <code class="code docutils literal notranslate"><span class="pre">gcc</span></code> or <code class="code docutils literal notranslate"><span class="pre">clang</span></code>. To use multiple threads, the compiler has to support <a class="reference external" href="http://www.openmp.org/resources/openmp-compilers/">openMP</a></li>
+<li>either <code class="code docutils literal notranslate"><span class="pre">g++</span></code>&gt;=4.8.1 or <code class="code docutils literal notranslate"><span class="pre">clang++</span></code>&gt;=3.3 with full support of C++11. To use multiple threads, the compiler has to support <a class="reference external" href="http://www.openmp.org/resources/openmp-compilers/">openMP</a></li>
 <li><a class="reference external" href="https://cmake.org">cmake</a> and <code class="code docutils literal notranslate"><span class="pre">make</span></code></li>
 <li>the <a class="reference external" href="http://www.fftw.org">FFTW libraries</a>, for the CPU version: more details are given <a class="reference internal" href="#fftw-requirement"><span class="std std-ref">below</span></a></li>
 <li>[optional] the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">CUDA toolkit</a> &gt;=8.0 for the GPU version: it can be easily installed from the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">NVIDIA website</a></li>
@@ -161,6 +161,7 @@ cmake ..
 cmake -DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc -DCMAKE_CXX_COMPILER<span class="o">=</span>/path/to/g++ ..
 </pre></div>
 </div>
+<p>When changing the compiler, it is best to start with a fresh empty build directory.</p>
 </div>
 <div class="section" id="optimization-level">
 <h3>Optimization level<a class="headerlink" href="#optimization-level" title="Permalink to this headline">¶</a></h3>
@@ -301,6 +302,11 @@ often lead to problems; see for example <a class="reference external" href="http
 <p>To manually enable or disable checking for cuda, do</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">0</span> .. <span class="c1"># don&#39;t check</span>
 cmake -DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">1</span> .. <span class="c1"># check</span>
+</pre></div>
+</div>
+<p>If cuda is installed in a non-standard directory or you want to specify the
+exact version, you can point cmake</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCUDA_TOOLKIT_ROOT_DIR<span class="o">=</span>/usr/local/cuda-9.1 ..
 </pre></div>
 </div>
 </div>

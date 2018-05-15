@@ -1,12 +1,12 @@
-./C-api.html
-./C-example.html
+./C++-api.html
+./C++-example.html
 ./_images/alma_panoramic.jpeg
 ./_images/disk_example.jpg
 ./_images/galario.jpg
 ./_images/quickstart_triangle_whole_chain.png
 ./_images/uvplot.png
-./_sources/C-api.rst.txt
-./_sources/C-example.rst.txt
+./_sources/C++-api.rst.txt
+./_sources/C++-example.rst.txt
 ./_sources/cookbook.rst.txt
 ./_sources/index.rst.txt
 ./_sources/install.rst.txt

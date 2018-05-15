@@ -15,7 +15,7 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="C API reference" href="C-api.html" />
+    <link rel="next" title="C++ API reference" href="C++-api.html" />
     <link rel="prev" title="galario Cookbook" href="cookbook.html" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
@@ -185,8 +185,8 @@ the results obtained are correct. Once a combination of matrix size and
 <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </div>
 </div>
-<div class="section" id="computing-directly-the-chi-square">
-<h2>Computing directly the chi square<a class="headerlink" href="#computing-directly-the-chi-square" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="computing-chi-squared-directly">
+<h2>Computing chi squared directly<a class="headerlink" href="#computing-chi-squared-directly" title="Permalink to this headline">¶</a></h2>
 <p>To compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> of a model use the <a class="reference internal" href="#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> and
 <a class="reference internal" href="#galario.double.chi2Profile" title="galario.double.chi2Profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code></a> functions.</p>
 <dl class="function">
@@ -588,6 +588,35 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
 </dd></dl>
 
 </div>
+<div class="section" id="exceptions">
+<span id="galario-exceptions"></span><h2>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<p><strong>galario</strong>’s C++ core throws various exception. They can be distinguished by the type and the error message.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="55%" />
+<col width="26%" />
+<col width="18%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><strong>Event</strong></td>
+<td><strong>C++</strong></td>
+<td><strong>Python</strong></td>
+</tr>
+<tr class="row-even"><td>Out of memory on GPU</td>
+<td><code class="code docutils literal notranslate"><span class="pre">std::bad_alloc</span></code></td>
+<td><code class="code docutils literal notranslate"><span class="pre">MemoryError</span></code></td>
+</tr>
+<tr class="row-odd"><td>Invalid argument (CPU/GPU)</td>
+<td><code class="code docutils literal notranslate"><span class="pre">std::invalid_argument</span></code></td>
+<td><code class="code docutils literal notranslate"><span class="pre">ValueError</span></code></td>
+</tr>
+<tr class="row-even"><td>Miscellaneous, including out of memory (CPU/GPU)</td>
+<td><code class="code docutils literal notranslate"><span class="pre">std::runtime_error</span></code></td>
+<td><code class="code docutils literal notranslate"><span class="pre">RuntimeError</span></code></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 
 
@@ -603,9 +632,10 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
   <ul>
 <li><a class="reference internal" href="#">Python API reference</a><ul>
 <li><a class="reference internal" href="#computing-synthetic-visibilities">Computing synthetic visibilities</a></li>
-<li><a class="reference internal" href="#computing-directly-the-chi-square">Computing directly the chi square</a></li>
+<li><a class="reference internal" href="#computing-chi-squared-directly">Computing chi squared directly</a></li>
 <li><a class="reference internal" href="#gpu-related">GPU related</a></li>
 <li><a class="reference internal" href="#other-useful-functions">Other useful functions</a></li>
+<li><a class="reference internal" href="#exceptions">Exceptions</a></li>
 </ul>
 </li>
 </ul>
@@ -614,8 +644,8 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
   <p class="topless"><a href="cookbook.html"
                         title="previous chapter"><strong>galario</strong> Cookbook</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="C-api.html"
-                        title="next chapter">C API reference</a></p>
+  <p class="topless"><a href="C++-api.html"
+                        title="next chapter">C++ API reference</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -646,7 +676,7 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="C-api.html" title="C API reference"
+          <a href="C++-api.html" title="C++ API reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="cookbook.html" title="galario Cookbook"

@@ -11,7 +11,6 @@
 =========
 |galario|
 =========
-
 --------------
 
 
@@ -118,7 +117,7 @@ With |galario| you can:
 .. note::
     If you work on a machine **without** a CUDA-enabled GPU, don't worry: you can use the CPU version
     of |galario| by just removing the subscript `"_cuda"` from the imports above and benefit from the openMP parallelization.
-    All the function names and interfaces are the same for GPU and CPU version!
+    All the function names and interfaces are the same for the GPU and CPU versions!
 
 
 License and Attribution
@@ -143,7 +142,7 @@ version of |galario| used in a paper.
 
 |galario| is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
 
-© Copyright 2017 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+© Copyright 2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
 
 Contents
 --------
@@ -154,8 +153,8 @@ Contents
     quickstart
     cookbook
     py-api
-    C-api
-    C-example
+    C++-api
+    C++-example
     studies
     license
 
@@ -164,4 +163,3 @@ Indices
 -------
 * :ref:`genindex`
 * :ref:`search`
-
