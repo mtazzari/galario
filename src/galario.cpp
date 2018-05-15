@@ -10,7 +10,6 @@
 
 #include <cstring>
 #include <cmath>
-#include <iosfwd>
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
@@ -206,6 +205,54 @@ namespace {
         return cublasHandle;
     }
 
+    /**
+     * A simple RAII wrapper around cuda memory for exception safety
+     */
+    template <typename T>
+    struct CudaMemory {
+        CudaMemory(size_t n) : nbytes(sizeof(T) * n) {
+            const auto error = cudaMalloc(&ptr, nbytes);
+            if (error != cudaSuccess) {
+                // If this fails, it hides the first error from allocation
+                CCheck(cudaFree(ptr));
+
+                // safe to throw an error now, no memory dangling
+                CCheck(error);
+            }
+        }
+
+        /**
+         * Allocate and copy `n` elements of type `T` from `source` to device
+         */
+        CudaMemory(size_t n, const T* source) : CudaMemory(n) {
+            CCheck(cudaMemcpy(ptr, source, nbytes, cudaMemcpyHostToDevice));
+        }
+
+        // forbid copy operations to avoid double ownership
+        CudaMemory(const CudaMemory&) = delete;
+        CudaMemory& operator=(const CudaMemory&) = delete;
+
+        // move operations transfer ownership
+        CudaMemory(CudaMemory&&) = default;
+        CudaMemory& operator=(CudaMemory&&) = default;
+
+        // Should not throw an exception inside destructor, so we don't `CCheck`
+        ~CudaMemory() {
+            cudaFree(ptr);
+        }
+
+        /// Copy back from device to host destination
+        void Retrieve(T* destination) {
+            CCheck(cudaMemcpy(destination, ptr, nbytes, cudaMemcpyDeviceToHost));
+        }
+
+        /// The device pointer
+        T* ptr;
+
+        /// The size of the memory allocation
+        const size_t nbytes;
+    };
+
     #ifdef GALARIO_TIMING
         struct GPUTimer
         {
@@ -239,7 +286,10 @@ namespace {
     #else
         struct GPUTimer
         {
-            GPUTimer() {}
+            GPUTimer() {
+                // call empty Start() just to avoid warning about unused function
+                Start();
+            }
             void Start() {}
             void Elapsed(const std::string& msg) {}
         };
@@ -265,12 +315,6 @@ namespace {
         #define CMPLXCONJ cuConjf
         #define CUBLASNRM2 cublasScnrm2
     #endif  // DOUBLE_PRECISION
-
-    void copy_observations_d(int nd, const dreal* x, dreal** addr_x_d) {
-        size_t nbytes_ndat = sizeof(dreal)*nd;
-        CCheck(cudaMalloc(addr_x_d, nbytes_ndat));
-        CCheck(cudaMemcpy(*addr_x_d, x, nbytes_ndat, cudaMemcpyHostToDevice));
-    }
 
 #else // CPU
 
@@ -356,22 +400,20 @@ void galario_free(void* data) {
 
 #ifdef __CUDACC__
 /**
- * Return device pointer to complex image made from real image with array size `nx*ny` on the host.
+ * Return complex image on the device made from real image with array size `nx*ny` on the host.
  *
- * Caller is responsible for freeing the device memory with `cudaFree()`.
  */
-dcomplex* copy_input_d(int nx, int ny, const dreal* realdata) {
+CudaMemory<dcomplex> copy_input_d(int nx, int ny, const dreal* realdata) {
     GPUTimer t;
     auto const ncol = ny/2+1;
     auto const rowsize_real = sizeof(dreal)*ny;
     auto const rowsize_complex = sizeof(dcomplex)*ncol;
 
     // create destination array
-    dcomplex *data_d;
-    CCheck(cudaMalloc(&data_d, sizeof(dcomplex)*nx*ncol));
+    CudaMemory<dcomplex> data_d(nx * ncol);
 
     // set the padding by defining different sizes of a row in bytes
-    CCheck(cudaMemcpy2D(data_d, rowsize_complex, realdata, rowsize_real, rowsize_real, nx, cudaMemcpyHostToDevice));
+    CCheck(cudaMemcpy2D(data_d.ptr, rowsize_complex, realdata, rowsize_real, rowsize_real, nx, cudaMemcpyHostToDevice));
     t.Elapsed("copy_input_H->D");
     return data_d;
 }
@@ -456,20 +498,15 @@ void fft_h(int nx, int ny, dcomplex* data) {
 
 namespace galario {
 /**
- * `realdata`: nx * nx matrix
+ * `data`: nx * nx matrix
  * output: a buffer in the format described at http://fftw.org/fftw3_doc/Multi_002dDimensional-DFTs-of-Real-Data.html#Multi_002dDimensional-DFTs-of-Real-Data. It needs to be freed by `fftw_free`, not the ordinary `free`!
  */
 void fft2d(int nx, int ny, dcomplex* data) {
     CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
-    dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*(ny/2 + 1);
-    CCheck(cudaMalloc(&data_d, nbytes));
-    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
-    fft_d(nx, ny, data_d);
-
-    CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-    CCheck(cudaFree(data_d));
+    CudaMemory<dcomplex> data_d(nx*(ny/2 + 1), data);
+    fft_d(nx, ny, data_d.ptr);
+    data_d.Retrieve(data);
 #else
     fft_h(nx, ny, data);
 #endif
@@ -561,16 +598,12 @@ namespace galario {
 void fftshift(int nx, int ny, dcomplex* data) {
     CHECK_INPUTXY(nx, ny);
 #ifdef __CUDACC__
-    dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nx*(ny/2+1);
-    CCheck(cudaMalloc(&data_d, nbytes));
-    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    CudaMemory<dcomplex> data_d(nx*(ny/2+1), data);
 
-    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d);
+    shift_d<<<dim3(nx/2/tpb+1, ny/2/tpb+1), dim3(tpb, tpb)>>>(nx, ny, data_d.ptr);
 
     CCheck(cudaDeviceSynchronize());
-    CCheck(cudaMemcpy(data, data_d, nbytes, cudaMemcpyDeviceToHost));
-    CCheck(cudaFree(data_d));
+    data_d.Retrieve(data);
 #else
     shift_h(nx, ny, data);
 #endif
@@ -640,16 +673,12 @@ namespace galario {
 void fftshift_axis0(int nrow, int ncol, dcomplex* matrix) {
     CHECK_INPUT(nrow);
 #ifdef __CUDACC__
-    dcomplex *matrix_d;
-    size_t nbytes = sizeof(dcomplex)*nrow*ncol;
-    CCheck(cudaMalloc(&matrix_d, nbytes));
-    CCheck(cudaMemcpy(matrix_d, matrix, nbytes, cudaMemcpyHostToDevice));
+    CudaMemory<dcomplex> matrix_d(nrow * ncol, matrix);
 
-    shift_axis0_d<<<dim3(nrow/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nrow, ncol, matrix_d);
+    shift_axis0_d<<<dim3(nrow/2/tpb+1, ncol/tpb+1), dim3(tpb, tpb)>>>(nrow, ncol, matrix_d.ptr);
 
     CCheck(cudaDeviceSynchronize());
-    CCheck(cudaMemcpy(matrix, matrix_d, nbytes, cudaMemcpyDeviceToHost));
-    CCheck(cudaFree(matrix_d));
+    matrix_d.Retrieve(matrix);
 #else
     shift_axis0_h(nrow, ncol, matrix);
 #endif
@@ -779,39 +808,21 @@ void interpolate(int nrow, int ncol, const dcomplex *data, int nd, const dreal *
 
 #ifdef __CUDACC__
     // copy the image data
-    dcomplex *data_d;
-    size_t nbytes = sizeof(dcomplex)*nrow*ncol;
-    CCheck(cudaMalloc(&data_d, nbytes));
-    CCheck(cudaMemcpy(data_d, data, nbytes, cudaMemcpyHostToDevice));
+    CudaMemory<dcomplex> data_d(nrow * ncol, data);
 
     // copy u,v and reserve memory for the interpolated values
-    dreal *u_d, *v_d;
-    dcomplex *fint_d;
-    size_t nbytes_nd = sizeof(dreal)*nd;
-
-    CCheck(cudaMalloc(&u_d, nbytes_nd));
-    CCheck(cudaMemcpy(u_d, u, nbytes_nd, cudaMemcpyHostToDevice));
-
-    CCheck(cudaMalloc(&v_d, nbytes_nd));
-    CCheck(cudaMemcpy(v_d, v, nbytes_nd, cudaMemcpyHostToDevice));
-
-    int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc(&fint_d, nbytes_fint));
+    CudaMemory<dreal> u_d(nd, u);
+    CudaMemory<dreal> v_d(nd, v);
+    CudaMemory<dcomplex> fint_d(nd);
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
     auto const nthreads = tpb * tpb;
-    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nrow, ncol, (dcomplex*) data_d, nd, (dreal*)u_d, (dreal*)v_d, duv, (dcomplex*) fint_d);
+    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nrow, ncol, data_d.ptr, nd, u_d.ptr, v_d.ptr, duv, fint_d.ptr);
 
     CCheck(cudaDeviceSynchronize());
 
     // retrieve interpolated values
-    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
-
-    // free memories
-    CCheck(cudaFree(data_d));
-    CCheck(cudaFree(u_d));
-    CCheck(cudaFree(v_d));
-    CCheck(cudaFree(fint_d));
+    fint_d.Retrieve(fint);
 #else
     interpolate_h(nrow, ncol, data, nd, u, v, duv, fint);
 #endif
@@ -878,29 +889,15 @@ namespace galario {
 void apply_phase_sampled(dreal dRA, dreal dDec, int const nd, const dreal* const u, const dreal* const v, dcomplex* const __restrict__ fint) {
 #ifdef __CUDACC__
 
-     size_t nbytes_d_complex = sizeof(dcomplex)*nd;
-     size_t nbytes_d_dreal = sizeof(dreal)*nd;
-
-     dreal *u_d, *v_d;
-     dcomplex *fint_d;
-
-     CCheck(cudaMalloc(&u_d, nbytes_d_dreal));
-     CCheck(cudaMemcpy(u_d, u, nbytes_d_dreal, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&v_d, nbytes_d_dreal));
-     CCheck(cudaMemcpy(v_d, v, nbytes_d_dreal, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&fint_d, nbytes_d_complex));
-     CCheck(cudaMemcpy(fint_d, fint, nbytes_d_complex, cudaMemcpyHostToDevice));
+     CudaMemory<dreal> u_d(nd, u);
+     CudaMemory<dreal> v_d(nd, v);
+     CudaMemory<dcomplex> fint_d(nd, fint);
 
      auto const nthreads = tpb * tpb;
-     apply_phase_sampled_d<<<nd/nthreads+1, nthreads>>>(dRA, dDec, nd, u_d, v_d, fint_d);
+     apply_phase_sampled_d<<<nd/nthreads+1, nthreads>>>(dRA, dDec, nd, u_d.ptr, v_d.ptr, fint_d.ptr);
 
      CCheck(cudaDeviceSynchronize());
-     CCheck(cudaMemcpy(fint, fint_d, nbytes_d_complex, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(fint_d));
-     CCheck(cudaFree(v_d));
-     CCheck(cudaFree(u_d));
+     fint_d.Retrieve(fint);
 #else
     apply_phase_sampled_h(dRA, dDec, nd, u, v, fint);
 #endif
@@ -967,42 +964,32 @@ void uv_rotate_h(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot,
 #endif
 
 namespace galario {
+
 void uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int const nd, const dreal* const u, const dreal* const v,
                        dreal* const urot, dreal* const vrot) {
 #ifdef __CUDACC__
-     size_t nbytes_d_dreal = sizeof(dreal)*nd;
+     CudaMemory<dreal> u_d(nd, u);
+     CudaMemory<dreal> v_d(nd, v);
 
-     dreal *u_d, *v_d, *urot_d, *vrot_d;
-
-     CCheck(cudaMalloc(&u_d, nbytes_d_dreal));
-     CCheck(cudaMemcpy(u_d, u, nbytes_d_dreal, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&v_d, nbytes_d_dreal));
-     CCheck(cudaMemcpy(v_d, v, nbytes_d_dreal, cudaMemcpyHostToDevice));
-
-     CCheck(cudaMalloc(&urot_d, nbytes_d_dreal));
-     CCheck(cudaMalloc(&vrot_d, nbytes_d_dreal));
+     CudaMemory<dreal> urot_d(nd);
+     CudaMemory<dreal> vrot_d(nd);
 
      if (PA==0.) {
         *dRArot = dRA;
         *dDecrot = dDec;
-        cudaMemcpy(urot_d, u_d, nbytes_d_dreal, cudaMemcpyDeviceToDevice);
-        cudaMemcpy(vrot_d, v_d, nbytes_d_dreal, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(urot_d.ptr, u_d.ptr, u_d.nbytes, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(vrot_d.ptr, v_d.ptr, v_d.nbytes, cudaMemcpyDeviceToDevice);
      } else {
         const dreal cos_PA = cos(PA);
         const dreal sin_PA = sin(PA);
 
         auto const nthreads = tpb * tpb;
-        uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
+        uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d.ptr, v_d.ptr, urot_d.ptr, vrot_d.ptr);
         uv_rotate_core(cos_PA, sin_PA, dRA, dDec, *dRArot, *dDecrot);
      }
      CCheck(cudaDeviceSynchronize());
-     CCheck(cudaMemcpy(urot, urot_d, nbytes_d_dreal, cudaMemcpyDeviceToHost));
-     CCheck(cudaMemcpy(vrot, vrot_d, nbytes_d_dreal, cudaMemcpyDeviceToHost));
-     CCheck(cudaFree(v_d));
-     CCheck(cudaFree(u_d));
-     CCheck(cudaFree(vrot_d));
-     CCheck(cudaFree(urot_d));
+     urot_d.Retrieve(urot);
+     vrot_d.Retrieve(vrot);
 #else
     uv_rotate_h(PA, dRA, dDec, dRArot, dDecrot, nd, u, v, urot, vrot);
 #endif
@@ -1082,38 +1069,31 @@ __global__ void sweep_d(int const nr, const dreal* const intensity, dreal const 
 }
 
 /**
- * Allocate memory on device for `intensity` and `image`. `addr_*` is the address of the pointer to the beginning of that memory.
- * For the central pixel computation: see details in create_image_h() docstring.
+ * Create image on device from `intensity`.
  */
-void create_image_d(int nr, const dreal* const intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex** addr_image_d) {
+CudaMemory<dcomplex> create_image_d(int nr, const dreal* const intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc) {
     GPUTimer t, t_start;
 
     CHECK_CENTRAL_PIXEL(dxy, Rmin, dR);
 
-    auto const ncol = nxy/2+1;
-    auto const nbytes = sizeof(dcomplex)*nxy*ncol;
-
     // start with a zero image
-    CCheck(cudaMalloc(addr_image_d, nbytes)); t.Elapsed("create_image_d::malloc_image");
-    CCheck(cudaMemset(*addr_image_d, 0, nbytes)); t.Elapsed("create_image_d::memset");
+    CudaMemory<dcomplex> image_d(nxy * (nxy / 2 + 1)); t.Elapsed("create_image_d::malloc_image");
+    CCheck(cudaMemset(image_d.ptr, 0, image_d.nbytes)); t.Elapsed("create_image_d::memset");
 
     // transfer intensities
-    dreal* intensity_d;
-    auto const nbytes_intensity = sizeof(dreal)*nr;
-    CCheck(cudaMalloc(&intensity_d, nbytes_intensity)); t.Elapsed("create_image_d::malloc_intensity");
-    CCheck(cudaMemcpy(intensity_d, intensity, nbytes_intensity, cudaMemcpyHostToDevice));
-    t.Elapsed("create_image_d::copy_intensity_H->D");
+    CudaMemory<dreal> intensity_d(nr, intensity); t.Elapsed("create_image_d::malloc_copy_intensity_H->D");
 
     // Convert intensities from Jy/steradians to Jy/pixels.
     // The intensity profile in input are in Jy/sr, while the sweeped image should be in Jy/px.
-    dreal const sr_to_px = dxy*dxy;
+    const dreal sr_to_px = dxy * dxy;
 
     // most of the image will stay 0, we only need the kernel on a few pixels near the center
     auto const rmax = min((int)ceil((Rmin+nr*dR)/dxy), nxy/2);
 
     auto const nblocks = (2*rmax) / tpb + 1;
 
-    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, intensity_d, Rmin, dR, rmax, nxy, dxy, inc, sr_to_px, *addr_image_d);
+    sweep_d<<<dim3(nblocks, nblocks), dim3(tpb, tpb)>>>(nr, intensity_d.ptr, Rmin, dR, rmax, nxy, dxy, inc, sr_to_px, image_d.ptr);
+    CCheck(cudaDeviceSynchronize());
     t.Elapsed("create_image_d::sweep");
 
     // central pixel
@@ -1135,12 +1115,13 @@ void create_image_d(int nr, const dreal* const intensity, dreal Rmin, dreal dR, 
     dreal area = pow(dxy/2., 2) - pow(Rmin, 2);
 
     auto const value = sr_to_px * flux / area;
-    central_pixel_d<<<1,1>>>(nxy, *addr_image_d, value);
+    central_pixel_d<<<1,1>>>(nxy, image_d.ptr, value);
     CCheck(cudaDeviceSynchronize());
     t.Elapsed("create_image_d::central_pixel");
 
-    CCheck(cudaFree(intensity_d)); t.Elapsed("create_image_d::free_intensity");
     t_start.Elapsed("create_image");
+
+    return image_d;
 }
 
 #else
@@ -1225,12 +1206,8 @@ void sweep(int nr, const dreal* intensity, dreal Rmin, dreal dR, int nxy, dreal 
 
 #ifdef __CUDACC__
     // image allocated inside sweep
-    dcomplex *image_d;
-    create_image_d(nr, intensity, Rmin, dR, nxy, dxy, inc, &image_d);
-
-    auto const nbytes = sizeof(dcomplex)*nxy*(nxy/2+1);
-    CCheck(cudaMemcpy(image, image_d, nbytes, cudaMemcpyDeviceToHost));
-    CCheck(cudaFree(image_d));
+    CudaMemory<dcomplex> image_d = create_image_d(nr, intensity, Rmin, dR, nxy, dxy, inc);
+    image_d.Retrieve(image);
 #else
     create_image_h(nr, intensity, Rmin, dR, nxy, dxy, inc, image);
 #endif
@@ -1262,16 +1239,12 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
        draw dependencies on paper: first thing is to do fft while other data is transferred
     */
 
-    dreal *u_d, *v_d, *urot_d, *vrot_d;
-    size_t nbytes_ndat = sizeof(dreal)*nd;
-
     GPUTimer t;
-    CCheck(cudaMalloc(&u_d, nbytes_ndat));
-    CCheck(cudaMemcpy(u_d, u, nbytes_ndat, cudaMemcpyHostToDevice));
-    CCheck(cudaMalloc(&v_d, nbytes_ndat));
-    CCheck(cudaMemcpy(v_d, v, nbytes_ndat, cudaMemcpyHostToDevice));
-    CCheck(cudaMalloc(&urot_d, nbytes_ndat));
-    CCheck(cudaMalloc(&vrot_d, nbytes_ndat));
+    CudaMemory<dreal> u_d(nd, u);
+    CudaMemory<dreal> v_d(nd, v);
+
+    CudaMemory<dreal> urot_d(nd);
+    CudaMemory<dreal> vrot_d(nd);
     t.Elapsed("sample::copy_uv_H->D");
 
     auto const nthreads = tpb * tpb;
@@ -1285,14 +1258,14 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
      if (PA==0.) {
         dRArot = dRA;
         dDecrot = dDec;
-        cudaMemcpy(urot_d, u_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
-        cudaMemcpy(vrot_d, v_d, nbytes_ndat, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(urot_d.ptr, u_d.ptr, u_d.nbytes, cudaMemcpyDeviceToDevice);
+        cudaMemcpy(vrot_d.ptr, v_d.ptr, u_d.nbytes, cudaMemcpyDeviceToDevice);
         t.Elapsed("sample::copy_uvrot_D->D");
      } else {
         const dreal cos_PA = cos(PA);
         const dreal sin_PA = sin(PA);
 
-        uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d, v_d, urot_d, vrot_d);
+        uv_rotate_d<<<nd/nthreads +1, nthreads>>>(cos_PA, sin_PA, nd, u_d.ptr, v_d.ptr, urot_d.ptr, vrot_d.ptr);
         uv_rotate_core(cos_PA, sin_PA, dRA, dDec, dRArot, dDecrot);
         t.Elapsed("sample::uv_rotate");
      }
@@ -1303,18 +1276,10 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal dRA, dreal dDec, in
     shift_axis0_d<<<dim3(nx/2/tpb+1, ncol/2/tpb+1), dim3(tpb, tpb)>>>(nx, ncol, data_d); t.Elapsed("sample::2nd_shift");
 
     // oversubscribe blocks because we don't know if #(data points) divisible by nthreads
-    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d, vrot_d, duv, fint_d); t.Elapsed("sample::interpolate");
+    interpolate_d<<<nd / nthreads + 1, nthreads>>>(nx, ncol, data_d, nd, urot_d.ptr, vrot_d.ptr, duv, fint_d); t.Elapsed("sample::interpolate");
 
     // apply phase to the sampled points
-    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRArot, dDecrot, nd, urot_d, vrot_d, fint_d); t.Elapsed("sample::apply_phase_sampled");
-
-    // ################################
-    // ########### CLEANUP ############
-    // ################################
-    CCheck(cudaFree(u_d));
-    CCheck(cudaFree(v_d));
-    CCheck(cudaFree(vrot_d));
-    CCheck(cudaFree(urot_d));
+    apply_phase_sampled_d<<<nd / nthreads + 1, nthreads>>>(dRArot, dDecrot, nd, urot_d.ptr, vrot_d.ptr, fint_d); t.Elapsed("sample::apply_phase_sampled");
 
     t_start.Elapsed("sample_tot");
 }
@@ -1364,23 +1329,20 @@ void sample_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, 
 
 #ifdef __CUDACC__
     GPUTimer t_total;
-    dcomplex *fint_d;
-    int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc(&fint_d, nbytes_fint));
+    CudaMemory<dcomplex> fint_d(nd);
 
-    dcomplex* data_d = copy_input_d(nx, ny, realdata);
+    auto data_d = copy_input_d(nx, ny, realdata);
 
     // do the actual computation
-    sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
+    sample_d(nx, ny, data_d.ptr, dRA, dDec, nd, duv, PA, u, v, fint_d.ptr);
 
     // retrieve interpolated values
     CCheck(cudaDeviceSynchronize());
 
     GPUTimer t;
-    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost)); t.Elapsed("sample_image::fint_ D->H");
+    fint_d.Retrieve(fint);
+    t.Elapsed("sample_image::fint_ D->H");
 
-    CCheck(cudaFree(fint_d)); t.Elapsed("sample_image::fint_cudaFree");
-    CCheck(cudaFree(data_d)); t.Elapsed("sample_image::data_cudaFree");
     t_total.Elapsed("sample_image_tot");
 #else
     CPUTimer t;
@@ -1410,23 +1372,15 @@ void sample_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal 
     CHECK_INPUT(nxy);
 
 #ifdef __CUDACC__
-    dcomplex *image_d;
-
-    create_image_d(nr, intensity, Rmin, dR, nxy, dxy, inc, &image_d);
-
-    dcomplex *fint_d;
-    int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc(&fint_d, nbytes_fint));
+    CudaMemory<dcomplex> image_d = create_image_d(nr, intensity, Rmin, dR, nxy, dxy, inc);
+    CudaMemory<dcomplex> fint_d(nd);
 
     // do the actual computation
-    sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
+    sample_d(nxy, nxy, image_d.ptr, dRA, dDec, nd, duv, PA, u, v, fint_d.ptr);
 
     // retrieve interpolated values
     CCheck(cudaDeviceSynchronize());
-    CCheck(cudaMemcpy(fint, fint_d, nbytes_fint, cudaMemcpyDeviceToHost));
-
-    CCheck(cudaFree(fint_d));
-    CCheck(cudaFree(image_d));
+    fint_d.Retrieve(fint);
 #else
     int const ncol = nxy/2+1;
 
@@ -1516,23 +1470,12 @@ dreal reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcom
 #ifdef __CUDACC__
 
     /* allocate and copy */
-     dreal *fobs_re_d, *fobs_im_d, *weights_d;
-     copy_observations_d(nd, fobs_re, &fobs_re_d);
-     copy_observations_d(nd, fobs_im, &fobs_im_d);
-     copy_observations_d(nd, weights, &weights_d);
+     CudaMemory<dreal> fobs_re_d(nd, fobs_re);
+     CudaMemory<dreal> fobs_im_d(nd, fobs_im);
+     CudaMemory<dcomplex> fint_d(nd);
+     CudaMemory<dreal> weights_d(nd, weights);
 
-     dcomplex* fint_d;
-     size_t nbytes_fint = sizeof(dcomplex) * nd;
-     CCheck(cudaMalloc(&fint_d, nbytes_fint));
-     CCheck(cudaMemcpy(fint_d, fint, nbytes_fint, cudaMemcpyHostToDevice));
-
-     chi2 = reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
-
-     /* free */
-     CCheck(cudaFree(fobs_re_d));
-     CCheck(cudaFree(fobs_im_d));
-     CCheck(cudaFree(weights_d));
-     CCheck(cudaFree(fint_d));
+     chi2 = reduce_chi2_d(nd, fobs_re_d.ptr, fobs_im_d.ptr, fint_d.ptr, weights_d.ptr);
 #else
      // compute chi2 by hand in a single pass over data, avoiding creation of
      // intermediate complex values
@@ -1570,9 +1513,7 @@ void use_gpu(int device_id)
     CCheck(cudaSetDevice(device_id));
 #endif
 }
-}
 
-namespace galario {
 dreal chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights) {
     CPUTimer t_start;
 
@@ -1596,33 +1537,20 @@ dreal chi2_image(int nx, int ny, const dreal* realdata, dreal dRA, dreal dDec, d
       While the FFT etc. are calculated, we can copy over the weights and observed values.
      */
     // reserve memory for the interpolated values
-    dcomplex *fint_d;
-    int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc(&fint_d, nbytes_fint)); t.Elapsed("chi2_image::malloc_fint");
+    CudaMemory<dcomplex> fint_d(nd);
+    t.Elapsed("chi2_image::malloc_fint");
 
     // Initialization for comparison and chi square computation
     /* allocate and copy observational data */
-    dreal *fobs_re_d, *fobs_im_d, *weights_d;
-    copy_observations_d(nd, fobs_re, &fobs_re_d);
-    copy_observations_d(nd, fobs_im, &fobs_im_d);
-    copy_observations_d(nd, weights, &weights_d);
+    CudaMemory<dreal> fobs_re_d(nd, fobs_re);
+    CudaMemory<dreal> fobs_im_d(nd, fobs_im);
+    CudaMemory<dreal> weights_d(nd, weights);
     t.Elapsed("chi2_image::copy_observations");
 
-    dcomplex* data_d = copy_input_d(nx, ny, realdata);
+    auto data_d = copy_input_d(nx, ny, realdata);
 
-    sample_d(nx, ny, data_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
-    chi2 = reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
-
-    // ################################
-    // ########### CLEANUP ############
-    // ################################
-    t.Start();
-    CCheck(cudaFree(fint_d));
-    CCheck(cudaFree(fobs_re_d));
-    CCheck(cudaFree(fobs_im_d));
-    CCheck(cudaFree(weights_d));
-    CCheck(cudaFree(data_d));
-    t.Elapsed("chi2_image::free_all");
+    sample_d(nx, ny, data_d.ptr, dRA, dDec, nd, duv, PA, u, v, fint_d.ptr);
+    chi2 = reduce_chi2_d(nd, fobs_re_d.ptr, fobs_im_d.ptr, fint_d.ptr, weights_d.ptr);
 #else
     CPUTimer t;
 
@@ -1654,31 +1582,22 @@ dreal chi2_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR, dreal d
 
 #ifdef __CUDACC__
     GPUTimer t, t_start2;
-    dcomplex *fint_d;
-    int nbytes_fint = sizeof(dcomplex) * nd;
-    CCheck(cudaMalloc(&fint_d, nbytes_fint)); t.Elapsed("chi2_profile::malloc_fint");
+
+    CudaMemory<dcomplex> fint_d(nd);
+    t.Elapsed("chi2_profile::malloc_fint");
 
     // Initialization for comparison and chi square computation
     /* allocate and copy observational data */
-    dreal *fobs_re_d, *fobs_im_d, *weights_d;
-    copy_observations_d(nd, fobs_re, &fobs_re_d);
-    copy_observations_d(nd, fobs_im, &fobs_im_d);
-    copy_observations_d(nd, weights, &weights_d);
+    CudaMemory<dreal> fobs_re_d(nd, fobs_re);
+    CudaMemory<dreal> fobs_im_d(nd, fobs_im);
+    CudaMemory<dreal> weights_d(nd, weights);
     t.Elapsed("chi2_profile::copy_observations");
 
-    dcomplex *image_d;
-    create_image_d(nr, intensity, Rmin, dR, nxy, dxy, inc, &image_d);
+    auto image_d = create_image_d(nr, intensity, Rmin, dR, nxy, dxy, inc);
 
-    sample_d(nxy, nxy, image_d, dRA, dDec, nd, duv, PA, u, v, fint_d);
-    chi2 = reduce_chi2_d(nd, fobs_re_d, fobs_im_d, fint_d, weights_d);
+    sample_d(nxy, nxy, image_d.ptr, dRA, dDec, nd, duv, PA, u, v, fint_d.ptr);
+    chi2 = reduce_chi2_d(nd, fobs_re_d.ptr, fobs_im_d.ptr, fint_d.ptr, weights_d.ptr);
 
-    t.Start();
-    CCheck(cudaFree(fint_d));
-    CCheck(cudaFree(fobs_re_d));
-    CCheck(cudaFree(fobs_im_d));
-    CCheck(cudaFree(weights_d));
-    CCheck(cudaFree(image_d));
-    t.Elapsed("chi2_profile::free_all");
     t_start2.Elapsed("chi2_profile_tot_gputimer");
 #else
     CPUTimer t;
