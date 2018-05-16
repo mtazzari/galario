@@ -360,8 +360,8 @@ First install the build requirements with
 
 .. code-block:: bash
 
-   conda install sphinx
-   pip install sphinx_py3doc_enhanced_theme
+    conda install sphinx
+    pip install sphinx_py3doc_enhanced_theme sphinxcontrib-fulltoc
 
 within the conda environment in use. This ensures that the
 `sphinx` version matches the Python version used to compile

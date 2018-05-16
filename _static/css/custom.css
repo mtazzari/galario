@@ -1,0 +1,12 @@
+/*
+ * custom.css
+ *
+ * Override max-width
+ */
+
+
+/* -- general body styles --------------------------------------------------- */
+
+div.body {
+    max-width: 1050px;
+}
