@@ -336,6 +336,90 @@ def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
     assert_allclose(chi2_ref, chi2_loc, rtol=tol)
 
 
+@pytest.mark.parametrize("nsamples, real_type, rtol, acc_lib",
+                         [(1000, 'float32', 1.e-4, g_single),
+                          (1000, 'float64', 1.e-10, g_double)],
+                         ids=["SP", "DP"])
+def test_image_origin(nsamples, real_type, rtol, acc_lib):
+    def model1(R):
+        y = (np.exp(-(R / (0.2 * arcsec)) ** 2) + 0.3 * np.exp(
+            -((R - 0.4 * arcsec) / ((0.15 * arcsec))) ** 2))
+        return 1e12 * y
+
+    def model2(R):
+        y = 1 * np.exp(
+            -((R - 1 * arcsec) / (0.5 * arcsec)) ** 2) + 0.7 * np.exp(
+            -((R - 2.5 * arcsec) / (0.25 * arcsec)) ** 2) + 0.2 * np.exp(
+            -((R - 3.5 * arcsec) / (0.15 * arcsec)) ** 2)
+
+        return 1e12 * y
+
+    def model3(R):
+        y = 1 * np.exp(-((R - 0.5 * arcsec) / ((0.1 * arcsec))) ** 2)
+        return 1e12 * y
+
+    def model4(R):
+        y = 1 * (R / 2. / arcsec) ** -0.05 * np.exp(-(R / 2. / arcsec) ** 4)
+        return 1e12 * y
+
+    # u, v points
+    maxuv_generator = 3e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator,
+                                        dtype=real_type)
+    nxy, dxy = 4096, 6.42956326721e-08
+
+    # radial grid
+    Rmin = 0.00001 * arcsec
+    dR = 0.0001 * arcsec
+    nrad = 2000
+    gridrad = np.linspace(Rmin, Rmin + dR * (nrad - 1), nrad)
+
+    # create sample image with origin='upper'
+    image_asym = sweep_ref(model1(gridrad), Rmin, dR, nxy, nxy, dxy,  0  * deg, Dx=-50.*dxy,  Dy=66.*dxy,   dtype_image=real_type) + \
+                 sweep_ref(model2(gridrad), Rmin, dR, nxy, nxy, dxy, 20. * deg, Dx=+150.*dxy, Dy=+250.*dxy, dtype_image=real_type) + \
+                 sweep_ref(model3(gridrad), Rmin, dR, nxy, nxy, dxy, 35. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type) + \
+                 sweep_ref(model4(gridrad), Rmin, dR, nxy, nxy, dxy, 44. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type)
+
+    # create sample image with origin='lower'
+    image_asym2 = sweep_ref(model1(gridrad), Rmin, dR, nxy, nxy, dxy,   0 * deg, Dx=-50.*dxy,  Dy=66.*dxy,   dtype_image=real_type, origin='lower') + \
+                  sweep_ref(model2(gridrad), Rmin, dR, nxy, nxy, dxy, 20. * deg, Dx=+150.*dxy, Dy=+250.*dxy, dtype_image=real_type, origin='lower') + \
+                  sweep_ref(model3(gridrad), Rmin, dR, nxy, nxy, dxy, 35. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type, origin='lower') + \
+                  sweep_ref(model4(gridrad), Rmin, dR, nxy, nxy, dxy, 44. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type, origin='lower')
+
+    # check that the images are flipped and rolled when diffent origin option is used
+    assert_allclose(image_asym2, np.roll(np.flipud(image_asym), 1, 0), atol=0, rtol=rtol)
+
+    # remove spurious values
+    image_asym[0, :] = 0.
+    image_asym[:, 0] = 0.
+    image_asym[np.where(image_asym < 1e-10)] = 0.
+
+    # remove spurious values
+    image_asym2[0, :] = 0.
+    image_asym2[:, 0] = 0.
+    image_asym2[np.where(image_asym2 < 1e-10)] = 0.
+
+    # Compute visibilities of ORIGINAL image with CURRENT GALARIO algorithm (only: origin='upper')
+    old = acc_lib.sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10.)
+
+    # Compute visibilities of ORIGINAL image with NEW algorithm, origin='upper'
+    new2 = py_sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='upper')
+
+    # Compute visibilities of LOWER ORIGIN image with NEW algorithm, origin='lower'
+    new = py_sampleImage(np.roll(np.flipud(image_asym), 1, 0), dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
+
+    # Compute visibilities of LOWER ORIGIN image with NEW algorithm, origin='lower'
+    new3 = py_sampleImage(image_asym2, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
+
+    # check that they are the same visibilities
+    assert_allclose(new3, old, atol=0., rtol=rtol*1e3)
+
+    assert_allclose(new, old, atol=0., rtol=rtol)
+    assert_allclose(new2, old, atol=0., rtol=rtol)
+    assert_allclose(new2, old, atol=0., rtol=rtol)
+
+
+
 @pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
                           [(int(1e3), 'float64', 1e-6, 0, g_double, par1),
                           (int(1e3), 'float64', 1e-6, 0, g_double, par2),
