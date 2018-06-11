@@ -30,10 +30,11 @@ include "galario_config.pxi"
 cimport galario_defs as cpp
 
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
-           '_init', '_cleanup',
+           '_init', '_cleanup', 'set_v_origin',
            'ngpus', 'use_gpu', 'threads',
            'check_obs', 'check_image_size', 'get_image_size',
            'sampleImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
+           'get_coords_meshgrid',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
            '_fft2d', '_fftshift', '_fftshift_axis0']
 
@@ -720,6 +721,69 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         check_image_size(u, v, nxy, dxy, duv)
 
     return cpp._chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
+
+
+def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'):
+    """
+    Compute the (R.A, Dec.) coordinate mesh grid to create the image.
+    (x, y) axes are the (R.A, Dec.) axes: x increases leftwards, y increases upwards.
+    All coordinates are computed in linear pixels units. To convert to angular units,
+    just multiply the output by the angular pixel size.
+
+    Parameters
+    ----------
+    nrow : int
+        Number of rows of the image.
+    ncol : int
+        Number of columns of the image.
+    dxy : float, optional
+        Size of the image cell, assumed equal in both x and y direction.
+        By default is one, thus implying the output arrays are in pixel units.
+        **units**: rad
+    inc : float, optional
+        Inclination along the North-South axis, default is zero.
+        **units**: rad
+    Dx : float, optional
+        Offset along the x-axis, default is zero.
+        **units**: rad
+    Dy :  float, optional
+        Offset along the x-axis, default is zero.
+        **units**: rad
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the online docs.
+
+    Returns
+    -------
+    x, y: array_like, float
+        Pixel coordinates along the (R.A., Dec.) directions.
+        **units**: dxy
+    x_m, y_m: array_like, float
+        Pixel coordinate meshgrid along the (R.A., Dec.) directions.
+        **units**: dxy
+    R_m: array_like, float
+        Radial coordinate meshgrid.
+        **units**: dxy
+
+    """
+    v_origin = set_v_origin(origin)
+
+    # create the mesh grid
+    x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol, dtype=real_dtype)) * ncol * dxy
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow, dtype=real_dtype)) * nrow * dxy * v_origin
+
+    # shrink the x axis by the inclination, since PA is the angle East of North of the
+    # the plane of the disk (orthogonal to the angular momentum axis)
+    # PA=0 is a disk with vertical orbital node (aligned along North-South)
+    x_m, y_m = np.meshgrid((x - Dx) / np.cos(inc), (y - Dy))
+
+    R_m = np.hypot(x_m, y_m)
+    # R_m = np.sqrt(x_m ** 2. + y_m ** 2.)
+
+    return x, y, x_m, y_m, R_m
 
 
 def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
