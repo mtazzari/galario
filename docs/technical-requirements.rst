@@ -4,7 +4,10 @@ Technical requirements
 
 In this page we summarize the assumptions that are made in |galario| and the requirements on the input quantities.
 
-Full details are presented in Section 3 of Tazzari, Beaujean and Testi (2018) MNRAS **476** 4527 `[MNRAS] <https://doi.org/10.1093/mnras/sty409>`_ `[arXiv] <https://arxiv.org/abs/1709.06999>`_ `[ADS] <http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T>`_.
+Full details are presented in Section 3 of Tazzari, Beaujean and Testi (2018) MNRAS **476** 4527
+`[MNRAS] <https://doi.org/10.1093/mnras/sty409>`_
+`[arXiv] <https://arxiv.org/abs/1709.06999>`_
+`[ADS] <http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T>`_.
 
 ..    Assumptions
     - **small-field imaging** the first release of |galario| computes visibilities,
@@ -56,14 +59,15 @@ Full details are presented in Section 3 of Tazzari, Beaujean and Testi (2018) MN
     in the field of view), the limitations due to the assumptions (i) to (iii) apply:
     all the sources must be located in a region that is close to the phase centre
     and small compared to $\theta_{\mathrm{F}}$ and the synthetic visibilities are
-computed in a narrow band around the observing frequency $\nu_0$.
+    computed in a narrow band around the observing frequency $\nu_0$.
 
 Image specifications
 --------------------
 Following the Figure below, there are two fundamental coordinate systems that define the input image for the
 :func:`sampleImage() <galario.double.sampleImage>` and :func:`chi2Image() <galario.double.chi2Image>` functions:
 
-    - the **matrix axes** :math:`[i, j]` mapping the pixel coordinates, running from `0` to `Nxy-1` (`Nxy` is the number of pixels on each axis).
+    - the **matrix axes** :math:`[i, j]` mapping the pixel coordinates, running from `0` to `Nxy-1` (`Nxy` is the number
+      of pixels on each axis).
 
     - the **physical axes** :math:`(R.A., Dec.)` mapping Right Ascension and Declination coordinates.
 
@@ -72,11 +76,18 @@ By default |galario| assumes the origin is in the **upper left** corner of the m
 lower corner by specifying the optional parameter `origin='lower'` in the :func:`sampleImage() <galario.double.sampleImage>`
 and :func:`chi2Image() <galario.double.chi2Image>` functions.
 
-The origin `(R.A., Dec.) = (0, 0)` of the physical axes is always in the center of the `[Nxy/2, Nxy/2]` pixel (gray pixel in Fig. below)
-for any value of `origin`.
+The origin `(R.A., Dec.) = (0, 0)` of the physical axes is always in the center of the `[Nxy/2, Nxy/2]` pixel
+(grey pixel in the Figure below) for any value of `origin`.
 
-The left and right panels of the Figure below show the relative orientations of the matrix and the physical axes
-for the `origin='lower'` and `origin='lower'` cases, respectively.
+.. warning::
+
+    |galario| assumes that the values of the input image are defined in the **pixel centers**.
+
+    For instructions on how to compute the :math:`(R.A., Dec.)` coordinate meshgrid to create the image,
+    see the :ref:`Cookbook <cookbook_meshgrid>`.
+
+The left and right panels of the Figure below show the relative orientations of matrix and physical axes
+for the `origin='upper'` and `origin='lower'` cases, respectively (click on the images for a larger version).
 
     +------------------------------------------------------+-------------------------------------------------------+
     |.. image:: images/galario_image_origin_upper.png      | .. image:: images/galario_image_origin_lower.png      |
