@@ -105,10 +105,12 @@ def _cleanup():
 
 
 def set_v_origin(origin):
-    """ Sets the Dec (v) axis orientation from given origin """
+    """ Sets the Dec (v) axis orientation given the matrix origin """
     if origin == 'upper':
+        # origin [0, 0] in the upper left pixel
         return 1.
     elif origin == 'lower':
+        # origin [0, 0] in the lower left pixel
         return -1.
     else:
         raise AssertionError("Expect origin='upper' or 'lower', got {}".format(origin))
@@ -224,7 +226,7 @@ def check_image_size(u, v, nxy, dxy, duv, PB=0, verbose=False):
 
     Typical call signature::
 
-        check_image_size(u, v, nxy, dxy, PB=0, verbose=False)
+        check_image_size(u, v, nxy, dxy, duv, PB=0, verbose=False)
 
     Parameters
     ----------
@@ -238,6 +240,9 @@ def check_image_size(u, v, nxy, dxy, duv, PB=0, verbose=False):
     nxy : int
         Size of the image along x and y direction.
         **units**: pixel
+    dxy : float
+        Size of the image cell, assumed equal in both x and y direction.
+        **units**: rad
     duv : float
         Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
         **units**: wavelength
@@ -289,7 +294,7 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, f_min=5., f_max=2.5, verbose=False)
+        nxy, dxy = get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False)
 
     Parameters
     ----------
@@ -373,7 +378,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
     Typical call signature::
 
-        vis = sampleImage(image, dxy, u, v, dRA=0, dDec=0, PA=0, check=False)
+        vis = sampleImage(image, dxy, u, v, dRA=0, dDec=0, PA=0, check=False, origin='upper')
 
     Parameters
     ----------
@@ -383,6 +388,9 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         and the y-axis (Dec.) increases from bottom (South) to top (North).
         `nxy` must be even.
         **units**: Jy/pixel
+    dxy : float
+        Size of the image cell, assumed equal in both x and y direction.
+        **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
         **units**: wavelength
@@ -390,9 +398,6 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
         **units**: wavelength
-    dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
-        **units**: rad
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
@@ -471,7 +476,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
         Side of the square model image, which is internally computed.
         **units**: pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
@@ -543,7 +548,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     Typical call signature::
 
         chi2 = chi2Image(image, dxy, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
-                         dRA=0, dDec=0, PA=0, check=False)
+                         dRA=0, dDec=0, PA=0, check=False, origin='upper')
 
     Parameters
     ----------
@@ -554,7 +559,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         `nxy` must be even.
         **units**: Jy/pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
@@ -660,7 +665,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         Side of the square model image, which is internally computed.
         **units**: pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
@@ -815,7 +820,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
         Side of the square model image.
         **units**: pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
