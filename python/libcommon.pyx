@@ -103,6 +103,16 @@ def _cleanup():
     cpp.cleanup()
 
 
+def set_v_origin(origin):
+    """ Sets the Dec (v) axis orientation from given origin """
+    if origin == 'upper':
+        return 1.
+    elif origin == 'lower':
+        return -1.
+    else:
+        raise AssertionError("Expect origin='upper' or 'lower', got {}".format(origin))
+
+
 # ############################################################################ #
 #                                                                              #
 #                            GPU HELPER FUNCTIONS                              #
@@ -353,7 +363,7 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
 # ############################################################################ #
 
 def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., check=False):
+                dRA=0., dDec=0., PA=0., check=False, origin='upper'):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -399,6 +409,12 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Additionally check that the (u, v) points fall in the image to avoid
         segmentation violations. Default is False since the check might take
         time. For executions where speed is important, set to False.
+    origin : [‘upper’ | ‘lower’], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the online docs.
 
     Returns
     -------
@@ -415,7 +431,8 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         check_image_size(u, v, nxy, dxy, duv)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
-    cpp._sample_image(nxy, nxy, <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+    v_origin = set_v_origin(origin)
+    cpp._sample_image(nxy, nxy, <void*>&image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
     return vis
 
@@ -509,7 +526,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
 def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
               dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-              dRA=0., dDec=0., PA=0., check=False):
+              dRA=0., dDec=0., PA=0., check=False, origin='upper'):
     """
     Compute the chi square of a model image given the observed visibilities.
 
@@ -573,6 +590,12 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Additionally check that the (u, v) points fall in the image to avoid
         segmentation violations. Default is False since the check might take
         time. For executions where speed is important, set to False.
+    origin : [‘upper’ | ‘lower’], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the online docs.
 
     Returns
     -------
@@ -592,7 +615,9 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     if check:
         check_image_size(u, v, nxy, dxy, duv)
 
-    return cpp._chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
+    v_origin = set_v_origin(origin)
+
+    return cpp._chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
@@ -806,13 +831,13 @@ def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
     return dRArot, dDecrot, urot, vrot
 
 
-def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
+def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v, origin='upper'):
     """
     Interpolate the R2C Fourier transform of a model image in (u, v) locations.
 
     Typical call signature::
 
-        vis = interpolate(r2cFT, duv, u, v)
+        vis = interpolate(r2cFT, duv, u, v, origin='upper')
 
     Parameters
     ----------
@@ -828,6 +853,12 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
         v coordinate of the visibility points where `r2cFT` has to be sampled.
         The length of `v` must be equal to the length of `u`.
         **units**: wavelength
+    origin : [‘upper’ | ‘lower’], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the online docs.
 
     Returns
     -------
@@ -837,8 +868,9 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
 
     """
     vis = np.empty(len(u), dtype=complex_dtype, order='C')
+    v_origin = set_v_origin(origin)
 
-    cpp._interpolate(r2cFT.shape[0], r2cFT.shape[1], <void*>&r2cFT[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(vis))
+    cpp._interpolate(r2cFT.shape[0], r2cFT.shape[1], <void*>&r2cFT[0,0], v_origin, len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(vis))
 
     return vis
 
