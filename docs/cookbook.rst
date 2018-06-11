@@ -119,3 +119,46 @@ where `N` is the square root of the number of threads for block to be used. By d
 
 This is an advanced feature, for most cases the default value should be sufficient. More details are given in the
 documentation of :func:`threads() <galario.double.threads>`.
+
+
+.. _cookbook_meshgrid:
+
+Computing the meshgrid for the image creation
+---------------------------------------------
+To obtain an image it is often useful to compute a coordinate meshgrid on which a brightness function can be evaluated.
+
+Conceptually, to compute a brightness image it is necessary to perform a pixel by pixel `for` loop over the `x` (R.A.) and `y` (Dec.) axes
+and evaluate the brightness in every pixel. However, `for` loops are particularly slow in Python and a faster solution is offered
+by coordinate meshgrids that contain the :math:`[x_i, x_j]` pixel centers that can be passed in input to a brightness function.
+Further details about the definition of meshgrid can be found in the documentation of the `numpy.meshgrid` function.
+
+|galario| makes the computation of meshgrids easy with the :func:`get_coords_meshgrid() <galario.double.get_coords_meshgrid>` function that
+provides meshgrids given the matrix size, the pixel angular size, and other optional parameters such as
+R.A. and Dec. offsets, inclination, and matrix origin, e.g.:
+
+.. code-block:: python
+
+   from galario.double import get_coords_meshgrid, arcsec
+
+   nrow, ncol = nxy, nxy   # number of rows and columns (here for a square matrix)
+   dxy = 1e-3*arcsec       # pixel size (rad)
+   inc = 30.*deg           # inclination (rad)
+   Dx = -1.*arcsec         # R.A. offset (negative, therefore to the West)
+   Dy = 0.5*arcsec         # Dec. offset (positive, therefore to the North)
+
+   x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, Dx=Dx, Dy=Dy, origin='lower')
+
+
+The returned `x` and `y` arrays contain the R.A., Dec. coordinate axes, `x_m` and `y_m` the :math:`[x_i, x_j]` meshgrid, and `R_m` the radial
+meshgrid, which is often the only needed quantity for axisymmetric brightness functions.
+
+For an axisymmetric brightness `f(R)`, once the meshgrid is computed, the image and its visibilities can be computed as easily as :
+
+.. code-block:: python
+
+   from galario.double import sampleImage, chi2Image
+
+   image = f(R_m)
+
+   vis = sampleImage(image, ...)  or # chi2 = chi2Image(image, ...)
+

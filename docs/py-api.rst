@@ -53,6 +53,7 @@ Other useful functions
 .. autofunction:: galario.double.threads
 .. autofunction:: galario.double.get_image_size
 .. autofunction:: galario.double.check_image_size
+.. autofunction:: galario.double.get_coords_meshgrid
 .. autofunction:: galario.double.sweep
 .. autofunction:: galario.double.apply_phase_vis
 .. autofunction:: galario.double.reduce_chi2
