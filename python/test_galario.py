@@ -400,23 +400,22 @@ def test_image_origin(nsamples, real_type, rtol, acc_lib):
     image_asym2[np.where(image_asym2 < 1e-10)] = 0.
 
     # Compute visibilities of ORIGINAL image with CURRENT GALARIO algorithm (only: origin='upper')
-    old = acc_lib.sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10.)
+    vis_C_upper_image_upper = acc_lib.sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10.)
 
     # Compute visibilities of ORIGINAL image with NEW algorithm, origin='upper'
-    new2 = py_sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='upper')
+    vis_py_upper_image_upper = py_sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='upper')
 
     # Compute visibilities of LOWER ORIGIN image with NEW algorithm, origin='lower'
-    new = py_sampleImage(np.roll(np.flipud(image_asym), 1, 0), dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
+    vis_py_lower_image_lower = py_sampleImage(image_asym2, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
 
-    # Compute visibilities of LOWER ORIGIN image with NEW algorithm, origin='lower'
-    new3 = py_sampleImage(image_asym2, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
+    # Compute with C implementation
+    vis_C_lower_image_lower = acc_lib.sampleImage(image_asym2, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
 
-    # check that they are the same visibilities
-    assert_allclose(new3, old, atol=0., rtol=rtol*1e3)
-
-    assert_allclose(new, old, atol=0., rtol=rtol)
-    assert_allclose(new2, old, atol=0., rtol=rtol)
-    assert_allclose(new2, old, atol=0., rtol=rtol)
+    # check that they produce all the same visibilities
+    assert_allclose(vis_py_upper_image_upper, vis_C_lower_image_lower, atol=0., rtol=rtol)
+    assert_allclose(vis_py_upper_image_upper, vis_C_upper_image_upper, atol=0., rtol=rtol)
+    assert_allclose(vis_py_lower_image_lower, vis_C_upper_image_upper, atol=0., rtol=rtol)
+    assert_allclose(vis_C_lower_image_lower, vis_C_upper_image_upper, atol=0., rtol=rtol)
 
 
 
