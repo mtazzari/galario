@@ -106,10 +106,10 @@ Contents
     Setup <install>
     Basic Usage <basic_usage>
     Getting Started <quickstart>
+    Technical requirements <technical-requirements.rst>
     Cookbook <cookbook>
     Python API <py-api>
     C++ API <C++-api>
     C++ Example <C++-example>
     Publications <publications>
     License <license>
-
