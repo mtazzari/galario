@@ -608,3 +608,32 @@ def test_exception():
 
     with pytest.raises(ValueError, message="Odd image lengths are not permitted"):
         g_double._fft2d(np.ones((9, 9), dtype=np.float64))
+
+
+@pytest.mark.parametrize("nxy, inc, dxy, Dx, Dy, real_type, tol, acc_lib",
+                         [(1000, 20., 2e-3, -2., 0., 'float32', 1.e-6, g_single),
+                          (1000, 33.4, 1e-8, 0.23, -1.23, 'float64', 1.e-15, g_double)],
+                         ids=["SP", "DP"])
+def test_get_coords_meshgrid(nxy, inc, dxy, Dx, Dy, real_type, tol, acc_lib):
+
+    ncol, nrow = nxy, nxy
+
+    # create the referencemesh grid
+    inc_cos = np.cos(inc)
+    x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol, dtype=real_type)) * dxy * ncol
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow, dtype=real_type)) * dxy * nrow
+
+    # we shrink the x axis, since PA is the angle East of North of the
+    # the plane of the disk (orthogonal to the angular momentum axis)
+    # PA=0 is a disk with vertical orbital node (aligned along North-South)
+    x_m, y_m = np.meshgrid((x - Dx)/ inc_cos, y - Dy)
+    R_m = np.sqrt(x_m ** 2. + y_m ** 2.)
+
+    x_test, y_test, x_m_test, y_m_test, R_m_test = acc_lib.get_coords_meshgrid(nrow, ncol, dxy, inc, Dx=Dx, Dy=Dy, origin='upper')
+
+    assert_allclose(x, x_test, atol=0, rtol=tol)
+    assert_allclose(y, y_test, atol=0, rtol=tol)
+    assert_allclose(x_m, x_m_test, atol=0, rtol=tol)
+    assert_allclose(y_m, y_m_test, atol=0, rtol=tol)
+    assert_allclose(R_m, R_m_test, atol=0, rtol=tol)
+

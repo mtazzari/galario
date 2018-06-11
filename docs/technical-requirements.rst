@@ -62,16 +62,17 @@ Image specifications
 --------------------
 Following the Figure below, there are two fundamental coordinate systems that define the input image for the
 :func:`sampleImage() <galario.double.sampleImage>` and :func:`chi2Image() <galario.double.chi2Image>` functions:
-    - the **matrix axes** :math:`[i, j]` that map the pixel coordinates, running from `0` to `Nxy-1` (`Nxy` is the number of pixels on each axis).
 
-    - the **physical axes** :math:`(R.A., Dec.)` that map Right Ascension and Declination.
+    - the **matrix axes** :math:`[i, j]` mapping the pixel coordinates, running from `0` to `Nxy-1` (`Nxy` is the number of pixels on each axis).
 
-The origin `[i, j] = [0, 0]` can be either in the **upper left** or in the **lower left** corner of the matrix.
-By default |galario| assumes the origin is in the upper left corner of the matrix, but this can be changed to the
-lower corner with the optional parameter `origin='lower'` in the :func:`sampleImage() <galario.double.sampleImage>`
+    - the **physical axes** :math:`(R.A., Dec.)` mapping Right Ascension and Declination coordinates.
+
+The origin `[i, j] = [0, 0]` can be put either in the **upper left** or in the **lower left** corner of the matrix.
+By default |galario| assumes the origin is in the **upper left** corner of the matrix, but it can be changed to the
+lower corner by specifying the optional parameter `origin='lower'` in the :func:`sampleImage() <galario.double.sampleImage>`
 and :func:`chi2Image() <galario.double.chi2Image>` functions.
 
-The origin `(R.A., Dec.) = (0, 0)` of the physical axes is always in the `[Nxy/2, Nxy/2]` pixel (gray pixel in Fig. below)
+The origin `(R.A., Dec.) = (0, 0)` of the physical axes is always in the center of the `[Nxy/2, Nxy/2]` pixel (gray pixel in Fig. below)
 for any value of `origin`.
 
 The left and right panels of the Figure below show the relative orientations of the matrix and the physical axes
