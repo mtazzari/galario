@@ -78,9 +78,9 @@ The left and right panels of the Figure below show the relative orientations of 
 for the `origin='lower'` and `origin='lower'` cases, respectively.
 
     +------------------------------------------------------+-------------------------------------------------------+
-    |.. image:: images/galario_image_origin_lower.pdf      | .. image:: images/galario_image_origin_upper.pdf      |
-    |  :width:  600 px                                     |     :width:  600 px                                   |
-    |  :alt: sketch origin lower                           |     :alt: sketch origin upper                         |
+    |.. image:: images/galario_image_origin_upper.png      | .. image:: images/galario_image_origin_lower.png      |
+    |  :width:  700 px                                     |     :width: 700 px                                    |
+    |  :alt: sketch origin upper                           |     :alt: sketch origin lower                         |
     +------------------------------------------------------+-------------------------------------------------------+
 
 .. note::
