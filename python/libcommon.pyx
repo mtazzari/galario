@@ -409,7 +409,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Additionally check that the (u, v) points fall in the image to avoid
         segmentation violations. Default is False since the check might take
         time. For executions where speed is important, set to False.
-    origin : [‘upper’ | ‘lower’], optional
+    origin : ['upper' | 'lower'], optional
         Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
         It follows the same convention as in matplotlib `matshow` and `imshow` commands.
         Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
@@ -590,7 +590,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Additionally check that the (u, v) points fall in the image to avoid
         segmentation violations. Default is False since the check might take
         time. For executions where speed is important, set to False.
-    origin : [‘upper’ | ‘lower’], optional
+    origin : ['upper' | 'lower'], optional
         Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
         It follows the same convention as in matplotlib `matshow` and `imshow` commands.
         Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
@@ -853,7 +853,7 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v, origin='
         v coordinate of the visibility points where `r2cFT` has to be sampled.
         The length of `v` must be equal to the length of `u`.
         **units**: wavelength
-    origin : [‘upper’ | ‘lower’], optional
+    origin : ['upper' | 'lower'], optional
         Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
         It follows the same convention as in matplotlib `matshow` and `imshow` commands.
         Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.

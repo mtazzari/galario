@@ -276,7 +276,7 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
         **units**: rad
     dtype_image : optional, str
         numpy dtype specification for the output image.
-    origin: [‘upper’ | ‘lower’], optional, default: 'upper'
+    origin: ['upper' | 'lower'], optional, default: 'upper'
         Set the [0,0] index of the array in the upper left or lower left corner of the axes.
 
     Returns
