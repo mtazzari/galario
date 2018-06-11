@@ -127,6 +127,8 @@ Computing the meshgrid for the image creation
 ---------------------------------------------
 To obtain an image it is often useful to compute a coordinate meshgrid on which a brightness function can be evaluated.
 
+In this recipe we will adopt definitions as described in the :ref:`image specifications <technical_requirements_image_specs>`.
+
 Conceptually, to compute a brightness image it is necessary to perform a pixel by pixel `for` loop over the `x` (R.A.) and `y` (Dec.) axes
 and evaluate the brightness in every pixel. However, `for` loops are particularly slow in Python and a faster solution is offered
 by coordinate meshgrids that contain the :math:`[x_i, x_j]` pixel centers that can be passed in input to a brightness function.

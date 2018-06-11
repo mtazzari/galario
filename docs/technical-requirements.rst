@@ -61,6 +61,8 @@ Full details are presented in Section 3 of Tazzari, Beaujean and Testi (2018) MN
     and small compared to $\theta_{\mathrm{F}}$ and the synthetic visibilities are
     computed in a narrow band around the observing frequency $\nu_0$.
 
+.. _technical_requirements_image_specs:
+
 Image specifications
 --------------------
 Following the Figure below, there are two fundamental coordinate systems that define the input image for the
