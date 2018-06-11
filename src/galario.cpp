@@ -798,7 +798,7 @@ inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex 
 }
 
 #ifdef __CUDACC__
-__global__ void interpolate_d(int const nrow, int const ncol, const dcomplex* const __restrict__ data, int const nd, const dreal* const u, const dreal* const v, dreal const duv, dcomplex* const __restrict__ fint)
+__global__ void interpolate_d(int const nrow, int const ncol, const dcomplex* const __restrict__ data, dreal const v_origin, int const nd, const dreal* const u, const dreal* const v, dreal const duv, dcomplex* const __restrict__ fint)
 {
     //index
     int const idx_0 = blockDim.x * blockIdx.x + threadIdx.x;
@@ -807,7 +807,7 @@ __global__ void interpolate_d(int const nrow, int const ncol, const dcomplex* co
     int const sx = blockDim.x * gridDim.x;
 
     for (auto idx = idx_0; idx < nd; idx += sx) {
-        fint[idx] = interpolate_core(nrow, ncol, data,  u[idx], v[idx], duv);
+        fint[idx] = interpolate_core(nrow, ncol, data, v_origin, u[idx], v[idx], duv);
     }
 }
 #else
