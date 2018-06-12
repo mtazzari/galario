@@ -154,6 +154,8 @@ R.A. and Dec. offsets, inclination, and matrix origin, e.g.:
 The returned `x` and `y` arrays contain the R.A., Dec. coordinate axes, `x_m` and `y_m` the :math:`[x_i, x_j]` meshgrid, and `R_m` the radial
 meshgrid, which is often the only needed quantity for axisymmetric brightness functions.
 
+The returned arrays are in radians, the same units of `dxy`. To obtain just the pixel mapping set `dxy=1.`.
+
 For an axisymmetric brightness `f(R)`, once the meshgrid is computed, the image and its visibilities can be computed as easily as :
 
 .. code-block:: python
