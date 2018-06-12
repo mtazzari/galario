@@ -1238,7 +1238,7 @@ void _sweep(int nr, void *intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, d
 }
 
 #ifdef __CUDACC__
-inline void sample_d(int nx, int ny, dcomplex* data_d, dreal v_origin, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint_d)
+inline void sample_d(int nx, int ny, dcomplex* data_d, const dreal v_origin, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint_d)
 {
     GPUTimer t_start;
 
@@ -1304,7 +1304,7 @@ inline void sample_d(int nx, int ny, dcomplex* data_d, dreal v_origin, dreal dRA
 }
 #else
 
-void sample_h(int nx, int ny, dcomplex* data, dreal v_origin, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint) {
+void sample_h(int nx, int ny, dcomplex* data, const dreal v_origin, dreal dRA, dreal dDec, int nd, dreal duv, const dreal PA, const dreal* u, const dreal* v, dcomplex* fint) {
     CPUTimer t_start;
 
     int const ncol = ny/2+1;
