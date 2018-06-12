@@ -420,7 +420,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         It follows the same convention as in matplotlib `matshow` and `imshow` commands.
         Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
         The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
-        For more details see the online docs.
+        For more details see the Technical Requirements page in the online docs.
 
     Returns
     -------
@@ -601,7 +601,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         It follows the same convention as in matplotlib `matshow` and `imshow` commands.
         Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
         The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
-        For more details see the online docs.
+        For more details see the Technical Requirements page in the online docs.
 
     Returns
     -------
@@ -759,7 +759,7 @@ def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'
         It follows the same convention as in matplotlib `matshow` and `imshow` commands.
         Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
         The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
-        For more details see the online docs.
+        For more details see the Technical Requirements page in the online docs.
 
     Returns
     -------
@@ -927,7 +927,7 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v, origin='
         It follows the same convention as in matplotlib `matshow` and `imshow` commands.
         Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
         The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
-        For more details see the online docs.
+        For more details see the Technical Requirements page in the online docs.
 
     Returns
     -------
