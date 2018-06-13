@@ -1,8 +1,42 @@
+#####################################################################################
+# This file is part of GALARIO.                                                     #
+#                                                                                   #
+# GALARIO - Gpu Accelerated Library for Analysing Radio Interferometer Observations #
+# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.        #
+#                                                                                   #
+# This program is free software: you can redistribute it and/or modify              #
+# it under the terms of the Lesser GNU General Public License as published by       #
+# the Free Software Foundation, either version 3 of the License, or                 #
+# (at your option) any later version.                                               #
+#                                                                                   #
+# This program is distributed in the hope that it will be useful,                   #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of                    #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                              #
+#                                                                                   #
+# For more details see the LICENSE file.                                            #
+# For documentation see https://mtazzari.github.io/galario/                         #
+#####################################################################################
+
 # C++ 11 support http://stackoverflow.com/questions/37621342/ for cmake >= 2.8
-# these options are understood by both gcc and nvcc
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+  set(min_gcc 4.8.1)
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${min_gcc})
+    message(FATAL_ERROR "${PROJECT_NAME} requires g++ >= ${min_gcc} for C++11 support.")
+  endif()
+elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  set(min_clang 3.3)
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${min_clang})
+    message(FATAL_ERROR "${PROJECT_NAME} requires clang++ >= ${min_clang} for C++11 support.")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  endif()
+else()
+  message(FATAL_ERROR "Your compiler is not supported for lack of complete C++11 support")
+endif()
+
+# these options are understood by both gcc and nvcc. The latter takes into account ${CMAKE_CXX_FLAGS}
 set(cxx_std "-std=c++11")
 set(CMAKE_CXX_FLAGS "${cxx_std} ${CMAKE_CXX_FLAGS}")
-set(CMAKE_C_FLAGS "-std=c99 ${CMAKE_C_FLAGS}")
 
 # these need to be wrapped in -Xcompiler for nvcc
 # use strict-aliasing because all input arrays to functions must not alias for correctness
@@ -102,11 +136,9 @@ install(FILES galario.h galario_py.h galario_defs.h DESTINATION include)
 ###
 # testing
 ###
-add_executable(galario_test_c galario_test.c)
-add_test(c_compile_test galario_test_c)
 add_executable(galario_test_cpp galario_test.cpp)
 add_test(cpp_compile_test galario_test_cpp)
 
-foreach(t IN ITEMS galario_test_c galario_test_cpp)
+foreach(t IN ITEMS galario_test_cpp)
   target_link_libraries(${t} galario ${FFTW3_LIBRARIES})
 endforeach()

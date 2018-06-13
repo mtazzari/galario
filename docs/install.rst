@@ -13,13 +13,12 @@ Installing via conda
 By far the easiest way to install |galario| is via `conda <https://conda.io>`_.
 If you are new to `conda`, you may want to start with the minimal `miniconda
 <https://repo.continuum.io/miniconda/>`_. With `conda` all dependencies are
-installed automatically and you get access to |galario|'s C/C++ and python
+installed automatically and you get access to |galario|'s C++ core and python
 bindings, both with support for multithreading.
 
 .. code-block:: bash
 
-   conda config --add channels conda-forge
-   conda install galario
+   conda install -c conda-forge galario
 
 Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build |galario| by hand.
@@ -30,7 +29,7 @@ Build requirements
 To compile |galario| you will need:
 
 * a working internet connection (to download 1.5 MB of an external library)
-* a C and C++ compiler such as `gcc` or `clang`. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
+* either `g++`>=4.8.1 or `clang++`>=3.3 with full support of C++11. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
 * `cmake <https://cmake.org>`_ and `make`
 * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`
 * [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_
@@ -85,13 +84,6 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
 
     If the installation fails due to permission problems, you either have to use `sudo make install`, or see the :ref:`instructions below <install_details>` to specify an alternate installation path.
 
-..        CC="/path/to/gcc" CXX="/path/to/g++" cmake -DCMAKE_PREFIX_PATH="${FFTW_HOME};${CONDA_PREFIX}" ../ && make all
-       ..
-          where typically CC="/usr/local/bin/gcc" and CXX="/usr/local/bin/g++" but may be different on your system.
-          `FFT_HOME` should contain the path to the FFTW libraries installed on your system and
-          `CONDA_PREFIX` is automatically set to the conda environment `/anaconda/envs/galario3`.
-
-
 These instructions should be sufficient in most cases, but if you have problems
 or want more fine-grained control, check out the details below. If you find
 issues or are stuck in one of these steps, consider writing us an email or
@@ -139,6 +131,8 @@ Set the C and C++ compiler
 
    # alternative
    cmake -DCMAKE_C_COMPILER=/path/to/gcc -DCMAKE_CXX_COMPILER=/path/to/g++ ..
+
+When changing the compiler, it is best to start with a fresh empty build directory.
 
 Optimization level
 ~~~~~~~~~~~~~~~~~~
@@ -333,6 +327,13 @@ To manually enable or disable checking for cuda, do
    cmake -DGALARIO_CHECK_CUDA=0 .. # don't check
    cmake -DGALARIO_CHECK_CUDA=1 .. # check
 
+If cuda is installed in a non-standard directory or you want to specify the
+exact version, you can point cmake
+
+.. code-block:: bash
+
+   cmake -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-9.1 ..
+
 Timing
 ~~~~~~
 For testing purposes, you can activate the timing features embedded in the code that produce detailed printouts to `stdout` of various
@@ -359,8 +360,8 @@ First install the build requirements with
 
 .. code-block:: bash
 
-   conda install sphinx
-   pip install sphinx_py3doc_enhanced_theme
+    conda install sphinx
+    pip install sphinx_py3doc_enhanced_theme sphinxcontrib-fulltoc
 
 within the conda environment in use. This ensures that the
 `sphinx` version matches the Python version used to compile
@@ -377,6 +378,8 @@ The |galario| library needs to be imported when building the documentation (the
 import would fail otherwise) to extract docstrings.
 
 To delete the sphinx cache in case the docs don't update as expected
+
+.. code-block:: bash
 
     rm -rf docs/_doctrees/
 

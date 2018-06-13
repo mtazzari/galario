@@ -1,1 +1,40 @@
+###############################################################################
+# This file is part of GALARIO:                                               #
+# Gpu Accelerated Library for Analysing Radio Interferometer Observations     #
+#                                                                             #
+# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
+#                                                                             #
+# This program is free software: you can redistribute it and/or modify        #
+# it under the terms of the Lesser GNU General Public License as published by #
+# the Free Software Foundation, either version 3 of the License, or           #
+# (at your option) any later version.                                         #
+#                                                                             #
+# This program is distributed in the hope that it will be useful,             #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of              #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                        #
+#                                                                             #
+# For more details see the LICENSE file.                                      #
+# For documentation see https://mtazzari.github.io/galario/                   #
+###############################################################################
+
 DEF DOUBLE_PRECISION = ${GALARIO_DOUBLE_PRECISION}
+
+# I don't understand why I have to import numpy here even it was already
+# imported in the file including this one...
+import numpy as np
+
+IF DOUBLE_PRECISION:
+    ctypedef double dreal
+    real_dtype = np.float64
+
+    ctypedef double complex dcomplex
+    complex_dtype = np.complex128
+    complex_typenum = np.NPY_COMPLEX128
+
+ELSE:
+    ctypedef float dreal
+    real_dtype = np.float32
+
+    ctypedef float complex dcomplex
+    complex_dtype = np.complex64
+    complex_typenum = np.NPY_COMPLEX64

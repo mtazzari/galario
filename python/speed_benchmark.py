@@ -1,3 +1,22 @@
+###############################################################################
+# This file is part of GALARIO:                                               #
+# Gpu Accelerated Library for Analysing Radio Interferometer Observations     #
+#                                                                             #
+# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
+#                                                                             #
+# This program is free software: you can redistribute it and/or modify        #
+# it under the terms of the Lesser GNU General Public License as published by #
+# the Free Software Foundation, either version 3 of the License, or           #
+# (at your option) any later version.                                         #
+#                                                                             #
+# This program is distributed in the hope that it will be useful,             #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of              #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                        #
+#                                                                             #
+# For more details see the LICENSE file.                                      #
+# For documentation see https://mtazzari.github.io/galario/                   #
+###############################################################################
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import (division, print_function, absolute_import,
@@ -9,7 +28,7 @@ import timeit
 
 from utils import generate_random_vis, create_reference_image, create_sampling_points
 import galario
-from galario import au, pc, cgs_to_Jy
+from galario import au, pc, cgs_to_Jy, arcsec
 from utils import *
 
 import argparse
@@ -83,9 +102,9 @@ def setup_chi2Image(nxy, nsamples):
 def setup_chi2Profile(nxy, nsamples):
 
     pars = {'wle_m': 0.00088, 'dRA': 2.3, 'dDec': 3.2, 'PA': 88.}
-    Rmin, dR, nrad, inc, profile_mode = 0.1, 1., 500, 20., 'Gauss'
-    Rmin *= au
-    dR *= au
+    Rmin, dR, nrad, inc, profile_mode = 0.001, 0.001, 2000, 20., 'Gauss'
+    Rmin *= arcsec
+    dR *= arcsec
 
     wle_m = pars['wle_m']
     dRA = pars['dRA']
@@ -100,14 +119,14 @@ def setup_chi2Profile(nxy, nsamples):
     _, _, maxuv = matrix_size(udat, vdat)
     maxuv /= wle_m
     dxy = 1 / maxuv
-
     # compute the matrix size and maxuv
     # nxy, dxy = g_double.get_image_size(udat/wle_m, vdat/wle_m)
 
     # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.)
+    intensity = radial_profile(Rmin, dR, nrad, profile_mode, dtype=options.dtype, gauss_width=150.*arcsec)
 
-    return ints, Rmin, dR, nxy, dxy, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
+    return intensity, Rmin, dR, nxy, dxy, udat/wle_m, vdat/wle_m, x.real.copy(), x.imag.copy(), w, dRA, dDec, inc, PA
+
 
 def do_timing(options, input_data, gpu=False, tpb=0, omp_num_threads=0):
     if gpu:

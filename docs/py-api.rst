@@ -9,7 +9,6 @@ Python API reference
             :members:
             :undoc-members:
 
-
 Computing synthetic visibilities
 --------------------------------
 To compute the synthetic visibilities of a model use the :func:`sampleImage() <galario.double.sampleImage>` and
@@ -30,8 +29,8 @@ To compute the synthetic visibilities of a model use the :func:`sampleImage() <g
     `dxy` for the given data has been found, `uvcheck` can be safely set to
     `False`.
 
-Computing directly the chi square
----------------------------------
+Computing chi squared directly
+-------------------------------
 To compute the :math:`\chi^2` of a model use the :func:`chi2Image() <galario.double.chi2Image>` and
 :func:`chi2Profile() <galario.double.chi2Profile>` functions.
 
@@ -56,3 +55,19 @@ Other useful functions
 .. autofunction:: galario.double.check_image_size
 .. autofunction:: galario.double.sweep
 .. autofunction:: galario.double.apply_phase_vis
+.. autofunction:: galario.double.reduce_chi2
+
+
+.. _galario_exceptions:
+
+Exceptions
+----------
+|galario|'s C++ core throws various exception. They can be distinguished by the type and the error message.
+
+================================================  =======================  ================
+**Event**                                         **C++**                  **Python**
+------------------------------------------------  -----------------------  ----------------
+Out of memory on GPU                              `std::bad_alloc`         `MemoryError`
+Invalid argument (CPU/GPU)                        `std::invalid_argument`  `ValueError`
+Miscellaneous, including out of memory (CPU/GPU)  `std::runtime_error`     `RuntimeError`
+================================================  =======================  ================

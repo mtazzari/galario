@@ -1,3 +1,22 @@
+###############################################################################
+# This file is part of GALARIO:                                               #
+# Gpu Accelerated Library for Analysing Radio Interferometer Observations     #
+#                                                                             #
+# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
+#                                                                             #
+# This program is free software: you can redistribute it and/or modify        #
+# it under the terms of the Lesser GNU General Public License as published by #
+# the Free Software Foundation, either version 3 of the License, or           #
+# (at your option) any later version.                                         #
+#                                                                             #
+# This program is distributed in the hope that it will be useful,             #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of              #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                        #
+#                                                                             #
+# For more details see the LICENSE file.                                      #
+# For documentation see https://mtazzari.github.io/galario/                   #
+###############################################################################
+
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -40,24 +59,31 @@ g_double.threads()
 ########################################################
 
 @pytest.mark.parametrize("Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type",
-                          [(0.1, 3.5, 500, 1024, 8.2, 20., 'Gauss', 'float64'),
-                           (2., 0.3, 1000, 2048, 3., 44.23, 'Cos-Gauss', 'float64'),
-                           (0.1, 3.5, 50, 256, 8.2, 20., 'Gauss', 'float64'),
-                           (0.1, 3.5, 1000, 16, 8.2, 20., 'Gauss', 'float64')],
+                          [(1e-6, 0.001, 2000, 1024, 0.2, 20., 'Gauss', 'float64'),
+                           (1e-6, 0.001, 2000, 2048, 0.2, 44.23, 'Cos-Gauss', 'float64'),
+                           (1e-6, 0.001, 2000, 2048, 0.5, 20., 'Gauss', 'float64'),
+                           (1e-6, 0.001, 2000, 1024, 0.3, 20., 'Gauss', 'float64')],
                           ids=["{}".format(i) for i in range(4)])
 def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type):
     """
     Test the image creation algorithm, `sweep`.
 
     """
+    Rmin *= arcsec
+    dR *= arcsec
+    dxy *= arcsec
+    inc = np.radians(inc)
+
     # compute radial profile
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type,  gauss_width=80)
+    intensity = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=dxy*6)
 
     nrow, ncol = nxy, nxy
 
-    image_ref = sweep_ref(ints, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
+    image_ref = sweep_ref(intensity, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
-    image_sweep_galario = g_double.sweep(ints, Rmin, dR, nxy, dxy, inc)
+    image_sweep_galario = g_double.sweep(intensity, Rmin, dR, nxy, dxy, inc)
+
+    image_prototype = g_sweep_prototype(intensity, Rmin, dR, nrow, ncol, dxy, inc, dtype_image=real_type)
 
     # uncomment for debugging
     # plot images
@@ -79,7 +105,8 @@ def test_intensity_sweep(Rmin, dR, nrad, nxy, dxy, inc, profile_mode, real_type)
     # plt.savefig("./profile_intensity_ref.pdf")
     # plt.clf()
 
-    assert_allclose(image_ref, image_sweep_galario, rtol=1.e-13, atol=1.e-12)
+    assert_allclose(image_ref, image_prototype, rtol=1.e-12, atol=0)
+    assert_allclose(image_prototype, image_sweep_galario, rtol=1.e-12, atol=0)
 
 
 @pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
@@ -150,7 +177,7 @@ def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
 def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     """
     Test the interpolation of the output FT.
-    
+
     """
     nsamples = 10000
     maxuv = 1000.
@@ -345,28 +372,26 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     _, minuv, maxuv = matrix_size(udat, vdat)
 
     dxy = 1. / maxuv # pixel size (rad)
-
     # create intensity profile and model image
-    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/2., dxy/3., 500, 20., 'Gauss', 'float64',
+    Rmin, dR, nrad, inc, profile_mode, real_type = dxy/100., dxy/10.5, 10000, 20., 'Gauss', 'float64',
     dRA *= arcsec
     dDec *= arcsec
     PA *= deg
     inc *= deg
 
-    ints = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=150.)
-    reference_image = sweep_ref(ints, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
+    intensity = radial_profile(Rmin, dR, nrad, profile_mode, dtype=real_type, gauss_width=dxy*10)
+    reference_image = sweep_ref(intensity, Rmin, dR, nxy, nxy, dxy, inc, dtype_image=real_type)
 
     # test sampleImage
     vis_py_sampleImage = py_sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
     vis_g_sampleImage = acc_lib.sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
 
-    np.testing.assert_allclose(vis_py_sampleImage.real, vis_g_sampleImage.real, rtol=rtol, atol=atol)
     assert_allclose(vis_py_sampleImage.real, vis_g_sampleImage.real, rtol=rtol, atol=atol)
     assert_allclose(vis_py_sampleImage.imag, vis_g_sampleImage.imag, rtol=rtol, atol=np.abs(np.mean(vis_g_sampleImage.real))*rtol)
 
     # test sampleProfile
-    vis_py_sampleProfile = py_sampleProfile(ints.copy(), Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
-    vis_g_sampleProfile = acc_lib.sampleProfile(ints, Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    vis_py_sampleProfile = py_sampleProfile(intensity.copy(), Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
+    vis_g_sampleProfile = acc_lib.sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, inc=inc, dRA=dRA, dDec=dDec, PA=PA)
 
     # check galario vs python implementation
     assert_allclose(vis_g_sampleProfile.real, vis_py_sampleProfile.real, rtol=rtol, atol=atol)
@@ -383,8 +408,8 @@ def test_all(nsamples, real_type, rtol, atol, acc_lib, pars):
     chi2_g_chi2Image = acc_lib.chi2Image(reference_image, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, dRA=dRA, dDec=dDec)
 
     # test chi2Profile
-    chi2_pychi2Profile = py_chi2Profile(ints, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
-    chi2_g_chi2Profile = acc_lib.chi2Profile(ints, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    chi2_pychi2Profile = py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
+    chi2_g_chi2Profile = acc_lib.chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, x.real.copy(), x.imag.copy(), w, inc=inc, dRA=dRA, dDec=dDec)
 
     # check galario vs python implementation
     assert_allclose(chi2_pychi2Profile, chi2_g_chi2Profile, rtol=rtol, atol=atol)
@@ -504,3 +529,15 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
     # assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
 
+def test_exception():
+    """
+    Make sure exceptions propagate from C++ to python
+    """
+    with pytest.raises(ValueError, message="Image can't be too small"):
+        g_double._fft2d(np.ones((1, 1), dtype=np.float64))
+
+    with pytest.raises(ValueError, message="Unequal image lengths are not permitted"):
+        g_double._fft2d(np.ones((10, 9), dtype=np.float64))
+
+    with pytest.raises(ValueError, message="Odd image lengths are not permitted"):
+        g_double._fft2d(np.ones((9, 9), dtype=np.float64))
