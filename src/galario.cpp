@@ -324,6 +324,9 @@ namespace {
         #define CMPLXCONJ cuConj
         #define CUBLASNRM2 cublasDznrm2
 
+        #define CMPLXABS cuCabs
+        #define CMPLXARG(a) atan2(cuCimag(a),cuCreal(a))
+
     #else
         #define CUFFTEXEC cufftExecR2C
         #define CUFFTTYPE CUFFT_R2C
@@ -333,6 +336,10 @@ namespace {
         #define CMPLXMUL cuCmulf
         #define CMPLXCONJ cuConjf
         #define CUBLASNRM2 cublasScnrm2
+
+        #define CMPLXABS cuCabsf
+        #define CMPLXARG(a) atan2f(cuCimagf(a),cuCrealf(a))
+
     #endif  // DOUBLE_PRECISION
 
 #else // CPU
@@ -341,6 +348,9 @@ namespace {
     #define CMPLXADD(a, b) ((a) + (b))
     #define CMPLXMUL(a, b) ((a) * (b))
     #define CMPLXCONJ conj
+
+    #define CMPLXABS abs
+    #define CMPLXARG arg
 #endif // __CUDACC__
 
 #ifdef DOUBLE_PRECISION
@@ -788,28 +798,28 @@ inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex 
     dcomplex const final_add2 = CMPLXADD(term2, term3);
     dcomplex const final_add1 = CMPLXADD(term1, final_add2);
 
-    dcomplex phaseInterp = CMPLXADD(final_add1, y0);
+    dcomplex interp_reim = CMPLXADD(final_add1, y0);
 
     if (u < 0.) {
-        phaseInterp = CMPLXCONJ(phaseInterp);
+        interp_reim = CMPLXCONJ(interp_reim);
     }
 
-    dreal angleInterp = arg(phaseInterp);
+    dreal interp_phase = CMPLXARG(interp_reim);
 
     dreal const tr = indv - fl_v;
     dreal const qr = indu - fl_u;
 
-    dreal const y0r = abs(y0);
-    dreal const y1r = abs(y1);
-    dreal const y2r = abs(y2);
-    dreal const y3r = abs(y3);
+    dreal const y0r = CMPLXABS(y0);
+    dreal const y1r = CMPLXABS(y1);
+    dreal const y2r = CMPLXABS(y2);
+    dreal const y3r = CMPLXABS(y3);
 
-    dreal ampInterp = y0r;
-    ampInterp += (y3r-y0r)*qr;
-    ampInterp += (y1r-y0r)*tr;
-    ampInterp += (y0r-y1r+y2r-y3r)*tr*qr;
+    dreal interp_amp = y0r;
+    interp_amp += (y3r-y0r)*qr;
+    interp_amp += (y1r-y0r)*tr;
+    interp_amp += (y0r-y1r+y2r-y3r)*tr*qr;
 
-    dcomplex interpolated = dcomplex{ampInterp*dreal(cos(angleInterp)), ampInterp*dreal(sin(angleInterp))};
+    dcomplex interpolated = dcomplex{interp_amp*dreal(cos(interp_phase)), interp_amp*dreal(sin(interp_phase))};
 
     return interpolated;
 }
