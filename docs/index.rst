@@ -103,6 +103,7 @@ version of |galario| used in a paper.
 Contents
 --------
 .. toctree::
+    :numbered:
     :maxdepth: 2
 
     Home <self>
