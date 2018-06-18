@@ -735,6 +735,10 @@ def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'
     All coordinates are computed in linear pixels units. To convert to angular units,
     just multiply the output by the angular pixel size.
 
+    Typical call signature::
+
+            x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, Dx=Dx, Dy=Dy, origin='lower')
+
     Parameters
     ----------
     nrow : int
@@ -743,7 +747,7 @@ def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'
         Number of columns of the image.
     dxy : float, optional
         Size of the image cell, assumed equal in both x and y direction.
-        By default is one, thus implying the output arrays are in pixel units.
+        By default is 1, thus implying the output arrays are expressed in number of pixels.
         **units**: rad
     inc : float, optional
         Inclination along the North-South axis, default is zero.
@@ -765,13 +769,13 @@ def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'
     -------
     x, y: array_like, float
         Pixel coordinates along the (R.A., Dec.) directions.
-        **units**: dxy
+        **units**: same as dxy. If dxy=1: number of pixels.
     x_m, y_m: array_like, float
         Pixel coordinate meshgrid along the (R.A., Dec.) directions.
-        **units**: dxy
+        **units**: same as dxy. If dxy=1: number of pixels.
     R_m: array_like, float
         Radial coordinate meshgrid.
-        **units**: dxy
+        **units**: same as dxy. If dxy=1: number of pixels.
 
     """
     v_origin = set_v_origin(origin)
@@ -786,7 +790,6 @@ def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'
     x_m, y_m = np.meshgrid((x - Dx) / np.cos(inc), (y - Dy))
 
     R_m = np.hypot(x_m, y_m)
-    # R_m = np.sqrt(x_m ** 2. + y_m ** 2.)
 
     return x, y, x_m, y_m, R_m
 
