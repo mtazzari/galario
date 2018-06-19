@@ -73,19 +73,21 @@ Following the Figure below, there are two fundamental coordinate systems that de
 
     - the **physical axes** :math:`(R.A., Dec.)` mapping Right Ascension and Declination coordinates.
 
-The origin `[i, j] = [0, 0]` can be put either in the **upper left** or in the **lower left** corner of the matrix.
+The origin `[i, j] = [0, 0]` of the matrix axes can be put either in the **upper left** or in the **lower left** corner of the matrix.
 By default |galario| assumes the origin is in the **upper left** corner of the matrix, but it can be changed to the
 lower corner by specifying the optional parameter `origin='lower'` in the :func:`sampleImage() <galario.double.sampleImage>`
 and :func:`chi2Image() <galario.double.chi2Image>` functions.
 
-The origin `(R.A., Dec.) = (0, 0)` of the physical axes is always in the center of the `[Nxy/2, Nxy/2]` pixel
-(grey pixel in the Figure below) for any value of `origin`.
+The origin :math:`(R.A., Dec.)=(0,0)` of the physical axes is always in the center of the `[Nxy/2, Nxy/2]` pixel
+(grey pixel in the Figure below) for any value of `origin`. The :math:`R.A.` axis always increases leftwards, following the usual convention
+of having East to the left and West to the right: therefore, the :math:`R.A.` axis always decreases with increasing `j` index.
+Note that, with `origin='upper'`, both the :math:`(R.A., Dec.)` axes **decrease** with increasing `i`, `j` index (see Figure below).
 
 .. warning::
 
-    |galario| assumes that the values of the input image are defined in the **pixel centers**.
+    |galario| assumes that the values of the input image are evaluated in the **pixel centers** (not in the pixel edges).
 
-    For instructions on how to compute the :math:`(R.A., Dec.)` coordinate meshgrid to create the image,
+    For instructions on how to compute the correct :math:`(R.A., Dec.)` coordinate meshgrid to create the image,
     see the :ref:`Cookbook <cookbook_meshgrid>`.
 
 The left and right panels of the Figure below show the relative orientations of matrix and physical axes
