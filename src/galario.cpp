@@ -755,13 +755,9 @@ inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex 
     dreal const indu = fabs(u)/duv;
     dreal indv;  // also indv is const
 
-    // could be shorter: half_nx + sign(u)*v/duv;
-    if (u < 0.) {
-        indv = half_nrow - v_origin * v/duv;
-    }
-    else {
-        indv = half_nrow + v_origin * v/duv;
-    }
+    dreal const sign_u = copysign(1., u);
+
+    indv = half_nrow + v_origin * sign_u * v / duv;
 
     // notations as in (3.6.5) of Numerical Recipes. They put the origin in the
     // lower-left.
@@ -798,13 +794,7 @@ inline dcomplex interpolate_core(int const nrow, int const ncol, const dcomplex 
     dcomplex const final_add2 = CMPLXADD(term2, term3);
     dcomplex const final_add1 = CMPLXADD(term1, final_add2);
 
-    dcomplex interp_reim = CMPLXADD(final_add1, y0);
-
-    if (u < 0.) {
-        interp_reim = CMPLXCONJ(interp_reim);
-    }
-
-    dreal interp_phase = CMPLXARG(interp_reim);
+    dreal const interp_phase = CMPLXARG(CMPLXADD(final_add1, y0)) * sign_u;
 
     dreal const tr = indv - fl_v;
     dreal const qr = indu - fl_u;
