@@ -10,6 +10,7 @@ galario
 [![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/galario/badges/latest_release_date.svg)](https://anaconda.org/conda-forge/galario)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/galario/badges/platforms.svg)](https://anaconda.org/conda-forge/galario)
+[![codecov](https://codecov.io/gh/mtazzari/galario/branch/master/graph/badge.svg)](https://codecov.io/gh/mtazzari/galario)
 
 **galario** is a library that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
 predictions to radio interferometer observations. Namely, it speeds up the computation of the synthetic visibilities
