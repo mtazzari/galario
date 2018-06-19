@@ -9,6 +9,14 @@ Python API reference
             :members:
             :undoc-members:
 
+The documentation of each function that is reported in this page can also be directly accessed from Python with, e.g.:
+
+.. code:: python
+
+    from galario.double import sampleImage
+
+    help(sampleImage)
+
 Computing synthetic visibilities
 --------------------------------
 To compute the synthetic visibilities of a model use the :func:`sampleImage() <galario.double.sampleImage>` and
