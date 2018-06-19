@@ -30,10 +30,11 @@ include "galario_config.pxi"
 cimport galario_defs as cpp
 
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
-           '_init', '_cleanup',
+           '_init', '_cleanup', 'set_v_origin',
            'ngpus', 'use_gpu', 'threads',
            'check_obs', 'check_image_size', 'get_image_size',
            'sampleImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
+           'get_coords_meshgrid',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
            '_fft2d', '_fftshift', '_fftshift_axis0']
 
@@ -101,6 +102,18 @@ def _init():
 def _cleanup():
     """ Cleans up FFTW threads """
     cpp.cleanup()
+
+
+def set_v_origin(origin):
+    """ Sets the Dec (v) axis orientation given the matrix origin """
+    if origin == 'upper':
+        # origin [0, 0] in the upper left pixel
+        return 1.
+    elif origin == 'lower':
+        # origin [0, 0] in the lower left pixel
+        return -1.
+    else:
+        raise AssertionError("Expect origin='upper' or 'lower', got {}".format(origin))
 
 
 # ############################################################################ #
@@ -213,7 +226,7 @@ def check_image_size(u, v, nxy, dxy, duv, PB=0, verbose=False):
 
     Typical call signature::
 
-        check_image_size(u, v, nxy, dxy, PB=0, verbose=False)
+        check_image_size(u, v, nxy, dxy, duv, PB=0, verbose=False)
 
     Parameters
     ----------
@@ -227,6 +240,9 @@ def check_image_size(u, v, nxy, dxy, duv, PB=0, verbose=False):
     nxy : int
         Size of the image along x and y direction.
         **units**: pixel
+    dxy : float
+        Size of the image cell, assumed equal in both x and y direction.
+        **units**: rad
     duv : float
         Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
         **units**: wavelength
@@ -278,7 +294,7 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
 
     Typical call signature::
 
-        nxy, dxy = get_image_size(u, v, f_min=5., f_max=2.5, verbose=False)
+        nxy, dxy = get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False)
 
     Parameters
     ----------
@@ -353,7 +369,7 @@ def get_image_size(u, v, PB=0, f_min=5., f_max=2.5, verbose=False):
 # ############################################################################ #
 
 def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., check=False):
+                dRA=0., dDec=0., PA=0., check=False, origin='upper'):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -362,7 +378,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
     Typical call signature::
 
-        vis = sampleImage(image, dxy, u, v, dRA=0, dDec=0, PA=0, check=False)
+        vis = sampleImage(image, dxy, u, v, dRA=0, dDec=0, PA=0, check=False, origin='upper')
 
     Parameters
     ----------
@@ -372,6 +388,9 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         and the y-axis (Dec.) increases from bottom (South) to top (North).
         `nxy` must be even.
         **units**: Jy/pixel
+    dxy : float
+        Size of the image cell, assumed equal in both x and y direction.
+        **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
         **units**: wavelength
@@ -379,9 +398,6 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         v coordinate of the visibility points where the FT has to be sampled.
         The length of v must be equal to the length of u.
         **units**: wavelength
-    dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
-        **units**: rad
     dRA : float, optional
         R.A. offset w.r.t. the phase center by which the image is translated.
         If dRA > 0 translate the image towards the left (East). Default is 0.
@@ -399,6 +415,12 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Additionally check that the (u, v) points fall in the image to avoid
         segmentation violations. Default is False since the check might take
         time. For executions where speed is important, set to False.
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the Technical Requirements page in the online docs.
 
     Returns
     -------
@@ -415,7 +437,8 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         check_image_size(u, v, nxy, dxy, duv)
 
     vis = np.zeros(len(u), dtype=complex_dtype)
-    cpp._sample_image(nxy, nxy, <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+    v_origin = set_v_origin(origin)
+    cpp._sample_image(nxy, nxy, <void*>&image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
     return vis
 
@@ -453,7 +476,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
         Side of the square model image, which is internally computed.
         **units**: pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
@@ -509,7 +532,7 @@ def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[
 
 def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
               dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
-              dRA=0., dDec=0., PA=0., check=False):
+              dRA=0., dDec=0., PA=0., check=False, origin='upper'):
     """
     Compute the chi square of a model image given the observed visibilities.
 
@@ -525,7 +548,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     Typical call signature::
 
         chi2 = chi2Image(image, dxy, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
-                         dRA=0, dDec=0, PA=0, check=False)
+                         dRA=0, dDec=0, PA=0, check=False, origin='upper')
 
     Parameters
     ----------
@@ -536,7 +559,7 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         `nxy` must be even.
         **units**: Jy/pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
@@ -573,6 +596,12 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
         Additionally check that the (u, v) points fall in the image to avoid
         segmentation violations. Default is False since the check might take
         time. For executions where speed is important, set to False.
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the Technical Requirements page in the online docs.
 
     Returns
     -------
@@ -592,7 +621,9 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     if check:
         check_image_size(u, v, nxy, dxy, duv)
 
-    return cpp._chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
+    v_origin = set_v_origin(origin)
+
+    return cpp._chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
@@ -634,7 +665,7 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
         Side of the square model image, which is internally computed.
         **units**: pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     u : array_like, float
         u coordinate of the visibility points where the FT has to be sampled.
@@ -697,6 +728,72 @@ def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::
     return cpp._chi2_profile(len(intensity), <void*> &intensity[0], Rmin, dR, dxy, nxy, inc, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
+def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'):
+    """
+    Compute the (R.A, Dec.) coordinate mesh grid to create the image.
+    (x, y) axes are the (R.A, Dec.) axes: x increases leftwards, y increases upwards.
+    All coordinates are computed in linear pixels units. To convert to angular units,
+    just multiply the output by the angular pixel size.
+
+    Typical call signature::
+
+            x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, Dx=Dx, Dy=Dy, origin='lower')
+
+    Parameters
+    ----------
+    nrow : int
+        Number of rows of the image.
+    ncol : int
+        Number of columns of the image.
+    dxy : float, optional
+        Size of the image cell, assumed equal in both x and y direction.
+        By default is 1, thus implying the output arrays are expressed in number of pixels.
+        **units**: rad
+    inc : float, optional
+        Inclination along the North-South axis, default is zero.
+        **units**: rad
+    Dx : float, optional
+        Offset along the x-axis, default is zero.
+        **units**: rad
+    Dy :  float, optional
+        Offset along the x-axis, default is zero.
+        **units**: rad
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the Technical Requirements page in the online docs.
+
+    Returns
+    -------
+    x, y: array_like, float
+        Pixel coordinates along the (R.A., Dec.) directions.
+        **units**: same as dxy. If dxy=1: number of pixels.
+    x_m, y_m: array_like, float
+        Pixel coordinate meshgrid along the (R.A., Dec.) directions.
+        **units**: same as dxy. If dxy=1: number of pixels.
+    R_m: array_like, float
+        Radial coordinate meshgrid.
+        **units**: same as dxy. If dxy=1: number of pixels.
+
+    """
+    v_origin = set_v_origin(origin)
+
+    # create the mesh grid
+    x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol, dtype=real_dtype)) * ncol * dxy
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow, dtype=real_dtype)) * nrow * dxy * v_origin
+
+    # shrink the x axis by the inclination, since PA is the angle East of North of the
+    # the plane of the disk (orthogonal to the angular momentum axis)
+    # PA=0 is a disk with vertical orbital node (aligned along North-South)
+    x_m, y_m = np.meshgrid((x - Dx) / np.cos(inc), (y - Dy))
+
+    R_m = np.hypot(x_m, y_m)
+
+    return x, y, x_m, y_m, R_m
+
+
 def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
     """
     Create a 2D model image from an axisymmetric brightness profile.
@@ -726,7 +823,7 @@ def sweep(dreal[::1] intensity, Rmin, dR, nxy, dxy, inc=0.):
         Side of the square model image.
         **units**: pixel
     dxy : float
-        Size of the image cell, assumed equal and uniform in both x and y direction.
+        Size of the image cell, assumed equal in both x and y direction.
         **units**: rad
     inc : float, optional
         Inclination of the image plane along a North-South (top-bottom) axis.
@@ -806,13 +903,13 @@ def uv_rotate(PA, dRA, dDec, dreal[::1] u, dreal[::1] v):
     return dRArot, dDecrot, urot, vrot
 
 
-def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
+def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v, origin='upper'):
     """
     Interpolate the R2C Fourier transform of a model image in (u, v) locations.
 
     Typical call signature::
 
-        vis = interpolate(r2cFT, duv, u, v)
+        vis = interpolate(r2cFT, duv, u, v, origin='upper')
 
     Parameters
     ----------
@@ -828,6 +925,12 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
         v coordinate of the visibility points where `r2cFT` has to be sampled.
         The length of `v` must be equal to the length of `u`.
         **units**: wavelength
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the Technical Requirements page in the online docs.
 
     Returns
     -------
@@ -837,8 +940,9 @@ def interpolate(dcomplex[:,::1] r2cFT, duv, dreal[::1] u, dreal[::1] v):
 
     """
     vis = np.empty(len(u), dtype=complex_dtype, order='C')
+    v_origin = set_v_origin(origin)
 
-    cpp._interpolate(r2cFT.shape[0], r2cFT.shape[1], <void*>&r2cFT[0,0], len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(vis))
+    cpp._interpolate(r2cFT.shape[0], r2cFT.shape[1], <void*>&r2cFT[0,0], v_origin, len(u), <void*>&u[0], <void*>&v[0], duv, <void*>np.PyArray_DATA(vis))
 
     return vis
 

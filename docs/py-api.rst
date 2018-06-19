@@ -9,6 +9,14 @@ Python API reference
             :members:
             :undoc-members:
 
+The documentation of each function that is reported in this page can also be directly accessed from Python with, e.g.:
+
+.. code:: python
+
+    from galario.double import sampleImage
+
+    help(sampleImage)
+
 Computing synthetic visibilities
 --------------------------------
 To compute the synthetic visibilities of a model use the :func:`sampleImage() <galario.double.sampleImage>` and
@@ -53,6 +61,7 @@ Other useful functions
 .. autofunction:: galario.double.threads
 .. autofunction:: galario.double.get_image_size
 .. autofunction:: galario.double.check_image_size
+.. autofunction:: galario.double.get_coords_meshgrid
 .. autofunction:: galario.double.sweep
 .. autofunction:: galario.double.apply_phase_vis
 .. autofunction:: galario.double.reduce_chi2
