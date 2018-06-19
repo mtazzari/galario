@@ -1,8 +1,8 @@
-======================
-Technical requirements
-======================
+========================
+Technical specifications
+========================
 
-In this page we summarize the assumptions that are made in |galario| and the requirements on the input quantities.
+In this page we summarize the assumptions that are made in |galario| and the specifications for the input quantities.
 
 Full details are presented in Section 3 of Tazzari, Beaujean and Testi (2018) MNRAS **476** 4527
 `[MNRAS] <https://doi.org/10.1093/mnras/sty409>`_
