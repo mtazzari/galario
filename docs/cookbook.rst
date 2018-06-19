@@ -165,15 +165,15 @@ and matrix origin, e.g.:
 
 .. code-block:: python
 
-   from galario.double import get_coords_meshgrid, arcsec
+    from galario.double import get_coords_meshgrid, arcsec
 
-   nrow, ncol = nxy, nxy   # number of rows and columns (here for a square matrix)
-   dxy = 1e-3*arcsec       # pixel size (rad)
-   inc = 30.*deg           # inclination (rad)
-   Dx = -1.*arcsec         # R.A. offset (negative, therefore to the West)
-   Dy = 0.5*arcsec         # Dec. offset (positive, therefore to the North)
+    nrow, ncol = nxy, nxy   # number of rows and columns (here for a square matrix)
+    dxy = 1e-3*arcsec       # pixel size (rad)
+    inc = 30.*deg           # inclination (rad)
+    Dx = -1.*arcsec         # R.A. offset (negative, therefore to the West)
+    Dy = 0.5*arcsec         # Dec. offset (positive, therefore to the North)
 
-   x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, Dx=Dx, Dy=Dy, origin='lower')
+    x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, Dx=Dx, Dy=Dy, origin='lower')
 
 The returned arrays are in radians, the same units of `dxy`. To obtain :math:`(R.A., Dec.)` in pixel units leave `dxy=1` (the default value).
 
@@ -181,9 +181,9 @@ For an axisymmetric brightness :math:`f(R)`, once the meshgrid is computed, the 
 
 .. code-block:: python
 
-   from galario.double import sampleImage, chi2Image
+    from galario.double import sampleImage, chi2Image
 
-   image = f(R_m)
+    image = f(R_m)
 
-   vis = sampleImage(image, ...)  or # chi2 = chi2Image(image, ...)
+    vis = sampleImage(image, ...)  or # chi2 = chi2Image(image, ...)
 
