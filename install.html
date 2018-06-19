@@ -4,11 +4,11 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>How to build and install galario &#8212; galario 1.1 documentation</title>
+    <title>1. How to build and install galario &#8212; galario 1.1 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -16,7 +16,7 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Basic Usage" href="basic_usage.html" />
+    <link rel="next" title="2. Basic Usage" href="basic_usage.html" />
     <link rel="prev" title="galario 1.1" href="index.html" />
 
     
@@ -60,13 +60,13 @@
           <div class="body" role="main">
             
   <div class="section" id="how-to-build-and-install-galario">
-<h1>How to build and install <strong>galario</strong><a class="headerlink" href="#how-to-build-and-install-galario" title="Permalink to this headline">¶</a></h1>
+<h1>1. How to build and install <strong>galario</strong><a class="headerlink" href="#how-to-build-and-install-galario" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="operating-system">
-<h2>Operating system<a class="headerlink" href="#operating-system" title="Permalink to this headline">¶</a></h2>
+<h2>1.1. Operating system<a class="headerlink" href="#operating-system" title="Permalink to this headline">¶</a></h2>
 <p><strong>galario</strong> runs on Linux and Mac OS X. Windows is not supported.</p>
 </div>
 <div class="section" id="installing-via-conda">
-<h2>Installing via conda<a class="headerlink" href="#installing-via-conda" title="Permalink to this headline">¶</a></h2>
+<h2>1.2. Installing via conda<a class="headerlink" href="#installing-via-conda" title="Permalink to this headline">¶</a></h2>
 <p>By far the easiest way to install <strong>galario</strong> is via <a class="reference external" href="https://conda.io">conda</a>.
 If you are new to <code class="code docutils literal notranslate"><span class="pre">conda</span></code>, you may want to start with the minimal <a class="reference external" href="https://repo.continuum.io/miniconda/">miniconda</a>. With <code class="code docutils literal notranslate"><span class="pre">conda</span></code> all dependencies are
 installed automatically and you get access to <strong>galario</strong>’s C++ core and python
@@ -78,7 +78,7 @@ bindings, both with support for multithreading.</p>
 moment. If you want to use a GPU, read on as you have to build <strong>galario</strong> by hand.</p>
 </div>
 <div class="section" id="build-requirements">
-<h2>Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this headline">¶</a></h2>
+<h2>1.3. Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this headline">¶</a></h2>
 <p>To compile <strong>galario</strong> you will need:</p>
 <ul class="simple">
 <li>a working internet connection (to download 1.5 MB of an external library)</li>
@@ -95,7 +95,7 @@ The default <code class="code docutils literal notranslate"><span class="pre">gc
 </div>
 </div>
 <div class="section" id="quick-steps-to-build-and-install">
-<h2>Quick steps to build and install<a class="headerlink" href="#quick-steps-to-build-and-install" title="Permalink to this headline">¶</a></h2>
+<h2>1.4. Quick steps to build and install<a class="headerlink" href="#quick-steps-to-build-and-install" title="Permalink to this headline">¶</a></h2>
 <p>Here a quick summary to compile and install <strong>galario</strong> with default options, <a class="reference internal" href="#detailed-build-instructions"><span class="std std-ref">below</span></a> are
 more detailed instructions to fine-tune the build process.</p>
 <p>The following procedure will always compile and install the CPU version of <strong>galario</strong>.
@@ -148,7 +148,7 @@ Toolkit.</p>
 </div>
 </div>
 <div class="section" id="detailed-build-instructions">
-<span id="id1"></span><h2>Detailed build instructions<a class="headerlink" href="#detailed-build-instructions" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>1.5. Detailed build instructions<a class="headerlink" href="#detailed-build-instructions" title="Permalink to this headline">¶</a></h2>
 <p>The default configuration to build <strong>galario</strong> is</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/mtazzari/galario.git
 <span class="nb">cd</span> galario
@@ -165,7 +165,7 @@ cmake .. <span class="o">&amp;&amp;</span> make
 </div>
 <p>In the following, we assume <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> is invoked from the <code class="code docutils literal notranslate"><span class="pre">build</span></code> directory.</p>
 <div class="section" id="compiler">
-<h3>Compiler<a class="headerlink" href="#compiler" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.1. Compiler<a class="headerlink" href="#compiler" title="Permalink to this headline">¶</a></h3>
 <p>Set the C and C++ compiler</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/gcc&quot;</span>
 <span class="nb">export</span> <span class="nv">CXX</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/g++&quot;</span>
@@ -178,7 +178,7 @@ cmake -DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc -DCMAKE_CXX_COMPILE
 <p>When changing the compiler, it is best to start with a fresh empty build directory.</p>
 </div>
 <div class="section" id="optimization-level">
-<h3>Optimization level<a class="headerlink" href="#optimization-level" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.2. Optimization level<a class="headerlink" href="#optimization-level" title="Permalink to this headline">¶</a></h3>
 <p>By default <strong>galario</strong> is built with all the optimizations ON. You can check this with:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake --help-variable CMAKE_BUILD_TYPE
 </pre></div>
@@ -195,7 +195,7 @@ cmake -DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc -DCMAKE_CXX_COMPILE
 </div>
 </div>
 <div class="section" id="python">
-<span id="python-requirement"></span><h3>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
+<span id="python-requirement"></span><h3>1.5.3. Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
 <p>To build the python bindings, we require python 2.7 or 3.x, <code class="code docutils literal notranslate"><span class="pre">numpy</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">cython</span></code>, and <code class="code docutils literal notranslate"><span class="pre">pytest</span></code>. To run the tests, we additionally need
 <code class="code docutils literal notranslate"><span class="pre">scipy&gt;0.14</span></code>.</p>
@@ -233,7 +233,7 @@ correctly set to the path of the conda environment in use, e.g.
 <code class="code docutils literal notranslate"><span class="pre">/home/user/anaconda/envs/galario3</span></code>.</p>
 </div>
 <div class="section" id="fftw">
-<span id="fftw-requirement"></span><h3>FFTW<a class="headerlink" href="#fftw" title="Permalink to this headline">¶</a></h3>
+<span id="fftw-requirement"></span><h3>1.5.4. FFTW<a class="headerlink" href="#fftw" title="Permalink to this headline">¶</a></h3>
 <p>The FFTW libraries are required for the CPU version of galario.
 You can check if they are installed on your system by checking if <strong>all</strong> libraries listed below are
 present, for example in <code class="code docutils literal notranslate"><span class="pre">/usr/lib</span></code> or <code class="code docutils literal notranslate"><span class="pre">/usr/local/lib/</span></code>.</p>
@@ -253,7 +253,7 @@ on Debian/Ubuntu or <code class="code docutils literal notranslate"><span class=
 <p>If you really want to build FFTW from
 source, for example because you don’t have admin rights, read on.</p>
 <div class="section" id="manual-compilation">
-<h4>Manual compilation<a class="headerlink" href="#manual-compilation" title="Permalink to this headline">¶</a></h4>
+<h4>1.5.4.1. Manual compilation<a class="headerlink" href="#manual-compilation" title="Permalink to this headline">¶</a></h4>
 <p>To compile FFTW, download the .tar.gz from FFTW website. On Mac OS, you have to explicitly
 enable the build of dynamic (shared) library with the <code class="code docutils literal notranslate"><span class="pre">--enable-shared</span></code> option, while on Linux this <code class="code docutils literal notranslate"><span class="pre">should</span></code> be the default.
 You can create the libraries listed above with the following lines:</p>
@@ -289,7 +289,7 @@ create an alias with:</p>
 </div>
 </div>
 <div class="section" id="setting-paths">
-<h4>Setting paths<a class="headerlink" href="#setting-paths" title="Permalink to this headline">¶</a></h4>
+<h4>1.5.4.2. Setting paths<a class="headerlink" href="#setting-paths" title="Permalink to this headline">¶</a></h4>
 <p>To find FFTW3 in a nonstandard directory, say <code class="code docutils literal notranslate"><span class="pre">$FFTW_HOME</span></code>, tell <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> about it:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span> ..
 </pre></div>
@@ -309,7 +309,7 @@ create an alias with:</p>
 </div>
 </div>
 <div class="section" id="cuda">
-<span id="build-details-cuda"></span><h3>CUDA<a class="headerlink" href="#cuda" title="Permalink to this headline">¶</a></h3>
+<span id="build-details-cuda"></span><h3>1.5.5. CUDA<a class="headerlink" href="#cuda" title="Permalink to this headline">¶</a></h3>
 <p><code class="code docutils literal notranslate"><span class="pre">cmake</span></code> tests for compilation on the GPU with cuda by default <strong>except on Mac
 OS</strong>, where version conflicts between the NVIDIA compiler and the C++ compiler
 often lead to problems; see for example <a class="reference external" href="https://github.com/mtazzari/galario/issues/30">this issue</a>.</p>
@@ -325,7 +325,7 @@ exact version, you can point cmake</p>
 </div>
 </div>
 <div class="section" id="timing">
-<h3>Timing<a class="headerlink" href="#timing" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.6. Timing<a class="headerlink" href="#timing" title="Permalink to this headline">¶</a></h3>
 <p>For testing purposes, you can activate the timing features embedded in the code that produce detailed printouts to <code class="code docutils literal notranslate"><span class="pre">stdout</span></code> of various
 portions of the functions. The times are measured in milliseconds. This feature is OFF by default and can be activated during the configuration stage with</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DGALARIO_TIMING<span class="o">=</span><span class="m">1</span> ..
@@ -333,7 +333,7 @@ portions of the functions. The times are measured in milliseconds. This feature 
 </div>
 </div>
 <div class="section" id="documentation">
-<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<h3>1.5.7. Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
 <p>This documentation should be available online <a class="reference external" href="https://mtazzari.github.io/galario/">here</a>. If you want to build the documentation
 locally, from within the <code class="code docutils literal notranslate"><span class="pre">build/</span></code> directory run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make docs
@@ -363,7 +363,7 @@ import would fail otherwise) to extract docstrings.</p>
 </div>
 </div>
 <div class="section" id="install">
-<span id="install-details"></span><h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<span id="install-details"></span><h2>1.6. Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
 <p>To specify a path where to install the C libraries of <strong>galario</strong> (e.g., if you do not have <code class="code docutils literal notranslate"><span class="pre">sudo</span></code> rights to install it in <code class="code docutils literal notranslate"><span class="pre">usr/local/lib</span></code>),
 do the conventional:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/path/to/galario/lib ..
@@ -395,7 +395,7 @@ make <span class="o">&amp;&amp;</span> make install
 </div>
 <p>From the environment <code class="code docutils literal notranslate"><span class="pre">myenv</span></code> it is now possible to import <strong>galario</strong>.</p>
 <div class="section" id="uninstall">
-<h3>Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this headline">¶</a></h3>
+<h3>1.6.1. Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this headline">¶</a></h3>
 <p>After installation, remove all installed files with</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make uninstall
 </pre></div>
@@ -403,7 +403,7 @@ make <span class="o">&amp;&amp;</span> make install
 </div>
 </div>
 <div class="section" id="tests">
-<h2>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h2>
+<h2>1.7. Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h2>
 <p>After building, just run <code class="code docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-V</span> <span class="pre">--output-on-failure</span></code> from within the <code class="code docutils literal notranslate"><span class="pre">build/</span></code> directory.</p>
 <p>Every time <code class="code docutils literal notranslate"><span class="pre">python/test_galario.py</span></code> is modified, it has to be copied over to the build directory: only when run there,
 <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">pygalario</span></code> works. The copy is performed in the configure step, <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> detects changes so always run <code class="code docutils literal notranslate"><span class="pre">make</span></code> first.</p>
@@ -445,40 +445,41 @@ Failed to initialize NVML: Driver/library version mismatch
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Setup</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#operating-system">Operating system</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installing-via-conda">Installing via conda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#build-requirements">Build requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#quick-steps-to-build-and-install">Quick steps to build and install</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#detailed-build-instructions">Detailed build instructions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#compiler">Compiler</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#optimization-level">Optimization level</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#python">Python</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fftw">FFTW</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#manual-compilation">Manual compilation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#setting-paths">Setting paths</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#operating-system">1.1. Operating system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-via-conda">1.2. Installing via conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-requirements">1.3. Build requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-steps-to-build-and-install">1.4. Quick steps to build and install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-build-instructions">1.5. Detailed build instructions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compiler">1.5.1. Compiler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimization-level">1.5.2. Optimization level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python">1.5.3. Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fftw">1.5.4. FFTW</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#manual-compilation">1.5.4.1. Manual compilation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setting-paths">1.5.4.2. Setting paths</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#cuda">CUDA</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#timing">Timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cuda">1.5.5. CUDA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#timing">1.5.6. Timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">1.5.7. Documentation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#install">Install</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#uninstall">Uninstall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install">1.6. Install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#uninstall">1.6.1. Uninstall</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#tests">Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tests">1.7. Tests</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tech-specs.html">4. Tech specs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">5. Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">6. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">10. License</a></li>
 </ul>
 
   <h4>Previous topic</h4>
@@ -486,7 +487,7 @@ Failed to initialize NVML: Driver/library version mismatch
                         title="previous chapter"><strong>galario</strong> 1.1</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="basic_usage.html"
-                        title="next chapter">Basic Usage</a></p>
+                        title="next chapter">2. Basic Usage</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -517,7 +518,7 @@ Failed to initialize NVML: Driver/library version mismatch
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="basic_usage.html" title="Basic Usage"
+          <a href="basic_usage.html" title="2. Basic Usage"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="galario 1.1"
@@ -527,7 +528,7 @@ Failed to initialize NVML: Driver/library version mismatch
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
     </div>
   </body>
 </html>

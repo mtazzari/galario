@@ -4,11 +4,11 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>galario Cookbook &#8212; galario 1.1 documentation</title>
+    <title>5. galario Cookbook &#8212; galario 1.1 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -16,8 +16,8 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Python API reference" href="py-api.html" />
-    <link rel="prev" title="A quickstart example" href="quickstart.html" />
+    <link rel="next" title="6. Python API reference" href="py-api.html" />
+    <link rel="prev" title="4. Technical specifications" href="tech-specs.html" />
 
     
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
@@ -60,9 +60,9 @@
           <div class="body" role="main">
             
   <div class="section" id="galario-cookbook">
-<span id="cookbook"></span><h1><strong>galario</strong> Cookbook<a class="headerlink" href="#galario-cookbook" title="Permalink to this headline">¶</a></h1>
+<span id="cookbook"></span><h1>5. <strong>galario</strong> Cookbook<a class="headerlink" href="#galario-cookbook" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="using-the-gpu-and-cpu-version">
-<span id="cookbook-gpu-cpu-version"></span><h2>Using the GPU and CPU version<a class="headerlink" href="#using-the-gpu-and-cpu-version" title="Permalink to this headline">¶</a></h2>
+<span id="cookbook-gpu-cpu-version"></span><h2>5.1. Using the GPU and CPU version<a class="headerlink" href="#using-the-gpu-and-cpu-version" title="Permalink to this headline">¶</a></h2>
 <p>The CPU version of <strong>galario</strong> is always compiled, even on a system without a CUDA-enabled GPU. In this case you can import
 the double and single precision CPU versions of the library with:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double</span>
@@ -90,7 +90,7 @@ have the same interfaces, by adding this snippet to the imports of the module yo
 without a GPU, then move to a machine with a GPU and run it on the GPU without any change.</p>
 </div>
 <div class="section" id="selecting-the-gpu">
-<h2>Selecting the GPU<a class="headerlink" href="#selecting-the-gpu" title="Permalink to this headline">¶</a></h2>
+<h2>5.2. Selecting the GPU<a class="headerlink" href="#selecting-the-gpu" title="Permalink to this headline">¶</a></h2>
 <p><strong>galario</strong> can be used on machines with one or more CUDA-capable GPUs. The number of GPUs available on the machine can be
 obtained with the <a class="reference internal" href="py-api.html#galario.double.ngpus" title="galario.double.ngpus"><code class="xref py py-func docutils literal notranslate"><span class="pre">ngpus()</span></code></a> function:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">ngpus</span><span class="p">()</span>   <span class="c1"># or single_cuda.ngpus()</span>
@@ -110,9 +110,9 @@ See the documentation of <a class="reference internal" href="py-api.html#galario
 </div>
 </div>
 <div class="section" id="parallelization-setting-the-threads">
-<h2>Parallelization: setting the threads<a class="headerlink" href="#parallelization-setting-the-threads" title="Permalink to this headline">¶</a></h2>
+<h2>5.3. Parallelization: setting the threads<a class="headerlink" href="#parallelization-setting-the-threads" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="on-the-cpu">
-<h3>On the CPU<a class="headerlink" href="#on-the-cpu" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.1. On the CPU<a class="headerlink" href="#on-the-cpu" title="Permalink to this headline">¶</a></h3>
 <p>The CPU version of <strong>galario</strong> uses OpenMP to parallelize its operations by distributing the workload to different threads.</p>
 <p>Once you imported the CPU version of <strong>galario</strong> (either double or single precision), you can set the number of threads with
 the <a class="reference internal" href="py-api.html#galario.double.threads" title="galario.double.threads"><code class="xref py py-func docutils literal notranslate"><span class="pre">threads()</span></code></a> function:</p>
@@ -136,7 +136,7 @@ setting <code class="code docutils literal notranslate"><span class="pre">double
 </div></blockquote>
 </div>
 <div class="section" id="on-the-gpu">
-<h3>On the GPU<a class="headerlink" href="#on-the-gpu" title="Permalink to this headline">¶</a></h3>
+<h3>5.3.2. On the GPU<a class="headerlink" href="#on-the-gpu" title="Permalink to this headline">¶</a></h3>
 <p>It is possible to change the number of threads per block used to launch 1D and 2D kernels on the GPU with:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
 </pre></div>
@@ -145,6 +145,59 @@ setting <code class="code docutils literal notranslate"><span class="pre">double
 256 threads per block. Due to the physical structure of the current NVIDIA cards, <code class="code docutils literal notranslate"><span class="pre">N</span></code> must be equal to 8, 16 or 32.</p>
 <p>This is an advanced feature, for most cases the default value should be sufficient. More details are given in the
 documentation of <a class="reference internal" href="py-api.html#galario.double.threads" title="galario.double.threads"><code class="xref py py-func docutils literal notranslate"><span class="pre">threads()</span></code></a>.</p>
+</div>
+</div>
+<div class="section" id="computing-the-r-a-dec-coordinate-mesh-grid-for-the-image-creation">
+<span id="cookbook-meshgrid"></span><h2>5.4. Computing the (R.A., Dec.) coordinate mesh grid for the image creation<a class="headerlink" href="#computing-the-r-a-dec-coordinate-mesh-grid-for-the-image-creation" title="Permalink to this headline">¶</a></h2>
+<p>In this recipe we will adopt the definitions described in the <a class="reference internal" href="tech-specs.html#technical-requirements-image-specs"><span class="std std-ref">image specifications</span></a>.</p>
+<p>To compute a model image defined in the real <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> space, it is necessary to map the pixel indices to the
+celestial coordinates. This can be easily done with the <a class="reference internal" href="py-api.html#galario.double.get_coords_meshgrid" title="galario.double.get_coords_meshgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_coords_meshgrid()</span></code></a>
+function (see an example below).</p>
+<p>In general, the <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> coordinates of the pixel centers can be computed as:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># axes indices</span>
+<span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">+</span> <span class="mf">1.</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">ncol</span><span class="p">),</span> <span class="n">ncol</span><span class="p">))</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">*</span> <span class="n">dxy</span>               <span class="c1"># R.A.</span>
+<span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">+</span> <span class="mf">1.</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">nrow</span><span class="p">),</span> <span class="n">nrow</span><span class="p">))</span> <span class="o">*</span> <span class="n">nrow</span> <span class="o">*</span> <span class="n">dxy</span> <span class="o">*</span> <span class="n">v_origin</span>    <span class="c1"># Dec.</span>
+</pre></div>
+</div>
+<p>where <code class="code docutils literal notranslate"><span class="pre">nrow</span></code> and <code class="code docutils literal notranslate"><span class="pre">ncol</span></code> are the number of rows and columns respectively, <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> is the pixel size <span class="math notranslate nohighlight">\(\Delta_{xy}\)</span> (in radians)
+and <code class="code docutils literal notranslate"><span class="pre">v_origin=1</span></code> for <code class="code docutils literal notranslate"><span class="pre">origin=upper</span></code>, <code class="code docutils literal notranslate"><span class="pre">v_origin=-1</span></code> for <code class="code docutils literal notranslate"><span class="pre">origin=lower</span></code>. <code class="code docutils literal notranslate"><span class="pre">x</span></code> and <code class="code docutils literal notranslate"><span class="pre">y</span></code> contain the <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> coordinates
+reported in the Figure of the <a class="reference internal" href="tech-specs.html#technical-requirements-image-specs"><span class="std std-ref">image specifications</span></a> page.</p>
+<p>A coordinate mesh grid can be created with:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># (x, y) mesh grid</span>
+<span class="n">R_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">)</span>      <span class="c1"># radial mesh grid</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal notranslate"><span class="pre">x_m</span></code> and <code class="code docutils literal notranslate"><span class="pre">y_m</span></code> contain the <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> meshgrid, while <code class="code docutils literal notranslate"><span class="pre">R_m</span></code> is the radial meshgrid containing radial distance
+from the centre (which is always located in the <code class="code docutils literal notranslate"><span class="pre">[i,</span> <span class="pre">j]=[Nxy/2,</span> <span class="pre">Nxy/2]</span></code> pixel), useful for axisymmetric brightness functions.</p>
+<div class="section" id="an-example">
+<h3>5.4.1. An example<a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h3>
+<p>All the above calculations can be easily done with just one call to the <a class="reference internal" href="py-api.html#galario.double.get_coords_meshgrid" title="galario.double.get_coords_meshgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_coords_meshgrid()</span></code></a>
+function for a given matrix size, pixel angular size, and other optional parameters such as R.A. and Dec. offsets, inclination,
+and matrix origin, e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">get_coords_meshgrid</span><span class="p">,</span> <span class="n">arcsec</span>
+
+<span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">nxy</span>   <span class="c1"># number of rows and columns (here for a square matrix)</span>
+<span class="n">dxy</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="o">*</span><span class="n">arcsec</span>       <span class="c1"># pixel size (rad)</span>
+<span class="n">inc</span> <span class="o">=</span> <span class="mf">30.</span><span class="o">*</span><span class="n">deg</span>           <span class="c1"># inclination (rad)</span>
+<span class="n">Dx</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.</span><span class="o">*</span><span class="n">arcsec</span>         <span class="c1"># R.A. offset (negative, therefore to the West)</span>
+<span class="n">Dy</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">arcsec</span>         <span class="c1"># Dec. offset (positive, therefore to the North)</span>
+
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">,</span> <span class="n">R_m</span> <span class="o">=</span> <span class="n">get_coords_meshgrid</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">Dx</span><span class="o">=</span><span class="n">Dx</span><span class="p">,</span> <span class="n">Dy</span><span class="o">=</span><span class="n">Dy</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The returned arrays are in radians, the same units of <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>. To obtain <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> in pixel units leave <code class="code docutils literal notranslate"><span class="pre">dxy=1</span></code> (the default value).</p>
+<p>For an axisymmetric brightness <span class="math notranslate nohighlight">\(f(R)\)</span>, once the meshgrid is computed, the image and its visibilities can be computed as easily as :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">sampleImage</span><span class="p">,</span> <span class="n">chi2Image</span>
+
+<span class="n">image</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">R_m</span><span class="p">)</span>
+
+<span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>  <span class="ow">or</span> <span class="c1"># chi2 = chi2Image(image, ...)</span>
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -161,32 +214,37 @@ documentation of <a class="reference internal" href="py-api.html#galario.double.
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Cookbook</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#using-the-gpu-and-cpu-version">Using the GPU and CPU version</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#selecting-the-gpu">Selecting the GPU</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#parallelization-setting-the-threads">Parallelization: setting the threads</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#on-the-cpu">On the CPU</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#on-the-gpu">On the GPU</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tech-specs.html">4. Tech specs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-gpu-and-cpu-version">5.1. Using the GPU and CPU version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#selecting-the-gpu">5.2. Selecting the GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parallelization-setting-the-threads">5.3. Parallelization: setting the threads</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#on-the-cpu">5.3.1. On the CPU</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#on-the-gpu">5.3.2. On the GPU</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#computing-the-r-a-dec-coordinate-mesh-grid-for-the-image-creation">5.4. Computing the (R.A., Dec.) coordinate mesh grid for the image creation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#an-example">5.4.1. An example</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">6. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">10. License</a></li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="quickstart.html"
-                        title="previous chapter">A quickstart example</a></p>
+  <p class="topless"><a href="tech-specs.html"
+                        title="previous chapter">4. Technical specifications</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="py-api.html"
-                        title="next chapter">Python API reference</a></p>
+                        title="next chapter">6. Python API reference</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -217,17 +275,17 @@ documentation of <a class="reference internal" href="py-api.html#galario.double.
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-api.html" title="Python API reference"
+          <a href="py-api.html" title="6. Python API reference"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="quickstart.html" title="A quickstart example"
+          <a href="tech-specs.html" title="4. Technical specifications"
              accesskey="P">previous</a> |</li>
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
     </div>
   </body>
 </html>

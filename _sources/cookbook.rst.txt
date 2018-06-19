@@ -119,3 +119,71 @@ where `N` is the square root of the number of threads for block to be used. By d
 
 This is an advanced feature, for most cases the default value should be sufficient. More details are given in the
 documentation of :func:`threads() <galario.double.threads>`.
+
+
+.. _cookbook_meshgrid:
+
+Computing the (R.A., Dec.) coordinate mesh grid for the image creation
+----------------------------------------------------------------------
+In this recipe we will adopt the definitions described in the :ref:`image specifications <technical_requirements_image_specs>`.
+
+To compute a model image defined in the real :math:`(R.A., Dec.)` space, it is necessary to map the pixel indices to the
+celestial coordinates. This can be easily done with the :func:`get_coords_meshgrid() <galario.double.get_coords_meshgrid>`
+function (see an example below).
+
+In general, the :math:`(R.A., Dec.)` coordinates of the pixel centers can be computed as:
+
+.. code:: python
+
+    import numpy as np
+
+    # axes indices
+    x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol)) * ncol * dxy               # R.A.
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow)) * nrow * dxy * v_origin    # Dec.
+
+where `nrow` and `ncol` are the number of rows and columns respectively, `dxy` is the pixel size :math:`\Delta_{xy}` (in radians)
+and `v_origin=1` for `origin=upper`, `v_origin=-1` for `origin=lower`. `x` and `y` contain the :math:`(R.A., Dec.)` coordinates
+reported in the Figure of the :ref:`image specifications <technical_requirements_image_specs>` page.
+
+A coordinate mesh grid can be created with:
+
+.. code:: python
+
+    import numpy as np
+
+    x_m, y_m = np.meshgrid(x, y)  # (x, y) mesh grid
+    R_m = np.hypot(x_m, y_m)      # radial mesh grid
+
+`x_m` and `y_m` contain the :math:`(R.A., Dec.)` meshgrid, while `R_m` is the radial meshgrid containing radial distance
+from the centre (which is always located in the `[i, j]=[Nxy/2, Nxy/2]` pixel), useful for axisymmetric brightness functions.
+
+An example
+~~~~~~~~~~
+All the above calculations can be easily done with just one call to the :func:`get_coords_meshgrid() <galario.double.get_coords_meshgrid>`
+function for a given matrix size, pixel angular size, and other optional parameters such as R.A. and Dec. offsets, inclination,
+and matrix origin, e.g.:
+
+.. code-block:: python
+
+    from galario.double import get_coords_meshgrid, arcsec
+
+    nrow, ncol = nxy, nxy   # number of rows and columns (here for a square matrix)
+    dxy = 1e-3*arcsec       # pixel size (rad)
+    inc = 30.*deg           # inclination (rad)
+    Dx = -1.*arcsec         # R.A. offset (negative, therefore to the West)
+    Dy = 0.5*arcsec         # Dec. offset (positive, therefore to the North)
+
+    x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, Dx=Dx, Dy=Dy, origin='lower')
+
+The returned arrays are in radians, the same units of `dxy`. To obtain :math:`(R.A., Dec.)` in pixel units leave `dxy=1` (the default value).
+
+For an axisymmetric brightness :math:`f(R)`, once the meshgrid is computed, the image and its visibilities can be computed as easily as :
+
+.. code-block:: python
+
+    from galario.double import sampleImage, chi2Image
+
+    image = f(R_m)
+
+    vis = sampleImage(image, ...)  or # chi2 = chi2Image(image, ...)
+

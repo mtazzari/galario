@@ -4,11 +4,11 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Using galario from C++ &#8212; galario 1.1 documentation</title>
+    <title>8. Using galario from C++ &#8212; galario 1.1 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -16,8 +16,8 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Publications that used galario" href="publications.html" />
-    <link rel="prev" title="C++ API reference" href="C++-api.html" />
+    <link rel="next" title="9. Publications that used galario" href="publications.html" />
+    <link rel="prev" title="7. C++ API reference" href="C++-api.html" />
 
     
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
@@ -60,10 +60,10 @@
           <div class="body" role="main">
             
   <div class="section" id="using-galario-from-c">
-<h1>Using galario from C++<a class="headerlink" href="#using-galario-from-c" title="Permalink to this headline">¶</a></h1>
+<h1>8. Using galario from C++<a class="headerlink" href="#using-galario-from-c" title="Permalink to this headline">¶</a></h1>
 <p>The core of <strong>galario</strong> is written in C++/Cuda, all functions are in the header <code class="code docutils literal notranslate"><span class="pre">galario.h</span></code>.</p>
 <div class="section" id="a-small-example">
-<h2>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this headline">¶</a></h2>
+<h2>8.1. A small example<a class="headerlink" href="#a-small-example" title="Permalink to this headline">¶</a></h2>
 <p>Here is a small test program that performs the FFT in 2D on an image with random values. It is part of the <strong>galario</strong> test suite.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cm">/******************************************************************************</span>
 <span class="cm">* This file is part of GALARIO:                                               *</span>
@@ -149,7 +149,7 @@ precision can be built with:</p>
 <p>If <strong>galario</strong> was installed with <code class="code docutils literal notranslate"><span class="pre">cuda</span></code> support, you can link in <code class="code docutils literal notranslate"><span class="pre">-lgalario_cuda</span></code> or <code class="code docutils literal notranslate"><span class="pre">-lgalario_single_cuda</span></code> instead.</p>
 </div>
 <div class="section" id="example-walk-through">
-<h2>Example walk-through<a class="headerlink" href="#example-walk-through" title="Permalink to this headline">¶</a></h2>
+<h2>8.2. Example walk-through<a class="headerlink" href="#example-walk-through" title="Permalink to this headline">¶</a></h2>
 <p>A small walk through the example’s <code class="code docutils literal notranslate"><span class="pre">main</span></code> function line by line:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;galario.h&quot;</span>
 <span class="o">...</span>
@@ -195,27 +195,28 @@ precision can be built with:</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">C++ Example</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#a-small-example">A small example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#example-walk-through">Example walk-through</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tech-specs.html">4. Tech specs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">5. Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">6. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">8. C++ Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#a-small-example">8.1. A small example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-walk-through">8.2. Example walk-through</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">10. License</a></li>
 </ul>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="C++-api.html"
-                        title="previous chapter">C++ API reference</a></p>
+                        title="previous chapter">7. C++ API reference</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="publications.html"
-                        title="next chapter">Publications that used <strong>galario</strong></a></p>
+                        title="next chapter">9. Publications that used <strong>galario</strong></a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -246,17 +247,17 @@ precision can be built with:</p>
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="publications.html" title="Publications that used galario"
+          <a href="publications.html" title="9. Publications that used galario"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="C++-api.html" title="C++ API reference"
+          <a href="C++-api.html" title="7. C++ API reference"
              accesskey="P">previous</a> |</li>
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
     </div>
   </body>
 </html>

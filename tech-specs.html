@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>4. Technical specifications &#8212; galario 1.1 documentation</title>
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5. galario Cookbook" href="cookbook.html" />
+    <link rel="prev" title="3. A quickstart example" href="quickstart.html" />
+
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-106731281-3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-106731281-3');
+    </script>
+
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">galario 1.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+        <div class="badge">
+            <a href="https://github.com/mtazzari/galario/">Fork me on GitHub</a>
+            <img src="_static/right-red@2x.png">
+        </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="technical-specifications">
+<h1>4. Technical specifications<a class="headerlink" href="#technical-specifications" title="Permalink to this headline">¶</a></h1>
+<p>In this page we summarize the assumptions that are made in <strong>galario</strong> and the specifications for the input quantities.</p>
+<p>Full details are presented in Section 3 of Tazzari, Beaujean and Testi (2018) MNRAS <strong>476</strong> 4527
+<a class="reference external" href="https://doi.org/10.1093/mnras/sty409">[MNRAS]</a>
+<a class="reference external" href="https://arxiv.org/abs/1709.06999">[arXiv]</a>
+<a class="reference external" href="http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T">[ADS]</a>.</p>
+<div class="section" id="image-specifications">
+<span id="technical-requirements-image-specs"></span><h2>4.1. Image specifications<a class="headerlink" href="#image-specifications" title="Permalink to this headline">¶</a></h2>
+<p>Following the Figure below, there are two fundamental coordinate systems that define the input image for the
+<a class="reference internal" href="py-api.html#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a> and <a class="reference internal" href="py-api.html#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>the <strong>matrix axes</strong> <span class="math notranslate nohighlight">\([i, j]\)</span> mapping the pixel coordinates, running from <code class="code docutils literal notranslate"><span class="pre">0</span></code> to <code class="code docutils literal notranslate"><span class="pre">Nxy-1</span></code> (<code class="code docutils literal notranslate"><span class="pre">Nxy</span></code> is the number
+of pixels on each axis).</li>
+<li>the <strong>physical axes</strong> <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> mapping Right Ascension and Declination coordinates.</li>
+</ul>
+</div></blockquote>
+<p>The origin <code class="code docutils literal notranslate"><span class="pre">[i,</span> <span class="pre">j]</span> <span class="pre">=</span> <span class="pre">[0,</span> <span class="pre">0]</span></code> of the matrix axes can be put either in the <strong>upper left</strong> or in the <strong>lower left</strong> corner of the matrix.
+By default <strong>galario</strong> assumes the origin is in the <strong>upper left</strong> corner of the matrix, but it can be changed to the
+lower corner by specifying the optional parameter <code class="code docutils literal notranslate"><span class="pre">origin='lower'</span></code> in the <a class="reference internal" href="py-api.html#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a>
+and <a class="reference internal" href="py-api.html#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> functions.</p>
+<p>The origin <span class="math notranslate nohighlight">\((R.A., Dec.)=(0,0)\)</span> of the physical axes is always in the center of the <code class="code docutils literal notranslate"><span class="pre">[Nxy/2,</span> <span class="pre">Nxy/2]</span></code> pixel
+(grey pixel in the Figure below) for any value of <code class="code docutils literal notranslate"><span class="pre">origin</span></code>. The <span class="math notranslate nohighlight">\(R.A.\)</span> axis always increases leftwards, following the usual convention
+of having East to the left and West to the right: therefore, the <span class="math notranslate nohighlight">\(R.A.\)</span> axis always decreases with increasing <code class="code docutils literal notranslate"><span class="pre">j</span></code> index.
+Note that, with <code class="code docutils literal notranslate"><span class="pre">origin='upper'</span></code>, both the <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> axes <strong>decrease</strong> with increasing <code class="code docutils literal notranslate"><span class="pre">i</span></code>, <code class="code docutils literal notranslate"><span class="pre">j</span></code> index (see Figure below).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p><strong>galario</strong> assumes that the values of the input image are evaluated in the <strong>pixel centers</strong> (not in the pixel edges).</p>
+<p class="last">For instructions on how to compute the correct <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> coordinate meshgrid to create the image,
+see the <a class="reference internal" href="cookbook.html#cookbook-meshgrid"><span class="std std-ref">Cookbook</span></a>.</p>
+</div>
+<p>The left and right panels of the Figure below show the relative orientations of matrix and physical axes
+for the <code class="code docutils literal notranslate"><span class="pre">origin='upper'</span></code> and <code class="code docutils literal notranslate"><span class="pre">origin='lower'</span></code> cases, respectively (click on the images for a larger version).</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="first last reference internal image-reference" href="_images/galario_image_origin_upper.png"><img alt="sketch origin upper" src="_images/galario_image_origin_upper.png" style="width: 700px;" /></a>
+</td>
+<td><a class="first last reference internal image-reference" href="_images/galario_image_origin_lower.png"><img alt="sketch origin lower" src="_images/galario_image_origin_lower.png" style="width: 700px;" /></a>
+</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <code class="code docutils literal notranslate"><span class="pre">origin</span></code> parameter in <strong>galario</strong> follows the same definition as in the <code class="code docutils literal notranslate"><span class="pre">matshow</span></code> and <code class="code docutils literal notranslate"><span class="pre">imshow</span></code> commands of the
+<code class="code docutils literal notranslate"><span class="pre">matplotlib</span></code> library.
+To get the desired orientation of the Declination axis in <strong>galario</strong>, use the same <code class="code docutils literal notranslate"><span class="pre">origin</span></code> parameter that produces
+the desired image orientation with <code class="code docutils literal notranslate"><span class="pre">matshow</span></code> or <code class="code docutils literal notranslate"><span class="pre">imshow</span></code>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">3. Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Tech specs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#image-specifications">4.1. Image specifications</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">5. Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">6. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">10. License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="quickstart.html"
+                        title="previous chapter">3. A quickstart example</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="cookbook.html"
+                        title="next chapter">5. <strong>galario</strong> Cookbook</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tech-specs.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="cookbook.html" title="5. galario Cookbook"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="quickstart.html" title="3. A quickstart example"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>

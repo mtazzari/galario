@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -16,7 +16,7 @@
     <script type="text/javascript" src="_static/sidebar.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="How to build and install galario" href="install.html" />
+    <link rel="next" title="1. How to build and install galario" href="install.html" />
 
     
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
@@ -94,7 +94,9 @@ moment. If you want to use a GPU, you have to build <strong>galario</strong> by 
 </div>
 <p>Basic functionality of <strong>galario</strong>: see the <a class="reference internal" href="basic_usage.html"><span class="doc">Basic Usage</span></a> page.</p>
 <p>How to fit some data with <strong>galario</strong>: check the <a class="reference internal" href="quickstart.html"><span class="doc">Getting started example</span></a>.</p>
-<p>Some recipes for the CPU/GPU management: see the <a class="reference internal" href="cookbook.html"><span class="doc">Cookbook</span></a> with useful code snippets.</p>
+<p>Details on image orientation, coordinate systems and other assumptions: see the <a class="reference internal" href="tech-specs.html"><span class="doc">Technical specifications</span></a>.</p>
+<p>Useful recipes for the CPU/GPU management and the model image creation: see the <a class="reference internal" href="cookbook.html"><span class="doc">Cookbook</span></a> with many code snippets.</p>
+<p>Detailed documentation of each Python and C++ function: see the <a class="reference internal" href="py-api.html"><span class="doc">Python-API</span></a> and <a class="reference internal" href="C++-api.html"><span class="doc">C++ API</span></a> pages.</p>
 </div>
 <div class="section" id="license-and-attribution">
 <h2>License and Attribution<a class="headerlink" href="#license-and-attribution" title="Permalink to this headline">¶</a></h2>
@@ -128,48 +130,53 @@ version of <strong>galario</strong> used in a paper.</p>
 <div class="toctree-wrapper compound">
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#operating-system">Operating system</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#installing-via-conda">Installing via conda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#build-requirements">Build requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#quick-steps-to-build-and-install">Quick steps to build and install</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#detailed-build-instructions">Detailed build instructions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#install">Install</a></li>
-<li class="toctree-l2"><a class="reference internal" href="install.html#tests">Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#operating-system">1.1. Operating system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installing-via-conda">1.2. Installing via conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#build-requirements">1.3. Build requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#quick-steps-to-build-and-install">1.4. Quick steps to build and install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#detailed-build-instructions">1.5. Detailed build instructions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#install">1.6. Install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#tests">1.7. Tests</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="quickstart.html#fit-a-single-wavelength-data-set">Fit a single-wavelength data set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">3. Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#fit-a-single-wavelength-data-set">3.1. Fit a single-wavelength data set</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cookbook.html#using-the-gpu-and-cpu-version">Using the GPU and CPU version</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cookbook.html#selecting-the-gpu">Selecting the GPU</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cookbook.html#parallelization-setting-the-threads">Parallelization: setting the threads</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tech-specs.html">4. Tech specs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tech-specs.html#image-specifications">4.1. Image specifications</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="py-api.html#computing-synthetic-visibilities">Computing synthetic visibilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="py-api.html#computing-chi-squared-directly">Computing chi squared directly</a></li>
-<li class="toctree-l2"><a class="reference internal" href="py-api.html#gpu-related">GPU related</a></li>
-<li class="toctree-l2"><a class="reference internal" href="py-api.html#other-useful-functions">Other useful functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="py-api.html#exceptions">Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">5. Cookbook</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="cookbook.html#using-the-gpu-and-cpu-version">5.1. Using the GPU and CPU version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook.html#selecting-the-gpu">5.2. Selecting the GPU</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook.html#parallelization-setting-the-threads">5.3. Parallelization: setting the threads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cookbook.html#computing-the-r-a-dec-coordinate-mesh-grid-for-the-image-creation">5.4. Computing the (R.A., Dec.) coordinate mesh grid for the image creation</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="C++-api.html#sample-and-chi2-functions">Sample and chi2 functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="C++-api.html#management-functions">Management functions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="C++-api.html#individual-operations">Individual operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">6. Python API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="py-api.html#computing-synthetic-visibilities">6.1. Computing synthetic visibilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py-api.html#computing-chi-squared-directly">6.2. Computing chi squared directly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py-api.html#gpu-related">6.3. GPU related</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py-api.html#other-useful-functions">6.4. Other useful functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="py-api.html#exceptions">6.5. Exceptions</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="C++-example.html#a-small-example">A small example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="C++-example.html#example-walk-through">Example walk-through</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="C++-api.html#sample-and-chi2-functions">7.1. Sample and chi2 functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="C++-api.html#management-functions">7.2. Management functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="C++-api.html#individual-operations">7.3. Individual operations</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="C++-example.html#a-small-example">8.1. A small example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="C++-example.html#example-walk-through">8.2. Example walk-through</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">10. License</a></li>
 </ul>
 </div>
 </div>
@@ -187,20 +194,21 @@ version of <strong>galario</strong> used in a paper.</p>
   <h3><a href="#">Table Of Contents</a></h3>
   <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
-<li class="toctree-l1"><a class="reference internal" href="install.html">Setup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cookbook.html">Cookbook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="py-api.html">Python API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="C++-api.html">C++ API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="C++-example.html">C++ Example</a></li>
-<li class="toctree-l1"><a class="reference internal" href="publications.html">Publications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tech-specs.html">4. Tech specs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">5. Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">6. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">10. License</a></li>
 </ul>
 
   <h4>Next topic</h4>
   <p class="topless"><a href="install.html"
-                        title="next chapter">How to build and install <strong>galario</strong></a></p>
+                        title="next chapter">1. How to build and install <strong>galario</strong></a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -231,14 +239,14 @@ version of <strong>galario</strong> used in a paper.</p>
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="install.html" title="How to build and install galario"
+          <a href="install.html" title="1. How to build and install galario"
              accesskey="N">next</a> |</li>
       </ul>
     </div>
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
     </div>
   </body>
 </html>

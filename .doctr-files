@@ -3,6 +3,8 @@
 ./_images/alma_panoramic.jpeg
 ./_images/disk_example.jpg
 ./_images/galario.jpg
+./_images/galario_image_origin_lower.png
+./_images/galario_image_origin_upper.png
 ./_images/quickstart_triangle_whole_chain.png
 ./_images/uvplot.png
 ./_sources/C++-api.rst.txt
@@ -15,6 +17,7 @@
 ./_sources/publications.rst.txt
 ./_sources/py-api.rst.txt
 ./_sources/quickstart.rst.txt
+./_sources/tech-specs.rst.txt
 ./_static/ajax-loader.gif
 ./_static/basic.css
 ./_static/classic.css
@@ -55,3 +58,4 @@
 ./quickstart.html
 ./search.html
 ./searchindex.js
+./tech-specs.html
