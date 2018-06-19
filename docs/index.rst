@@ -64,11 +64,11 @@ Basic functionality of |galario|: see the :doc:`Basic Usage <basic_usage>` page.
 
 How to fit some data with |galario|: check the :doc:`Getting started example <quickstart>`.
 
-Details on image orientation, coordinate systems and other assumptions: see the :doc:`Technical requirements <technical-requirements>`.
+Details on image orientation, coordinate systems and other assumptions: see the :doc:`Technical specifications <tech-specs>`.
 
-Some recipes for the CPU/GPU management: see the :doc:`Cookbook <cookbook>` with useful code snippets.
+Useful recipes for the CPU/GPU management and the model image creation: see the :doc:`Cookbook <cookbook>` with many code snippets.
 
-
+Detailed documentation of each Python and C++ function: see the :doc:`Python-API <py-api>` and :doc:`C++ API <C++-api>` pages.
 
 License and Attribution
 -----------------------
@@ -110,7 +110,7 @@ Contents
     Setup <install>
     Basic Usage <basic_usage>
     Getting Started <quickstart>
-    Technical requirements <technical-requirements>
+    Tech specs <tech-specs>
     Cookbook <cookbook>
     Python API <py-api>
     C++ API <C++-api>
