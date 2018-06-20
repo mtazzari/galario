@@ -21,8 +21,8 @@
 - [core] Allow multiple processes to use the GPU concurrently by default.
 - [docs] Improve installation notes and quickstart example.
 
-1.0.1 (2017-10-5)
-+++++++++++++++++
+1.0.1 (2017-10-05)
+++++++++++++++++++
 - [interface] Allow uninstalling galario with `make uninstall`.
 - [interface] Allow enabling/disabling check for CUDA on Mac OS with `cmake -DGALARIO_CHECK_CUDA=1`.
 
