@@ -103,6 +103,10 @@ Contributors
 ------------
 .. include:: ../AUTHORS.rst
 
+Changelog
+---------
+.. include:: ../CHANGELOG.rst
+
 Contents
 --------
 .. toctree::
