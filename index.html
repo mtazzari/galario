@@ -4,7 +4,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>galario 1.1 &#8212; galario 1.1 documentation</title>
+    <title>galario 1.2 &#8212; galario 1.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
@@ -42,7 +42,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
-        <li><a href="#">galario 1.1 documentation</a> &#187;</li> 
+        <li><a href="#">galario 1.2 documentation</a> &#187;</li> 
       </ul>
     </div>
     
@@ -60,7 +60,7 @@
             
   <a class="reference internal image-reference" href="_images/galario.jpg"><img alt="Galario logo. Credit: Tazzari, Beaujean, Testi." class="align-left" src="_images/galario.jpg" style="width: 216.4px; height: 101.60000000000001px;" /></a>
 <div class="section" id="galario-version">
-<h1><strong>galario</strong> 1.1<a class="headerlink" href="#galario-version" title="Permalink to this headline">¶</a></h1>
+<h1><strong>galario</strong> 1.2<a class="headerlink" href="#galario-version" title="Permalink to this headline">¶</a></h1>
 <hr class="docutils" />
 <div class="section" id="gpu-accelerated-library-for-analysing-radio-interferometer-observations">
 <h2><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong><a class="headerlink" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations" title="Permalink to this headline">¶</a></h2>
@@ -72,9 +72,8 @@ given a model image (or an axisymmetric brightness profile) and their comparison
 <a class="reference external" href="http://www.openmp.org">openMP</a>.</p>
 <a class="reference external image-reference" href="http://www.eso.org/public/images/baan_7698/"><img alt="ALMA antennas on the Chajnantor plateau. Credit: ESO" class="align-center" src="_images/alma_panoramic.jpeg" style="width: 1024.0px; height: 237.60000000000002px;" /></a>
 <p>Modern radio interferometers like
-<a class="reference external" href="http://www.almaobservatory.org/en/home/">ALMA</a>,
+<a class="reference external" href="http://www.almaobservatory.org/en/home/">ALMA</a> and the
 <a class="reference external" href="https://science.nrao.edu/facilities/vla">Karl G. Jansky VLA</a>,
-<a class="reference external" href="http://www.iram-institute.org/EN/noema-project.php?ContentID=9&amp;rub=9&amp;srub=0&amp;ssrub=0&amp;sssrub=0">NOEMA</a>
 are pushing to the extreme the computational efforts needed to model the observations.
 The unprecedented sensitivity and resolution achieved by these observatories deliver huge amount of data that sample a wide range of spatial frequencies.
 In this context, <strong>galario</strong> provides a fast library useful for comparing a model to observations directly in the Fourier plane.</p>
@@ -123,7 +122,74 @@ moment. If you want to use a GPU, you have to build <strong>galario</strong> by 
 <p><strong>galario</strong> has also a <a class="reference external" href="https://doi.org/10.5281/zenodo.891039">Zenodo DOI</a>, which can be used to refer to the exact
 version of <strong>galario</strong> used in a paper.</p>
 <p><strong>galario</strong> is free software licensed under the LGPLv3 License. For more details see the <a class="reference internal" href="license.html"><span class="doc">LICENSE</span></a>.</p>
-<p>© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.</p>
+<p>© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi and contributors.</p>
+</div>
+<div class="section" id="contributors">
+<h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>Authors:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="https://github.com/mtazzari">Marco Tazzari (University of Cambridge)</a></li>
+<li><a class="reference external" href="https://github.com/fredRos">Frederik Beaujean</a></li>
+<li><a class="reference external" href="https://github.com/ltesti">Leonardo Testi (European Southern Observatory)</a></li>
+</ul>
+</dd>
+<dt>Contributions to the code base:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="https://github.com/lucadimascolo">Luca Di Mascolo</a></li>
+<li><a class="reference external" href="https://github.com/equant">Nathanial Hendler</a></li>
+</ul>
+</dd>
+<dt>Comments, corrections and suggestions:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="https://github.com/drgmk">Grant Kennedy</a></li>
+<li><a class="reference external" href="https://github.com/pavesiriccardo">Riccardo Pavesi</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="changelog">
+<h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id1">
+<h3>1.2 (2018-06-20)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[interface] New <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option to specify direction of Dec axis for input image in <code class="code docutils literal notranslate"><span class="pre">*Image()</span></code> functions.</li>
+<li>[core/bugfix] More robust DFT interpolation for sources that are large or hugely offset from phase center.</li>
+<li>[docs] New <code class="code docutils literal notranslate"><span class="pre">Tech</span> <span class="pre">specs</span></code> page on specifications of the input image with new <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option.</li>
+<li>[docs] New <code class="code docutils literal notranslate"><span class="pre">Cookbook</span></code> recipe on how to create the correct coordinate mesh grid.</li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>1.1 (2018-05-14)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[interface] Python and C++ code now throw detailed exceptions allowing fine-grained control, e.g. for executions on GPU.</li>
+<li>[core/bugfix] More robust interpolation of brightness profile in the central pixel for steep <code class="code docutils literal notranslate"><span class="pre">f(R)</span></code> profiles.</li>
+<li>[core] Drop support for C. Only C++ and Python are now supported.</li>
+<li>[core] Memory handling on GPU: memory is now automatically freed in case of an error (allows catching errors with Exceptions).</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>1.0.2 (2017-12-19)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[interface] CPU version can now be installed with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">galario</span></code>.</li>
+<li>[core/bugfix] Fix memory leak in GPU version.</li>
+<li>[core] Allow multiple processes to use the GPU concurrently by default.</li>
+<li>[docs] Improve installation notes and quickstart example.</li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h3>1.0.1 (2017-10-05)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[interface] Allow uninstalling galario with <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">uninstall</span></code>.</li>
+<li>[interface] Allow enabling/disabling check for CUDA on Mac OS with <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DGALARIO_CHECK_CUDA=1</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="id5">
+<h3>1.0 (2017-09-19)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>First release.</li>
+</ul>
+</div>
 </div>
 <div class="section" id="contents">
 <h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
