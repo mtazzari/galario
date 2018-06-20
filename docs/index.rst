@@ -33,9 +33,8 @@ Along with the GPU accelerated version based on the
    :target: http://www.eso.org/public/images/baan_7698/
 
 Modern radio interferometers like
-`ALMA <http://www.almaobservatory.org/en/home/>`_,
+`ALMA <http://www.almaobservatory.org/en/home/>`_ and the
 `Karl G. Jansky VLA <https://science.nrao.edu/facilities/vla>`_,
-`NOEMA <http://www.iram-institute.org/EN/noema-project.php?ContentID=9&rub=9&srub=0&ssrub=0&sssrub=0>`_
 are pushing to the extreme the computational efforts needed to model the observations.
 The unprecedented sensitivity and resolution achieved by these observatories deliver huge amount of data that sample a wide range of spatial frequencies.
 In this context, |galario| provides a fast library useful for comparing a model to observations directly in the Fourier plane.
@@ -98,7 +97,11 @@ version of |galario| used in a paper.
 
 |galario| is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
 
-© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi and contributors.
+
+Contributors
+------------
+.. include:: ../AUTHORS.rst
 
 Contents
 --------
