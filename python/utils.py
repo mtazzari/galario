@@ -35,11 +35,16 @@ __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image
            "unique_part", "assert_allclose", "apply_rotation"]
 
 
-def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0.):
+def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0., origin='upper'):
     """
     Python implementation of sampleImage.
 
     """
+    if origin == 'upper':
+        v_origin = 1.
+    elif origin == 'lower':
+        v_origin = -1.
+
     nxy = reference_image.shape[0]
 
     dRA *= 2.*np.pi
@@ -64,9 +69,9 @@ def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0.):
 
     # interpolation indices
     uroti = np.abs(urot)/du
-    vroti = nxy/2. + vrot/du
+    vroti = nxy/2. + v_origin * vrot/du
     uneg = urot < 0.
-    vroti[uneg] = nxy/2 - vrot[uneg]/du
+    vroti[uneg] = nxy/2 - v_origin * vrot[uneg]/du
 
     # coordinates of FT
     u_axis = np.linspace(0., nxy // 2, nxy // 2 + 1)
@@ -79,14 +84,17 @@ def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0.):
     ReInt = f_re.ev(vroti, uroti)
     f_im = RectBivariateSpline(v_axis, u_axis, fft_r2c_shifted.imag, kx=1, ky=1, s=0)
     ImInt = f_im.ev(vroti, uroti)
+    f_amp = RectBivariateSpline(v_axis, u_axis, np.abs(fft_r2c_shifted), kx=1, ky=1, s=0)
+    AmpInt = f_amp.ev(vroti, uroti)
 
     # correct for Real to Complex frequency mapping
     uneg = urot < 0.
     ImInt[uneg] *= -1.
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
 
     # apply the phase change
     theta = urot*dRArot + vrot*dDecrot
-    vis = (ReInt + 1j*ImInt) * (np.cos(theta) + 1j*np.sin(theta))
+    vis = AmpInt * (np.cos(theta+PhaseInt) + 1j*np.sin(theta+PhaseInt))
 
     return vis
 
@@ -234,7 +242,7 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     return image
 
 
-def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='float64'):
+def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='float64', origin='upper'):
     """
     Compute the intensity map (i.e. the image) given the radial profile I(R).
     We assume an axisymmetric profile.
@@ -271,6 +279,8 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
         **units**: rad
     dtype_image : optional, str
         numpy dtype specification for the output image.
+    origin: ['upper' | 'lower'], optional, default: 'upper'
+        Set the [0,0] index of the array in the upper left or lower left corner of the axes.
 
     Returns
     -------
@@ -278,6 +288,11 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
         The intensity map, sweeped by 2pi.
 
     """
+    if origin == 'upper':
+        v_origin = 1.
+    elif origin == 'lower':
+        v_origin = -1.
+
     inc_cos = np.cos(inc)
 
     nrad = len(I)
@@ -285,7 +300,7 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
 
     # create the mesh grid
     x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol)) * dxy * ncol
-    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow)) * dxy * nrow
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow)) * dxy * nrow * v_origin
 
     # we shrink the x axis, since PA is the angle East of North of the
     # the plane of the disk (orthogonal to the angular momentum axis)
@@ -298,7 +313,7 @@ def sweep_ref(I, Rmin, dR, nrow, ncol, dxy, inc, Dx=0., Dy=0., dtype_image='floa
     intensmap = f(x_meshgrid)
 
     # central pixel: compute the average brightness
-    intensmap[int(nrow / 2 + Dy / dxy), int(ncol / 2 - Dx / dxy)] = central_pixel(I, Rmin, dR, dxy)
+    intensmap[int(nrow / 2 + Dy / dxy * v_origin), int(ncol / 2 - Dx / dxy)] = central_pixel(I, Rmin, dR, dxy)
 
     # convert to Jansky
     intensmap *= dxy**2.

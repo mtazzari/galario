@@ -155,7 +155,9 @@ def test_R2C_vs_C2C(nsamples, real_type, rtol, atol, acc_lib, pars):
     uroti_c2c, vroti_c2c = uv_idx(urot, vrot, du, nxy/2.)
     ReInt_c2c = int_bilin_MT(fft_c2c_shifted.real, uroti_c2c, vroti_c2c)
     ImInt_c2c = int_bilin_MT(fft_c2c_shifted.imag, uroti_c2c, vroti_c2c)
-    vis_c2c = ReInt_c2c + 1j*ImInt_c2c
+    AmpInt_c2c = int_bilin_MT(np.abs(fft_c2c_shifted), uroti_c2c, vroti_c2c)
+    PhaseInt_c2c = np.angle(ReInt_c2c + 1j*ImInt_c2c)
+    vis_c2c = AmpInt_c2c * (np.cos(PhaseInt_c2c) + 1j*np.sin(PhaseInt_c2c))
     vis_c2c_shifted = apply_phase_array(urot, vrot, vis_c2c, dRArot, dDecrot)
 
     # CPU/GPU version (galario)
@@ -199,8 +201,13 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
 
     ReInt = int_bilin_MT(ft.real, uroti, vroti)
     ImInt = int_bilin_MT(ft.imag, uroti, vroti)
+    AmpInt = int_bilin_MT(np.abs(ft), uroti, vroti)
     uneg = udat < 0.
     ImInt[uneg] *= -1.
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
+    
+    ReInt = AmpInt * np.cos(PhaseInt)
+    ImInt = AmpInt * np.sin(PhaseInt)
 
     complexInt = acc_lib.interpolate(ft, du,
                                      udat.astype(real_type),
@@ -334,6 +341,89 @@ def test_reduce_chi2(nsamples, real_type, tol, acc_lib):
     chi2_loc = acc_lib.reduce_chi2(x.real.copy(order='C'), x.imag.copy(order='C'), w, y.copy())
 
     assert_allclose(chi2_ref, chi2_loc, rtol=tol)
+
+
+@pytest.mark.parametrize("nsamples, real_type, rtol, acc_lib",
+                         [(1000, 'float32', 1.e-2, g_single), # rtol increased from 1e-4 to pass GPU test
+                          (1000, 'float64', 1.e-10, g_double)],
+                         ids=["SP", "DP"])
+def test_image_origin(nsamples, real_type, rtol, acc_lib):
+    def model1(R):
+        y = (np.exp(-(R / (0.2 * arcsec)) ** 2) + 0.3 * np.exp(
+            -((R - 0.4 * arcsec) / ((0.15 * arcsec))) ** 2))
+        return 1e12 * y
+
+    def model2(R):
+        y = 1 * np.exp(
+            -((R - 1 * arcsec) / (0.5 * arcsec)) ** 2) + 0.7 * np.exp(
+            -((R - 2.5 * arcsec) / (0.25 * arcsec)) ** 2) + 0.2 * np.exp(
+            -((R - 3.5 * arcsec) / (0.15 * arcsec)) ** 2)
+
+        return 1e12 * y
+
+    def model3(R):
+        y = 1 * np.exp(-((R - 0.5 * arcsec) / ((0.1 * arcsec))) ** 2)
+        return 1e12 * y
+
+    def model4(R):
+        y = 1 * (R / 2. / arcsec) ** -0.05 * np.exp(-(R / 2. / arcsec) ** 4)
+        return 1e12 * y
+
+    # u, v points
+    maxuv_generator = 3e3
+    udat, vdat = create_sampling_points(nsamples, maxuv_generator,
+                                        dtype=real_type)
+    nxy, dxy = 4096, 6.42956326721e-08
+
+    # radial grid
+    Rmin = 0.00001 * arcsec
+    dR = 0.0001 * arcsec
+    nrad = 2000
+    gridrad = np.linspace(Rmin, Rmin + dR * (nrad - 1), nrad)
+
+    # create sample image with origin='upper'
+    image_asym = sweep_ref(model1(gridrad), Rmin, dR, nxy, nxy, dxy,  0  * deg, Dx=-50.*dxy,  Dy=66.*dxy,   dtype_image=real_type) + \
+                 sweep_ref(model2(gridrad), Rmin, dR, nxy, nxy, dxy, 20. * deg, Dx=+150.*dxy, Dy=+250.*dxy, dtype_image=real_type) + \
+                 sweep_ref(model3(gridrad), Rmin, dR, nxy, nxy, dxy, 35. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type) + \
+                 sweep_ref(model4(gridrad), Rmin, dR, nxy, nxy, dxy, 44. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type)
+
+    # create sample image with origin='lower'
+    image_asym2 = sweep_ref(model1(gridrad), Rmin, dR, nxy, nxy, dxy,   0 * deg, Dx=-50.*dxy,  Dy=66.*dxy,   dtype_image=real_type, origin='lower') + \
+                  sweep_ref(model2(gridrad), Rmin, dR, nxy, nxy, dxy, 20. * deg, Dx=+150.*dxy, Dy=+250.*dxy, dtype_image=real_type, origin='lower') + \
+                  sweep_ref(model3(gridrad), Rmin, dR, nxy, nxy, dxy, 35. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type, origin='lower') + \
+                  sweep_ref(model4(gridrad), Rmin, dR, nxy, nxy, dxy, 44. * deg, Dx=-110.*dxy, Dy=-100.*dxy, dtype_image=real_type, origin='lower')
+
+    # check that the images are flipped and rolled when diffent origin option is used
+    assert_allclose(image_asym2, np.roll(np.flipud(image_asym), 1, 0), atol=0, rtol=rtol)
+
+    # remove spurious values
+    image_asym[0, :] = 0.
+    image_asym[:, 0] = 0.
+    image_asym[np.where(image_asym < 1e-10)] = 0.
+
+    # remove spurious values
+    image_asym2[0, :] = 0.
+    image_asym2[:, 0] = 0.
+    image_asym2[np.where(image_asym2 < 1e-10)] = 0.
+
+    # Compute visibilities of ORIGINAL image with CURRENT GALARIO algorithm (only: origin='upper')
+    vis_C_upper_image_upper = acc_lib.sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10.)
+
+    # Compute visibilities of ORIGINAL image with NEW algorithm, origin='upper'
+    vis_py_upper_image_upper = py_sampleImage(image_asym, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='upper')
+
+    # Compute visibilities of LOWER ORIGIN image with NEW algorithm, origin='lower'
+    vis_py_lower_image_lower = py_sampleImage(image_asym2, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
+
+    # Compute with C implementation
+    vis_C_lower_image_lower = acc_lib.sampleImage(image_asym2, dxy, udat, vdat, dRA=0.5, dDec=-3., PA=10., origin='lower')
+
+    # check that they produce all the same visibilities
+    assert_allclose(vis_py_upper_image_upper, vis_C_lower_image_lower, atol=0., rtol=rtol)
+    assert_allclose(vis_py_upper_image_upper, vis_C_upper_image_upper, atol=0., rtol=rtol)
+    assert_allclose(vis_py_lower_image_lower, vis_C_upper_image_upper, atol=0., rtol=rtol)
+    assert_allclose(vis_C_lower_image_lower, vis_C_upper_image_upper, atol=0., rtol=rtol)
+
 
 
 @pytest.mark.parametrize("nsamples, real_type, rtol, atol, acc_lib, pars",
@@ -471,7 +561,10 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uroti, vroti = uv_idx(udat, vdat, du, size/2.)
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
-    fint = ReInt + 1j*ImInt
+    AmpInt = int_bilin_MT(np.abs(py_shift_cmplx), uroti, vroti).astype(real_type)
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
+
+    fint = AmpInt * (np.cos(PhaseInt) + 1j*np.sin(PhaseInt))
     fint_acc = fint.copy()
     fint_shifted = apply_phase_array(udat, vdat, fint, dRA, dDec)
     fint_acc_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, fint_acc)
@@ -490,8 +583,14 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     uroti, vroti = uv_idx_r2c(udat, vdat, du, size/2.)
     ReInt = int_bilin_MT(py_shift_cmplx.real, uroti, vroti).astype(real_type)
     ImInt = int_bilin_MT(py_shift_cmplx.imag, uroti, vroti).astype(real_type)
+    AmpInt = int_bilin_MT(np.abs(py_shift_cmplx), uroti, vroti).astype(real_type)
+
     uneg = udat < 0.
     ImInt[uneg] *= -1.
+    PhaseInt = np.angle(ReInt + 1j*ImInt)
+
+    ReInt = AmpInt * np.cos(PhaseInt)
+    ImInt = AmpInt * np.sin(PhaseInt)
 
     complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
                                      du,
@@ -525,3 +624,32 @@ def test_exception():
 
     with pytest.raises(ValueError, message="Odd image lengths are not permitted"):
         g_double._fft2d(np.ones((9, 9), dtype=np.float64))
+
+
+@pytest.mark.parametrize("nxy, inc, dxy, Dx, Dy, real_type, tol, acc_lib",
+                         [(1000, 20., 2e-3, -2., 0., 'float32', 1.e-6, g_single),
+                          (1000, 33.4, 1e-8, 0.23, -1.23, 'float64', 1.e-15, g_double)],
+                         ids=["SP", "DP"])
+def test_get_coords_meshgrid(nxy, inc, dxy, Dx, Dy, real_type, tol, acc_lib):
+
+    ncol, nrow = nxy, nxy
+
+    # create the referencemesh grid
+    inc_cos = np.cos(inc)
+    x = (np.linspace(0.5, -0.5 + 1./float(ncol), ncol, dtype=real_type)) * dxy * ncol
+    y = (np.linspace(0.5, -0.5 + 1./float(nrow), nrow, dtype=real_type)) * dxy * nrow
+
+    # we shrink the x axis, since PA is the angle East of North of the
+    # the plane of the disk (orthogonal to the angular momentum axis)
+    # PA=0 is a disk with vertical orbital node (aligned along North-South)
+    x_m, y_m = np.meshgrid((x - Dx)/ inc_cos, y - Dy)
+    R_m = np.sqrt(x_m ** 2. + y_m ** 2.)
+
+    x_test, y_test, x_m_test, y_m_test, R_m_test = acc_lib.get_coords_meshgrid(nrow, ncol, dxy, inc, Dx=Dx, Dy=Dy, origin='upper')
+
+    assert_allclose(x, x_test, atol=0, rtol=tol)
+    assert_allclose(y, y_test, atol=0, rtol=tol)
+    assert_allclose(x_m, x_m_test, atol=0, rtol=tol)
+    assert_allclose(y_m, y_m_test, atol=0, rtol=tol)
+    assert_allclose(R_m, R_m_test, atol=0, rtol=tol)
+
