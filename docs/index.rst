@@ -3,6 +3,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. _email: mtazzari@ast.cam.ac.uk
+
+
 .. image:: images/galario.jpg
    :scale: 40 %
    :alt: Galario logo. Credit: Tazzari, Beaujean, Testi.
@@ -69,6 +72,8 @@ Useful recipes for the CPU/GPU management and the model image creation: see the 
 
 Detailed documentation of each Python and C++ function: see the :doc:`Python-API <py-api>` and :doc:`C++ API <C++-api>` pages.
 
+Stuck on an issue? Check the :doc:`Frequently Asked Questions <FAQ>` page, or send me an `email`_.
+
 License and Attribution
 -----------------------
 If you use |galario| for your research please cite Tazzari, Beaujean and Testi (2018) MNRAS **476** 4527 `[MNRAS] <https://doi.org/10.1093/mnras/sty409>`_ `[arXiv] <https://arxiv.org/abs/1709.06999>`_ `[ADS] <http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T>`_.
@@ -123,4 +128,5 @@ Contents
     C++ API <C++-api>
     C++ Example <C++-example>
     Publications <publications>
+    FAQ <FAQ>
     License <license>
