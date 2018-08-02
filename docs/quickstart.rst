@@ -53,12 +53,12 @@ Fit a single-wavelength data set
 
     .. code-block:: python
 
-        u, v, Re, Im, w = np.loadtxt("uvtable.txt", unpack=True)
+        u, v, Re, Im, w = np.require(np.loadtxt("uvtable.txt", unpack=True), requirements='C')
         wle = 1e-3  # [m]
         u /= wle
         v /= wle
 
-    where the :math:`u_j` and :math:`v_j` coordinates have been converted in units of the observing wavelength, 1 mm in this example.
+    where the :math:`u_j` and :math:`v_j` coordinates have been converted in units of the observing wavelength, 1 mm in this example. The `np.require` command is necessary to ensure that the arrays are C-contiguous as required by |galario| (see :ref:`FAQ 1.1 <FAQ1.1>`).
 
 **2) Determine the image size**
     Once imported the uv table, we can start using |galario| to compute the optimal image size
