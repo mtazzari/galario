@@ -210,8 +210,8 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     ImInt = AmpInt * np.sin(PhaseInt)
 
     complexInt = acc_lib.interpolate(ft, du,
-                                     udat.astype(real_type),
-                                     vdat.astype(real_type))
+                                     np.ascontiguousarray(udat.astype(real_type)),
+                                     np.ascontiguousarray(vdat.astype(real_type)))
 
     assert_allclose(ReInt, complexInt.real, rtol, atol)
     assert_allclose(ImInt, complexInt.imag, rtol, atol)
@@ -594,8 +594,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
 
     complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
                                      du,
-                                     udat.astype(real_type),
-                                     vdat.astype(real_type))
+                                     np.ascontiguousarray(udat.astype(real_type)),
+                                     np.ascontiguousarray(vdat.astype(real_type)))
 
     assert_allclose(ReInt, complexInt.real, rtol, atol)
     assert_allclose(ImInt, complexInt.imag, rtol, atol)
