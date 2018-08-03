@@ -1,5 +1,6 @@
 ./C++-api.html
 ./C++-example.html
+./FAQ.html
 ./_images/alma_panoramic.jpeg
 ./_images/disk_example.jpg
 ./_images/galario.jpg
@@ -9,6 +10,7 @@
 ./_images/uvplot.png
 ./_sources/C++-api.rst.txt
 ./_sources/C++-example.rst.txt
+./_sources/FAQ.rst.txt
 ./_sources/basic_usage.rst.txt
 ./_sources/cookbook.rst.txt
 ./_sources/index.rst.txt

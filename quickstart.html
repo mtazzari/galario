@@ -97,13 +97,13 @@ can be exported to a table containing the <span class="math notranslate nohighli
 </pre></div>
 </div>
 <p>A table like this one can be read with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">requirements</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
 <span class="n">wle</span> <span class="o">=</span> <span class="mf">1e-3</span>  <span class="c1"># [m]</span>
 <span class="n">u</span> <span class="o">/=</span> <span class="n">wle</span>
 <span class="n">v</span> <span class="o">/=</span> <span class="n">wle</span>
 </pre></div>
 </div>
-<p>where the <span class="math notranslate nohighlight">\(u_j\)</span> and <span class="math notranslate nohighlight">\(v_j\)</span> coordinates have been converted in units of the observing wavelength, 1 mm in this example.</p>
+<p>where the <span class="math notranslate nohighlight">\(u_j\)</span> and <span class="math notranslate nohighlight">\(v_j\)</span> coordinates have been converted in units of the observing wavelength, 1 mm in this example. The <code class="code docutils literal notranslate"><span class="pre">np.require</span></code> command is necessary to ensure that the arrays are C-contiguous as required by <strong>galario</strong> (see <a class="reference internal" href="FAQ.html#faq1-1"><span class="std std-ref">FAQ 1.1</span></a>).</p>
 </div></blockquote>
 <dl class="docutils">
 <dt><strong>2) Determine the image size</strong></dt>
@@ -300,7 +300,8 @@ in the right figure we compute the bestfit model (here taken as the median of th
 <li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
-<li class="toctree-l1"><a class="reference internal" href="license.html">10. License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">10. FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
 </ul>
 
   <h4>Previous topic</h4>

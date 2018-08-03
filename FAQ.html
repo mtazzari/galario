@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>10. galario Frequently Asked Questions with Answers &#8212; galario 1.2 documentation</title>
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="11. License" href="license.html" />
+    <link rel="prev" title="9. Publications that used galario" href="publications.html" />
+
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <link rel="shortcut icon" type="image/png" href="_static/favicon.png" />
+    <meta name="viewport" content="width=device-width,initial-scale=0.8">
+    
+    
+
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-106731281-3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-106731281-3');
+    </script>
+
+
+  </head><body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
+        <li><a href="index.html">galario 1.2 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    
+        <div class="badge">
+            <a href="https://github.com/mtazzari/galario/">Fork me on GitHub</a>
+            <img src="_static/right-red@2x.png">
+        </div>
+    
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="galario-frequently-asked-questions-with-answers">
+<span id="faq"></span><h1>10. <strong>galario</strong> Frequently Asked Questions with Answers<a class="headerlink" href="#galario-frequently-asked-questions-with-answers" title="Permalink to this headline">¶</a></h1>
+<p>This is the list of Frequently Asked Questions about <strong>galario</strong>. The list will be updated regularly to include the questions about recurring issues and relative solutions.</p>
+<p>In all the code snippets shown in these FAQs, wherever <code class="code docutils literal notranslate"><span class="pre">np</span></code> is present is defined as  <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">numpy</span> <span class="pre">as</span> <span class="pre">np</span></code>.</p>
+<div class="section" id="section-1-using-galario">
+<h2>10.1. Section 1 - Using <strong>galario</strong><a class="headerlink" href="#section-1-using-galario" title="Permalink to this headline">¶</a></h2>
+<p id="faq1-1"><strong>Question 1.1. Why do I get an error about non C-contiguous arrays?</strong></p>
+<p>I run this line (or a similar one with <code class="code docutils literal notranslate"><span class="pre">chiImage()</span></code>, <code class="code docutils literal notranslate"><span class="pre">sampleProfile()</span></code> or <code class="code docutils literal notranslate"><span class="pre">sampleImage()</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and I get the following error:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>File <span class="s2">&quot;libcommon.pyx&quot;</span>, line <span class="m">630</span>, in libcommon.chi2Profile
+File <span class="s2">&quot;stringsource&quot;</span>, line <span class="m">653</span>, in View.MemoryView.memoryview_cwrapper
+File <span class="s2">&quot;stringsource&quot;</span>, line <span class="m">348</span>, in View.MemoryView.memoryview.__cinit__
+ValueError: ndarray is not C-contiguous
+</pre></div>
+</div>
+<p>The issue is caused by one of the arrays passed in input to <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> being not C-contiguous, which is a requirement for the C++ code in GALARIO. You can check whether a NumPy array <code class="code docutils literal notranslate"><span class="pre">x</span></code> is C-contiguous by printing <code class="code docutils literal notranslate"><span class="pre">x.flags</span></code>. The first action to debug this issue is to print the flags fo all the arrays in input to the function.</p>
+<p>Typically this happens with the <code class="code docutils literal notranslate"><span class="pre">u</span></code>, <code class="code docutils literal notranslate"><span class="pre">v</span></code>, <code class="code docutils literal notranslate"><span class="pre">Re</span></code>, <code class="code docutils literal notranslate"><span class="pre">Im</span></code>, <code class="code docutils literal notranslate"><span class="pre">w</span></code> arrays that are not C-contiguous if you read them, e.g., from an ASCII uvtable with a <code class="code docutils literal notranslate"><span class="pre">np.loadtxt()</span></code> command and the <code class="code docutils literal notranslate"><span class="pre">unpack=True</span></code> option (or something equivalent).</p>
+<p><strong>SOLUTION:</strong> Make the arrays C-contiguous with the <code class="code docutils literal notranslate"><span class="pre">np.ascontiguousarray()</span></code> command. Applying this to the example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+<span class="n">Re</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">Re</span><span class="p">)</span>
+<span class="n">Im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">Im</span><span class="p">)</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, you can make the arrays contiguous all at once:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">([</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span><span class="p">],</span> <span class="n">requirements</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+    <a id="sidebar-anchor"></a>
+    
+
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">3. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tech-specs.html">4. Tech specs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cookbook.html">5. Cookbook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="py-api.html">6. Python API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-api.html">7. C++ API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">10. FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#section-1-using-galario">10.1. Section 1 - Using <strong>galario</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="publications.html"
+                        title="previous chapter">9. Publications that used <strong>galario</strong></a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="license.html"
+                        title="next chapter">11. License</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/FAQ.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="license.html" title="11. License"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="publications.html" title="9. Publications that used galario"
+             accesskey="P">previous</a> |</li>
+      </ul>
+    </div>
+
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+    </div>
+  </body>
+</html>
