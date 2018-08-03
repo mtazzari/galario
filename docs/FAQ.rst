@@ -38,11 +38,11 @@ and I get the following error:
   File "stringsource", line 348, in View.MemoryView.memoryview.__cinit__
   ValueError: ndarray is not C-contiguous
 
-The issue is caused by the arrays `u`, `v`, `Re`, `Im`, `w` being not C-contiguous, which is a requirement for the C++ code in GALARIO. You can check whether a NumPy array `x` is C-contiguous by printing `x.flags`.
+The issue is caused by one of the arrays passed in input to `chi2Profile` being not C-contiguous, which is a requirement for the C++ code in GALARIO. You can check whether a NumPy array `x` is C-contiguous by printing `x.flags`. The first action to debug this issue is to print the flags fo all the arrays in input to the function.
 
-The `u`, `v`, `Re`, `Im`, `w` arrays are usually not C-contiguous if you read them, e.g., from an ASCII uvtable with a `np.loadtxt()` command and the `unpack=True` option (or something equivalent).
+Typically this happens with the `u`, `v`, `Re`, `Im`, `w` arrays that are not C-contiguous if you read them, e.g., from an ASCII uvtable with a `np.loadtxt()` command and the `unpack=True` option (or something equivalent).
 
-**SOLUTION:** Make the arrays C-contiguous with `np.ascontiguousarray()` command:
+**SOLUTION:** Make the arrays C-contiguous with the `np.ascontiguousarray()` command. Applying this to the example:
 
 .. code-block:: python
 
