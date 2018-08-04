@@ -197,7 +197,7 @@ def test_interpolate(size, real_type, complex_type, rtol, atol, acc_lib):
     uroti = uroti.astype(real_type)
     vroti = vroti.astype(real_type)
 
-    ft = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image))).astype(complex_type)
+    ft = np.fft.fftshift(np.fft.fft2(np.fft.fftshift(reference_image))).astype(complex_type, order='C')
 
     ReInt = int_bilin_MT(ft.real, uroti, vroti)
     ImInt = int_bilin_MT(ft.imag, uroti, vroti)
@@ -592,7 +592,7 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     ReInt = AmpInt * np.cos(PhaseInt)
     ImInt = AmpInt * np.sin(PhaseInt)
 
-    complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type),
+    complexInt = acc_lib.interpolate(py_shift_cmplx.astype(complex_type, order='C'),
                                      du,
                                      udat.astype(real_type),
                                      vdat.astype(real_type))
