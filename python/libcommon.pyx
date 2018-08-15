@@ -734,6 +734,7 @@ def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'
     (x, y) axes are the (R.A, Dec.) axes: x increases leftwards, y increases upwards.
     All coordinates are computed in linear pixels units. To convert to angular units,
     just multiply the output by the angular pixel size.
+    To put (0, 0) coordinates offset by (Dx, Dy) w.r.t. the image center, specify Dx, Dy.
 
     Typical call signature::
 
@@ -753,10 +754,12 @@ def get_coords_meshgrid(nrow, ncol, dxy=1., inc=0., Dx=0., Dy=0., origin='upper'
         Inclination along the North-South axis, default is zero.
         **units**: rad
     Dx : float, optional
-        Offset along the x-axis, default is zero.
+        Offset of the source along the x-axis (R.A.), default is zero.
+        If positive, moves the origin to the East (left).
         **units**: rad
     Dy :  float, optional
-        Offset along the x-axis, default is zero.
+        Offset of the source along the y-axis (Dec.), default is zero.
+        If positive, moves the origin to the North (top).
         **units**: rad
     origin : ['upper' | 'lower'], optional
         Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.

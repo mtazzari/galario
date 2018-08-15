@@ -160,8 +160,7 @@ from the centre (which is always located in the `[i, j]=[Nxy/2, Nxy/2]` pixel), 
 An example
 ~~~~~~~~~~
 All the above calculations can be easily done with just one call to the :func:`get_coords_meshgrid() <galario.double.get_coords_meshgrid>`
-function for a given matrix size, pixel angular size, and other optional parameters such as R.A. and Dec. offsets, inclination,
-and matrix origin, e.g.:
+function, e.g.:
 
 .. code-block:: python
 
@@ -170,12 +169,22 @@ and matrix origin, e.g.:
     nrow, ncol = nxy, nxy   # number of rows and columns (here for a square matrix)
     dxy = 1e-3*arcsec       # pixel size (rad)
     inc = 30.*deg           # inclination (rad)
-    Dx = -1.*arcsec         # R.A. offset (negative, therefore to the West)
-    Dy = 0.5*arcsec         # Dec. offset (positive, therefore to the North)
+
+    x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, origin='lower')
+
+The returned arrays are in radians, the same units of `dxy`. To obtain :math:`(R.A., Dec.)` in pixel units leave `dxy=1` (the default value).
+
+In order to put the coordinates center `(0, 0)` offset by `(Dx, Dy)` w.r.t. the image center, provide the
+additional offset parameters defined along the same direction of R.A. and Dec. (North to the top, East to the left):
+
+.. code-block:: python
+
+    Dx = -1.*arcsec         # R.A. offset (negative, therefore moves the origin to the West)
+    Dy = 0.5*arcsec         # Dec. offset (positive, therefore moves the origin to the North)
 
     x, y, x_m, y_m, R_m = get_coords_meshgrid(nrow, ncol, dxy=dxy, inc=inc, Dx=Dx, Dy=Dy, origin='lower')
 
-The returned arrays are in radians, the same units of `dxy`. To obtain :math:`(R.A., Dec.)` in pixel units leave `dxy=1` (the default value).
+It follows that, applying the brightness function of a source on this last coordinate meshgrid, will put the source center offset by `(Dx, Dy)` from the image center.
 
 For an axisymmetric brightness :math:`f(R)`, once the meshgrid is computed, the image and its visibilities can be computed as easily as :
 
