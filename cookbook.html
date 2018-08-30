@@ -176,20 +176,26 @@ from the centre (which is always located in the <code class="code docutils liter
 <div class="section" id="an-example">
 <h3>5.4.1. An example<a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h3>
 <p>All the above calculations can be easily done with just one call to the <a class="reference internal" href="py-api.html#galario.double.get_coords_meshgrid" title="galario.double.get_coords_meshgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_coords_meshgrid()</span></code></a>
-function for a given matrix size, pixel angular size, and other optional parameters such as R.A. and Dec. offsets, inclination,
-and matrix origin, e.g.:</p>
+function, e.g.:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">get_coords_meshgrid</span><span class="p">,</span> <span class="n">arcsec</span>
 
 <span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span> <span class="o">=</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">nxy</span>   <span class="c1"># number of rows and columns (here for a square matrix)</span>
 <span class="n">dxy</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="o">*</span><span class="n">arcsec</span>       <span class="c1"># pixel size (rad)</span>
 <span class="n">inc</span> <span class="o">=</span> <span class="mf">30.</span><span class="o">*</span><span class="n">deg</span>           <span class="c1"># inclination (rad)</span>
-<span class="n">Dx</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.</span><span class="o">*</span><span class="n">arcsec</span>         <span class="c1"># R.A. offset (negative, therefore to the West)</span>
-<span class="n">Dy</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">arcsec</span>         <span class="c1"># Dec. offset (positive, therefore to the North)</span>
+
+<span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">,</span> <span class="n">R_m</span> <span class="o">=</span> <span class="n">get_coords_meshgrid</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The returned arrays are in radians, the same units of <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>. To obtain <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> in pixel units leave <code class="code docutils literal notranslate"><span class="pre">dxy=1</span></code> (the default value).</p>
+<p>In order to put the coordinates center <code class="code docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">0)</span></code> offset by <code class="code docutils literal notranslate"><span class="pre">(Dx,</span> <span class="pre">Dy)</span></code> w.r.t. the image center, provide the
+additional offset parameters defined along the same direction of R.A. and Dec. (North to the top, East to the left):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Dx</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.</span><span class="o">*</span><span class="n">arcsec</span>         <span class="c1"># R.A. offset (negative, therefore moves the origin to the West)</span>
+<span class="n">Dy</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">arcsec</span>         <span class="c1"># Dec. offset (positive, therefore moves the origin to the North)</span>
 
 <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">,</span> <span class="n">R_m</span> <span class="o">=</span> <span class="n">get_coords_meshgrid</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">Dx</span><span class="o">=</span><span class="n">Dx</span><span class="p">,</span> <span class="n">Dy</span><span class="o">=</span><span class="n">Dy</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The returned arrays are in radians, the same units of <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>. To obtain <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> in pixel units leave <code class="code docutils literal notranslate"><span class="pre">dxy=1</span></code> (the default value).</p>
+<p>It follows that, applying the brightness function of a source on this last coordinate meshgrid, will put the source center offset by <code class="code docutils literal notranslate"><span class="pre">(Dx,</span> <span class="pre">Dy)</span></code> from the image center.</p>
 <p>For an axisymmetric brightness <span class="math notranslate nohighlight">\(f(R)\)</span>, once the meshgrid is computed, the image and its visibilities can be computed as easily as :</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">sampleImage</span><span class="p">,</span> <span class="n">chi2Image</span>
 

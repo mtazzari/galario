@@ -542,7 +542,8 @@ The length of v must be equal to the length of u.
 <dd><p>Compute the (R.A, Dec.) coordinate mesh grid to create the image.
 (x, y) axes are the (R.A, Dec.) axes: x increases leftwards, y increases upwards.
 All coordinates are computed in linear pixels units. To convert to angular units,
-just multiply the output by the angular pixel size.</p>
+just multiply the output by the angular pixel size.
+To put (0, 0) coordinates offset by (Dx, Dy) w.r.t. the image center, specify Dx, Dy.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">,</span> <span class="n">R_m</span> <span class="o">=</span> <span class="n">get_coords_meshgrid</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">Dx</span><span class="o">=</span><span class="n">Dx</span><span class="p">,</span> <span class="n">Dy</span><span class="o">=</span><span class="n">Dy</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
 </pre></div>
@@ -559,9 +560,11 @@ By default is 1, thus implying the output arrays are expressed in number of pixe
 <strong>units</strong>: rad</li>
 <li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination along the North-South axis, default is zero.
 <strong>units</strong>: rad</li>
-<li><strong>Dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset along the x-axis, default is zero.
+<li><strong>Dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset of the source along the x-axis (R.A.), default is zero.
+If positive, moves the origin to the East (left).
 <strong>units</strong>: rad</li>
-<li><strong>Dy</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset along the x-axis, default is zero.
+<li><strong>Dy</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset of the source along the y-axis (Dec.), default is zero.
+If positive, moves the origin to the North (top).
 <strong>units</strong>: rad</li>
 <li><strong>origin</strong> (<em>[</em><em>'upper' | 'lower'</em><em>]</em><em>, </em><em>optional</em>) – Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
 It follows the same convention as in matplotlib <code class="code docutils literal notranslate"><span class="pre">matshow</span></code> and <code class="code docutils literal notranslate"><span class="pre">imshow</span></code> commands.
