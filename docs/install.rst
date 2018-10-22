@@ -59,11 +59,11 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
  2. to make the compilation easier, let's work in a Python environment. |galario| works with both Python 2 and 3.
 
     For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create and
-    activate a Python 3 environment with:
+    activate a Python 3.6 environment with:
 
     .. code-block:: bash
 
-        conda create --name galario3 python=3 numpy cython pytest
+        conda create --name galario3 python=3.6 numpy cython pytest scipy
         source activate galario3
 
  3. Use `cmake` to prepare the compilation from within `galario/build/`:
@@ -82,7 +82,7 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
 
         make && make install
 
-    If the installation fails due to permission problems, you either have to use `sudo make install`, or see the :ref:`instructions below <install_details>` to specify an alternate installation path.
+    If the installation fails due to permission problems, you either have to use `sudo make install`, or see the :ref:`instructions below <install_details>` to specify an alternate installation path. Permission problems may arise when you are using, e.g., a *shared* conda environment: in that case, it is preferable to create your own environment in a directory where you have write permissions.
 
 These instructions should be sufficient in most cases, but if you have problems
 or want more fine-grained control, check out the details below. If you find
