@@ -66,17 +66,17 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
         conda create --name galario3 python=3 numpy cython pytest
         source activate galario3
 
- 2. Use `cmake` to prepare the compilation and `make all` to compile. From within `galario/build/`:
+ 3. Use `cmake` to prepare the compilation from within `galario/build/`:
 
     .. code-block:: bash
 
-       cmake ..
+       cmake -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX ..
 
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
     It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
+    The option `-DCMAKE_INSTALL_PREFIX` sets the directory where |galario| will be installed equal to the content of `$CONDA_PREFIX`. If you are inside a `conda` environment, then `$CONDA_PREFIX` is already populated with the correct directory. For |galario|v > 1.2 it is mandatory to provide this option.
 
-
- 3. Use `make` to build |galario| and `make install` to install it inside the active environment:
+ 4. Use `make` to build |galario| and `make install` to install it inside the active environment:
 
     .. code-block:: bash
 
