@@ -47,8 +47,8 @@ if(NOT DEFINED GALARIO_CHECK_CUDA)
   endif()
 endif()
 if(GALARIO_CHECK_CUDA)
-  # find_package(CUDA)
-  enable_language(CUDA)
+  find_package(CUDA)
+  #enable_language(CUDA)
 endif()
 
 # has to come before subdirectories are added
