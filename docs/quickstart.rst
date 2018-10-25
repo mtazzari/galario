@@ -175,15 +175,15 @@ Fit a single-wavelength data set
     .. code-block:: python
 
         def lnpriorfn(p, par_ranges):
-        """ Uniform prior probability function """
+            """ Uniform prior probability function """
 
-        for i in range(len(p)):
-            if p[i] < par_ranges[i][0] or p[i] > par_ranges[i][1]:
-                return -np.inf
+            for i in range(len(p)):
+                if p[i] < par_ranges[i][0] or p[i] > par_ranges[i][1]:
+                    return -np.inf
 
-        jacob = -p[0]       # jacobian of the log transformation
+            jacob = -p[0]       # jacobian of the log transformation
 
-        return jacob
+            return jacob
 
     which, up to a constant, basically checks that `p` lies inside the rectangular domain defined by the extents in `p_ranges`.
 
