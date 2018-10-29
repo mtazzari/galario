@@ -27,6 +27,13 @@ if(NOT CMAKE_BUILD_TYPE)
       FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+# if inside a conda env, install everything in there
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND DEFINED ENV{CONDA_PREFIX})
+  # https://stackoverflow.com/questions/21437514/
+  set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}" CACHE PATH "Set the prefix based on conda environment" FORCE)
+  message(STATUS "Installing inside conda env at ${CMAKE_INSTALL_PREFIX}")
+endif()
+
 # ship extra findXXX.cmake in `cmake/`
 # APPEND doesn't propagate variable to subdirectory
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
