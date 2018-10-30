@@ -70,7 +70,7 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
 
     .. code-block:: bash
 
-       cmake -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX ..
+       cmake ..
 
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
     It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
