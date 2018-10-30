@@ -74,7 +74,6 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
 
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
     It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
-    The option `-DCMAKE_INSTALL_PREFIX` sets the directory where |galario| will be installed equal to the content of `$CONDA_PREFIX`. If you are inside a `conda` environment, then `$CONDA_PREFIX` is already populated with the correct directory. For |galario|v > 1.2 it is mandatory to provide this option.
 
  4. Use `make` to build |galario| and `make install` to install it inside the active environment:
 
