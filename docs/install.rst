@@ -30,7 +30,8 @@ To compile |galario| you will need:
 
 * a working internet connection (to download 1.5 MB of an external library)
 * either `g++`>=4.8.1 or `clang++`>=3.3 with full support of C++11. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
-* `cmake <https://cmake.org>`_ and `make`
+* `cmake`: download from the `cmake website <https://cmake.org>`_ or install with `conda install -c conda-forge cmake` 
+* `make`
 * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`
 * [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_
 * [optional] Python and numpy for Python bindings to the CPU and GPU
