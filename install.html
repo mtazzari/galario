@@ -7,13 +7,16 @@
     <title>1. How to build and install galario &#8212; galario 1.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
+    
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    
     <script type="text/javascript" src="_static/sidebar.js"></script>
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="2. Basic Usage" href="basic_usage.html" />
@@ -83,7 +86,8 @@ moment. If you want to use a GPU, read on as you have to build <strong>galario</
 <ul class="simple">
 <li>a working internet connection (to download 1.5 MB of an external library)</li>
 <li>either <code class="code docutils literal notranslate"><span class="pre">g++</span></code>&gt;=4.8.1 or <code class="code docutils literal notranslate"><span class="pre">clang++</span></code>&gt;=3.3 with full support of C++11. To use multiple threads, the compiler has to support <a class="reference external" href="http://www.openmp.org/resources/openmp-compilers/">openMP</a></li>
-<li><a class="reference external" href="https://cmake.org">cmake</a> and <code class="code docutils literal notranslate"><span class="pre">make</span></code></li>
+<li><code class="code docutils literal notranslate"><span class="pre">cmake</span></code>: download from the <a class="reference external" href="https://cmake.org">cmake website</a> or install with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">cmake</span></code></li>
+<li><code class="code docutils literal notranslate"><span class="pre">make</span></code></li>
 <li>the <a class="reference external" href="http://www.fftw.org">FFTW libraries</a>, for the CPU version: more details are given <a class="reference internal" href="#fftw-requirement"><span class="std std-ref">below</span></a></li>
 <li>[optional] the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">CUDA toolkit</a> &gt;=8.0 for the GPU version: it can be easily installed from the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">NVIDIA website</a></li>
 <li>[optional] Python and numpy for Python bindings to the CPU and GPU</li>
@@ -112,15 +116,13 @@ mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
 </li>
 <li><p class="first">to make the compilation easier, let’s work in a Python environment. <strong>galario</strong> works with both Python 2 and 3.</p>
 <p>For example, if you are using the <a class="reference external" href="https://www.continuum.io/downloads">Anaconda</a> distribution, you can create and
-activate a Python 3 environment with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name galario3 <span class="nv">python</span><span class="o">=</span><span class="m">3</span> numpy cython pytest
+activate a Python 3.6 environment with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name galario3 <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.6 numpy cython pytest scipy
 <span class="nb">source</span> activate galario3
 </pre></div>
 </div>
 </li>
-</ol>
-<ol class="arabic" start="2">
-<li><p class="first">Use <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> to prepare the compilation and <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">all</span></code> to compile. From within <code class="code docutils literal notranslate"><span class="pre">galario/build/</span></code>:</p>
+<li><p class="first">Use <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> to prepare the compilation from within <code class="code docutils literal notranslate"><span class="pre">galario/build/</span></code>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake ..
 </pre></div>
 </div>
@@ -131,7 +133,7 @@ It will use the internet connection to automatically download <a class="referenc
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> make install
 </pre></div>
 </div>
-<p>If the installation fails due to permission problems, you either have to use <code class="code docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">make</span> <span class="pre">install</span></code>, or see the <a class="reference internal" href="#install-details"><span class="std std-ref">instructions below</span></a> to specify an alternate installation path.</p>
+<p>If the installation fails due to permission problems, you either have to use <code class="code docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">make</span> <span class="pre">install</span></code>, or see the <a class="reference internal" href="#install-details"><span class="std std-ref">instructions below</span></a> to specify an alternate installation path. Permission problems may arise when you are using, e.g., a <em>shared</em> conda environment: in that case, it is preferable to create your own environment in a directory where you have write permissions.</p>
 </li>
 </ol>
 </div></blockquote>
@@ -442,7 +444,7 @@ Failed to initialize NVML: Driver/library version mismatch
     <a id="sidebar-anchor"></a>
     
 
-  <h3><a href="index.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table of Contents</a></h3>
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. Setup</a><ul>
@@ -529,7 +531,7 @@ Failed to initialize NVML: Driver/library version mismatch
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.5.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.1.
     </div>
   </body>
 </html>
