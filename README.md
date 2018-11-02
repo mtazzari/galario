@@ -3,13 +3,16 @@ galario
 
 **Gpu Accelerated Library for Analysing Radio Interferometer Observations**
 
-[![Release Number](https://img.shields.io/github/release/mtazzari/galario.svg)](https://github.com/mtazzari/galario/releases)
 [![Build Status](https://travis-ci.org/mtazzari/galario.svg?branch=master)](https://travis-ci.org/mtazzari/galario)
-[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
-[![DOI](https://zenodo.org/badge/82575704.svg)](https://zenodo.org/badge/latestdoi/82575704)
 [![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
+[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
+
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/galario/badges/latest_release_date.svg)](https://anaconda.org/conda-forge/galario)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/galario/badges/platforms.svg)](https://anaconda.org/conda-forge/galario)
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
+[![DOI](https://zenodo.org/badge/82575704.svg)](https://zenodo.org/badge/latestdoi/82575704)
+
+<!-- [![Release Number](https://img.shields.io/github/release/mtazzari/galario.svg)](https://github.com/mtazzari/galario/releases) -->
 
 **galario** is a library that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
 predictions to radio interferometer observations. Namely, it speeds up the computation of the synthetic visibilities
