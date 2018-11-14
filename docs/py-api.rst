@@ -67,6 +67,17 @@ Other useful functions
 .. autofunction:: galario.double.reduce_chi2
 
 
+
+Utilities
+---------
+The `galario.utils` module contains a number of general purpose functions as well as Python version of the compiled functions present in `galario.single` and `galario.double`.
+
+.. autofunction:: galario.utils.sweep_ref
+.. autofunction:: galario.utils.apply_rotation
+.. autofunction:: galario.utils.apply_phase_array
+.. autofunction:: galario.utils.unique_part
+.. autofunction:: galario.utils.assert_allclose
+
 .. _galario_exceptions:
 
 Exceptions
