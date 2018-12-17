@@ -7,18 +7,22 @@ Operating system
 -------------------
 |galario| runs on Linux and Mac OS X. Windows is not supported.
 
-Installing via conda
---------------------
+Quickest installation: using conda
+----------------------------------
 
 By far the easiest way to install |galario| is via `conda <https://conda.io>`_.
 If you are new to `conda`, you may want to start with the minimal `miniconda
 <https://repo.continuum.io/miniconda/>`_. With `conda` all dependencies are
 installed automatically and you get access to |galario|'s C++ core and python
 bindings, both with support for multithreading.
+To install |galario|:
 
 .. code-block:: bash
 
    conda install -c conda-forge galario
+
+
+To create a conda environment for |galario|, see Section 1.4, step 2.
 
 Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build |galario| by hand.
