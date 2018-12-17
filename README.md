@@ -20,6 +20,8 @@ given a model image (or an axisymmetric brightness profile) and their comparison
 
 Check out the [documentation](https://mtazzari.github.io/galario/) and the [installation instructions](https://mtazzari.github.io/galario/install.html).
 
+**galario** is used in a growing number of publications. You can find the updated list of publications [[at this link]](https://ui.adsabs.harvard.edu/#search/q=citations(bibcode%3A2018MNRAS.476.4527T)%20&sort=date%20desc%2C%20bibcode%20desc&p_=0). 
+
 If you use **galario** for your research please cite  Tazzari, Beaujean and Testi (2018) MNRAS **476** 4527 [[MNRAS]](https://doi.org/10.1093/mnras/sty409) [[arXiv]](https://arxiv.org/abs/1709.06999) [[ADS]](http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T):
 ```
 @ARTICLE{2018MNRAS.476.4527T,
