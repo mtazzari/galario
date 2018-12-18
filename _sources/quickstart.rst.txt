@@ -19,6 +19,8 @@ analyse mock visibilities of the disk continuum emission at :math:`\lambda=` 1 m
     :alt: Protoplanetary disk continuum map
     :align: center
 
+You can download `here <https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt>`_ an ASCII version of the uv-table used in this example.
+
 --------------
 
 
@@ -48,6 +50,8 @@ Fit a single-wavelength data set
         58.72442	276.64959	 0.03325	 0.04560	173.15922
         35.56591	111.28235	 0.03777	-0.11856	194.83899
         ...     	...     	...     	...      	...
+
+    You can download `here <https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt>`_ an ASCII version of the uv-table used in this example.
 
     A table like this one can be read with:
 
@@ -203,21 +207,74 @@ Fit a single-wavelength data set
         # execute the MCMC
         pos, prob, state = sampler.run_mcmc(pos, nsteps, rstate0=state, lnprob0=prob)
 
-        # plot the resulting MCMC
+    It is possible to run the whole fit collecting the code blocks above into a single `quickstart.py` file and running `python quickstart.py`. For reference, using `nthreads=4`, the run takes approximately 5-8 mins on a laptop with an Intel i5 2.9GHz.
+
+**7) Plot the fit results**
+
+    Once the run has completed, we can inspect the fit results. We will produce two informative plots. First, the so called corner plot, which shows the 1D and 2D marginalised posterior distributions of the free parameters (bottom left figure). To produce this plot we use the `corner <https://github.com/dfm/corner.py>`_ package, which can be easily installed with `pip install corner`.
+
+    .. code-block:: python
+
+        # do the corner plot
         import corner
         samples = sampler.chain[:, -1000:, :].reshape((-1, ndim))
         fig = corner.corner(samples, labels=["$f_0$", "$\sigma$", r"$i$", r"PA", r"$\Delta$RA", r"$\Delta$Dec"],
-                            show_titles=True, quantiles=[0.16, 0.50, 0.84], label_kwargs={'labelpad':20, 'fontsize':0}, fontsize=8)
+                            show_titles=True, quantiles=[0.16, 0.50, 0.84],
+                            label_kwargs={'labelpad':20, 'fontsize':0}, fontsize=8)
         fig.savefig("triangle_example.png")
 
-    At the end of the run, which takes approx. 5-8 mins. on a laptop with an Intel i5 2.9GHz, you should obtain an image of
-    the MCMC like the one below, on the left. As a check of the fit, using `sampleProfile` instead of `chi2Profile`
-    in the right figure we compute the bestfit model (here taken as the median of the MCMC) and plot its deprojected visibilities against the data.
+    Second, the so called uv-plot which shows the comparison between the visibilities of the bestfit model and the observed ones (bottom right figure). To produce the uv-plot we use the `uvplot <https://github.com/mtazzari/uvplot>`_ package, which can be easily installed with `pip install uvplot`.
+
+    .. code-block:: python
+
+        # do the uv-plot
+        # select the bestfit model (here, e.g., the model with median parameters)
+        bestfit = [np.percentile(samples[:, i], 50) for i in range(ndim)]
+
+        f0, sigma, inc, PA, dRA, dDec = bestfit
+
+        f0 = 10.**f0        # convert from log to real space
+
+        # convert to radians
+        sigma *= arcsec
+        Rmin *= arcsec
+        dR *= arcsec
+        inc *= deg
+        PA *= deg
+        dRA *= arcsec
+        dDec *= arcsec
+
+        f = GaussianProfile(f0, sigma, Rmin, dR, nR)
+
+        # compute the visibilities of the bestfit model
+        vis_mod = g_double.sampleProfile(f, Rmin, dR, nxy, dxy, u, v,
+                                         inc=inc, PA=PA, dRA=dRA, dDec=dDec)
+
+        from uvplot import UVTable
+
+        uvbin_size = 30e3     # uv-distance bin, units: wle
+
+        # observations uv-plot
+        uv = UVTable(uvtable=[u*wle, v*wle, Re, Im, w], wle=wle)
+        uv.apply_phase(-dRA, -dDec)         # center the source on the phase center
+        uv.deproject(inc, PA)
+        axes = uv.plot(linestyle='.', color='k', label='Data', uvbin_size=uvbin_size)
+
+        # model uv-plot
+        uv_mod = UVTable(uvtable=[u*wle, v*wle, vis_mod.real, vis_mod.imag, w], wle=wle)
+        uv_mod.apply_phase(-dRA, -dDec)     # center the source on the phase center
+        uv_mod.deproject(inc, PA)
+        uv_mod.plot(axes=axes, linestyle='-', color='r', label='Model', yerr=False, uvbin_size=uvbin_size)
+
+        axes[0].figure.savefig("uvplot_example.pdf")
+
 
     +-------------------------------------------------------+-----------------------------------------------+
     |.. image:: images/quickstart_triangle_whole_chain.png  |  .. image:: images/uvplot.png                 |
     |  :width: 80%                                          |          :width: 98%                          |
     |  :alt: Chains                                         |          :alt: Chains                         |
+    +-------------------------------------------------------+-----------------------------------------------+
+    | Corner plot showing the marginalised posteriors       | Uv-plot showing the deprojected visibilities  |
     +-------------------------------------------------------+-----------------------------------------------+
 
 **7) CPU vs GPU execution**

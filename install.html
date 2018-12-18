@@ -68,15 +68,17 @@
 <h2>1.1. Operating system<a class="headerlink" href="#operating-system" title="Permalink to this headline">¶</a></h2>
 <p><strong>galario</strong> runs on Linux and Mac OS X. Windows is not supported.</p>
 </div>
-<div class="section" id="installing-via-conda">
-<h2>1.2. Installing via conda<a class="headerlink" href="#installing-via-conda" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="quickest-installation-using-conda">
+<h2>1.2. Quickest installation: using conda<a class="headerlink" href="#quickest-installation-using-conda" title="Permalink to this headline">¶</a></h2>
 <p>By far the easiest way to install <strong>galario</strong> is via <a class="reference external" href="https://conda.io">conda</a>.
 If you are new to <code class="code docutils literal notranslate"><span class="pre">conda</span></code>, you may want to start with the minimal <a class="reference external" href="https://repo.continuum.io/miniconda/">miniconda</a>. With <code class="code docutils literal notranslate"><span class="pre">conda</span></code> all dependencies are
 installed automatically and you get access to <strong>galario</strong>’s C++ core and python
-bindings, both with support for multithreading.</p>
+bindings, both with support for multithreading.
+To install <strong>galario</strong>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c conda-forge galario
 </pre></div>
 </div>
+<p>To create a conda environment for <strong>galario</strong>, see Section 1.4, step 2.</p>
 <p>Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build <strong>galario</strong> by hand.</p>
 </div>
@@ -449,7 +451,7 @@ Failed to initialize NVML: Driver/library version mismatch
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. Setup</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#operating-system">1.1. Operating system</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installing-via-conda">1.2. Installing via conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quickest-installation-using-conda">1.2. Quickest installation: using conda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#build-requirements">1.3. Build requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#quick-steps-to-build-and-install">1.4. Quick steps to build and install</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#detailed-build-instructions">1.5. Detailed build instructions</a><ul>
@@ -531,7 +533,7 @@ Failed to initialize NVML: Driver/library version mismatch
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
   </body>
 </html>

@@ -73,6 +73,7 @@ implementation in the <a class="reference external" href="http://dfm.io/emcee/cu
 <p>In this page we will show how to fit the mock observations of a protoplanetary disk. In particular, in the example we will
 analyse mock visibilities of the disk continuum emission at <span class="math notranslate nohighlight">\(\lambda=\)</span> 1 mm whose synthetized map is shown in this figure:</p>
 <a class="reference internal image-reference" href="_images/disk_example.jpg"><img alt="Protoplanetary disk continuum map" class="align-center" src="_images/disk_example.jpg" style="width: 605.7px; height: 590.4px;" /></a>
+<p>You can download <a class="reference external" href="https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
 <hr class="docutils" />
 <div class="section" id="fit-a-single-wavelength-data-set">
 <h2>3.1. Fit a single-wavelength data set<a class="headerlink" href="#fit-a-single-wavelength-data-set" title="Permalink to this headline">¶</a></h2>
@@ -99,6 +100,7 @@ can be exported to a table containing the <span class="math notranslate nohighli
 <span class="o">...</span>             <span class="o">...</span>             <span class="o">...</span>             <span class="o">...</span>             <span class="o">...</span>
 </pre></div>
 </div>
+<p>You can download <a class="reference external" href="https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
 <p>A table like this one can be read with:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">requirements</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
 <span class="n">wle</span> <span class="o">=</span> <span class="mf">1e-3</span>  <span class="c1"># [m]</span>
@@ -241,19 +243,67 @@ is the prior probability function defined as a uniform prior:</p>
 
 <span class="c1"># execute the MCMC</span>
 <span class="n">pos</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run_mcmc</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">nsteps</span><span class="p">,</span> <span class="n">rstate0</span><span class="o">=</span><span class="n">state</span><span class="p">,</span> <span class="n">lnprob0</span><span class="o">=</span><span class="n">prob</span><span class="p">)</span>
-
-<span class="c1"># plot the resulting MCMC</span>
+</pre></div>
+</div>
+<p class="last">It is possible to run the whole fit collecting the code blocks above into a single <code class="code docutils literal notranslate"><span class="pre">quickstart.py</span></code> file and running <code class="code docutils literal notranslate"><span class="pre">python</span> <span class="pre">quickstart.py</span></code>. For reference, using <code class="code docutils literal notranslate"><span class="pre">nthreads=4</span></code>, the run takes approximately 5-8 mins on a laptop with an Intel i5 2.9GHz.</p>
+</dd>
+</dl>
+<p><strong>7) Plot the fit results</strong></p>
+<blockquote>
+<div><p>Once the run has completed, we can inspect the fit results. We will produce two informative plots. First, the so called corner plot, which shows the 1D and 2D marginalised posterior distributions of the free parameters (bottom left figure). To produce this plot we use the <a class="reference external" href="https://github.com/dfm/corner.py">corner</a> package, which can be easily installed with <code class="code docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">corner</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># do the corner plot</span>
 <span class="kn">import</span> <span class="nn">corner</span>
 <span class="n">samples</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">chain</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1000</span><span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndim</span><span class="p">))</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">corner</span><span class="o">.</span><span class="n">corner</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;$f_0$&quot;</span><span class="p">,</span> <span class="s2">&quot;$\sigma$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$i$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;PA&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\Delta$RA&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\Delta$Dec&quot;</span><span class="p">],</span>
-                    <span class="n">show_titles</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="p">[</span><span class="mf">0.16</span><span class="p">,</span> <span class="mf">0.50</span><span class="p">,</span> <span class="mf">0.84</span><span class="p">],</span> <span class="n">label_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;labelpad&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;fontsize&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">},</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+                    <span class="n">show_titles</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="p">[</span><span class="mf">0.16</span><span class="p">,</span> <span class="mf">0.50</span><span class="p">,</span> <span class="mf">0.84</span><span class="p">],</span>
+                    <span class="n">label_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;labelpad&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;fontsize&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">},</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;triangle_example.png&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>At the end of the run, which takes approx. 5-8 mins. on a laptop with an Intel i5 2.9GHz, you should obtain an image of
-the MCMC like the one below, on the left. As a check of the fit, using <code class="code docutils literal notranslate"><span class="pre">sampleProfile</span></code> instead of <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code>
-in the right figure we compute the bestfit model (here taken as the median of the MCMC) and plot its deprojected visibilities against the data.</p>
-<table border="1" class="last docutils">
+<p>Second, the so called uv-plot which shows the comparison between the visibilities of the bestfit model and the observed ones (bottom right figure). To produce the uv-plot we use the <a class="reference external" href="https://github.com/mtazzari/uvplot">uvplot</a> package, which can be easily installed with <code class="code docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">uvplot</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># do the uv-plot</span>
+<span class="c1"># select the bestfit model (here, e.g., the model with median parameters)</span>
+<span class="n">bestfit</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">samples</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span> <span class="mi">50</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ndim</span><span class="p">)]</span>
+
+<span class="n">f0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">inc</span><span class="p">,</span> <span class="n">PA</span><span class="p">,</span> <span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span> <span class="o">=</span> <span class="n">bestfit</span>
+
+<span class="n">f0</span> <span class="o">=</span> <span class="mf">10.</span><span class="o">**</span><span class="n">f0</span>        <span class="c1"># convert from log to real space</span>
+
+<span class="c1"># convert to radians</span>
+<span class="n">sigma</span> <span class="o">*=</span> <span class="n">arcsec</span>
+<span class="n">Rmin</span> <span class="o">*=</span> <span class="n">arcsec</span>
+<span class="n">dR</span> <span class="o">*=</span> <span class="n">arcsec</span>
+<span class="n">inc</span> <span class="o">*=</span> <span class="n">deg</span>
+<span class="n">PA</span> <span class="o">*=</span> <span class="n">deg</span>
+<span class="n">dRA</span> <span class="o">*=</span> <span class="n">arcsec</span>
+<span class="n">dDec</span> <span class="o">*=</span> <span class="n">arcsec</span>
+
+<span class="n">f</span> <span class="o">=</span> <span class="n">GaussianProfile</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nR</span><span class="p">)</span>
+
+<span class="c1"># compute the visibilities of the bestfit model</span>
+<span class="n">vis_mod</span> <span class="o">=</span> <span class="n">g_double</span><span class="o">.</span><span class="n">sampleProfile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
+                                 <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="n">PA</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="n">dDec</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">uvplot</span> <span class="kn">import</span> <span class="n">UVTable</span>
+
+<span class="n">uvbin_size</span> <span class="o">=</span> <span class="mf">30e3</span>     <span class="c1"># uv-distance bin, units: wle</span>
+
+<span class="c1"># observations uv-plot</span>
+<span class="n">uv</span> <span class="o">=</span> <span class="n">UVTable</span><span class="p">(</span><span class="n">uvtable</span><span class="o">=</span><span class="p">[</span><span class="n">u</span><span class="o">*</span><span class="n">wle</span><span class="p">,</span> <span class="n">v</span><span class="o">*</span><span class="n">wle</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span><span class="p">],</span> <span class="n">wle</span><span class="o">=</span><span class="n">wle</span><span class="p">)</span>
+<span class="n">uv</span><span class="o">.</span><span class="n">apply_phase</span><span class="p">(</span><span class="o">-</span><span class="n">dRA</span><span class="p">,</span> <span class="o">-</span><span class="n">dDec</span><span class="p">)</span>         <span class="c1"># center the source on the phase center</span>
+<span class="n">uv</span><span class="o">.</span><span class="n">deproject</span><span class="p">(</span><span class="n">inc</span><span class="p">,</span> <span class="n">PA</span><span class="p">)</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">uv</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Data&#39;</span><span class="p">,</span> <span class="n">uvbin_size</span><span class="o">=</span><span class="n">uvbin_size</span><span class="p">)</span>
+
+<span class="c1"># model uv-plot</span>
+<span class="n">uv_mod</span> <span class="o">=</span> <span class="n">UVTable</span><span class="p">(</span><span class="n">uvtable</span><span class="o">=</span><span class="p">[</span><span class="n">u</span><span class="o">*</span><span class="n">wle</span><span class="p">,</span> <span class="n">v</span><span class="o">*</span><span class="n">wle</span><span class="p">,</span> <span class="n">vis_mod</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">vis_mod</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">],</span> <span class="n">wle</span><span class="o">=</span><span class="n">wle</span><span class="p">)</span>
+<span class="n">uv_mod</span><span class="o">.</span><span class="n">apply_phase</span><span class="p">(</span><span class="o">-</span><span class="n">dRA</span><span class="p">,</span> <span class="o">-</span><span class="n">dDec</span><span class="p">)</span>     <span class="c1"># center the source on the phase center</span>
+<span class="n">uv_mod</span><span class="o">.</span><span class="n">deproject</span><span class="p">(</span><span class="n">inc</span><span class="p">,</span> <span class="n">PA</span><span class="p">)</span>
+<span class="n">uv_mod</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Model&#39;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">uvbin_size</span><span class="o">=</span><span class="n">uvbin_size</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;uvplot_example.pdf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<table border="1" class="docutils">
 <colgroup>
 <col width="54%" />
 <col width="46%" />
@@ -264,9 +314,13 @@ in the right figure we compute the bestfit model (here taken as the median of th
 <td><a class="first last reference internal image-reference" href="_images/uvplot.png"><img alt="Chains" src="_images/uvplot.png" style="width: 98%;" /></a>
 </td>
 </tr>
+<tr class="row-even"><td>Corner plot showing the marginalised posteriors</td>
+<td>Uv-plot showing the deprojected visibilities</td>
+</tr>
 </tbody>
 </table>
-</dd>
+</div></blockquote>
+<dl class="docutils">
 <dt><strong>7) CPU vs GPU execution</strong></dt>
 <dd><p class="first">So far we have run <strong>galario</strong> on the CPU. Running it on a GPU can be done by just changing the import at the beginning:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span> <span class="k">as</span> <span class="n">g_double</span>
@@ -353,7 +407,7 @@ in the right figure we compute the bestfit model (here taken as the median of th
 
     <div class="footer" role="contentinfo">
         &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
     </div>
   </body>
 </html>
