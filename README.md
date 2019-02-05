@@ -6,7 +6,7 @@ galario
 [![Build Status](https://travis-ci.org/mtazzari/galario.svg?branch=master)](https://travis-ci.org/mtazzari/galario)
 [![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
-[![Python versions](https://img.shields.io/badge/python-2.7%20%7C%203.6%20%7C%203.7-%20%230078BC.svg)
+![Python versions](https://img.shields.io/badge/python-2.7%20%7C%203.6%20%7C%203.7-%20%230078BC.svg)
 
 
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/galario/badges/latest_release_date.svg)](https://anaconda.org/conda-forge/galario)
