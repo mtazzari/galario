@@ -30,6 +30,7 @@ include "galario_config.pxi"
 cimport galario_defs as cpp
 
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
+           'arcsec_to_rad', 'deg_to_rad', 'cgs_to_Jy', 'pc_to_cm', 'au_to_cm',
            '_init', '_cleanup', 'set_v_origin',
            'ngpus', 'use_gpu', 'threads',
            'check_obs', 'check_image_size', 'get_image_size',
@@ -40,12 +41,15 @@ __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
 
 
 # CONSTANTS
-arcsec = 4.84813681109536e-06       # radians
-deg = 0.017453292519943295          # radians
-cgs_to_Jy = 1e23                    # 1 Jy = 1.0e-23 erg/(s cm^2 Hz)
-pc = 3.0856775815e18                # cm (IAU 2015 Resolution B2)
-au = 1.49597870700e13               # cm (IAU 2012 Resolution B1)
-
+arcsec = 4.84813681109536e-06       # arcsecond to radians  (1 arcsec = pi/3600/180 rad)
+deg = 0.017453292519943295          # degree to radians (1 deg = pi/180 rad)
+cgs_to_Jy = 1e23                    # from cgs units to Jansky (1 Jy = 1.0e-23 erg/(s cm^2 Hz))
+pc = 3.0856775815e18                # parsec to cm (IAU 2015 Resolution B2)
+au = 1.49597870700e13               # astronomical unit to cm (IAU 2012 Resolution B1)
+arcsec_to_rad = arcsec              # arcsecond to radians [alternative name for arcsec]
+deg_to_rad = deg                    # degree to radians [alternative name for deg]
+pc_to_cm = pc                       # parsec to cm [alternative name for pc]
+au_to_cm = au                       # astronomical unit to cm [alternative name for au]
 
 cdef class ArrayWrapper:
     """Wrap an array allocated in C that has to be deleted by `free`.

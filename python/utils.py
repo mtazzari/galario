@@ -35,7 +35,7 @@ __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image
            "unique_part", "assert_allclose", "apply_rotation"]
 
 
-def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0., origin='upper'):
+def py_sampleImage(reference_image, dxy, u, v, dRA=0., dDec=0., PA=0., origin='upper'):
     """
     Python implementation of sampleImage.
 
@@ -61,8 +61,8 @@ def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0., ori
     cos_PA = np.cos(PA)
     sin_PA = np.sin(PA)
 
-    urot = udat * cos_PA - vdat * sin_PA
-    vrot = udat * sin_PA + vdat * cos_PA
+    urot = u * cos_PA - v * sin_PA
+    vrot = u * sin_PA + v * cos_PA
 
     dRArot = dRA * cos_PA - dDec * sin_PA
     dDecrot = dRA * sin_PA + dDec * cos_PA
@@ -99,7 +99,7 @@ def py_sampleImage(reference_image, dxy, udat, vdat, dRA=0., dDec=0., PA=0., ori
     return vis
 
 
-def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, dRA=0., dDec=0., PA=0, inc=0.):
+def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, u, v, dRA=0., dDec=0., PA=0, inc=0.):
     """
     Python implementation of sampleProfile.
 
@@ -129,29 +129,29 @@ def py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, dRA=0., dDec=0.,
 
     intensmap[nrow//2, ncol//2] = central_pixel(intensity, Rmin, dR, dxy)
 
-    vis = py_sampleImage(intensmap, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    vis = py_sampleImage(intensmap, dxy, u, v, PA=PA, dRA=dRA, dDec=dDec)
 
     return vis
 
 
-def py_chi2Image(reference_image, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, dRA=0., dDec=0., PA=0.):
+def py_chi2Image(reference_image, dxy, u, v, vis_obs_re, vis_obs_im, weights, dRA=0., dDec=0., PA=0.):
     """
     Python implementation of chi2Image.
 
     """
-    vis = py_sampleImage(reference_image, dxy, udat, vdat, PA=PA, dRA=dRA, dDec=dDec)
+    vis = py_sampleImage(reference_image, dxy, u, v, PA=PA, dRA=dRA, dDec=dDec)
 
     chi2 = np.sum(((vis.real - vis_obs_re)**2. + (vis.imag - vis_obs_im)**2.)*weights)
 
     return chi2
 
 
-def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, udat, vdat, vis_obs_re, vis_obs_im, weights, dRA=0., dDec=0., PA=0, inc=0.):
+def py_chi2Profile(intensity, Rmin, dR, nxy, dxy, u, v, vis_obs_re, vis_obs_im, weights, dRA=0., dDec=0., PA=0, inc=0.):
     """
     Python implementation of chi2Profile.
 
     """
-    vis = py_sampleProfile(intensity, Rmin, dR, nxy, dxy, udat, vdat, inc=inc, PA=PA, dRA=dRA, dDec=dDec)
+    vis = py_sampleProfile(intensity, Rmin, dR, nxy, dxy, u, v, inc=inc, PA=PA, dRA=dRA, dDec=dDec)
 
     chi2 = np.sum(((vis.real - vis_obs_re)**2. + (vis.imag - vis_obs_im)**2.)*weights)
 
@@ -175,6 +175,8 @@ def radial_profile(Rmin, delta_R, nrad, mode='Gauss', dtype='float64', gauss_wid
 def central_pixel(I, Rmin, dR, dxy):
     """
     Compute brightness in the central pixel as the average flux in the pixel.
+
+    TODO: add docs
 
     """
     # with quadrature method: tends to over-estimate it
@@ -364,25 +366,25 @@ def create_sampling_points(nsamples, maxuv=1., dtype='float64'):
     return u.astype(dtype), v.astype(dtype)
 
 
-def uv_idx(udat, vdat, du, half_size):
+def uv_idx(u, v, du, half_size):
     """
     For C2C transform.
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
     """
-    return half_size + udat/du, half_size + vdat/du
+    return half_size + u/du, half_size + v/du
 
 
-def uv_idx_r2c(udat, vdat, du, half_size):
+def uv_idx_r2c(u, v, du, half_size):
     """
     For R2C transform.
     uv coordinates to pixel coordinates in range [0, npixels].
     Assume image is square, same boundary in u and v direction.
     """
-    indu = np.abs(udat) / du
-    indv = half_size + vdat / du
-    uneg = udat < 0.
-    indv[uneg] = half_size - vdat[uneg] / du
+    indu = np.abs(u) / du
+    indv = half_size + v / du
+    uneg = u < 0.
+    indv[uneg] = half_size - v[uneg] / du
 
     return indu, indv
 
@@ -407,12 +409,12 @@ def int_bilin_MT(f, x, y):
     return fint
 
 
-def matrix_size(udat, vdat, **kwargs):
+def matrix_size(u, v, **kwargs):
 
     maxuv_factor = kwargs.get('maxuv_factor', 4.8)
     minuv_factor = kwargs.get('minuv_factor', 4.)
 
-    uvdist = np.sqrt(udat**2 + vdat**2)
+    uvdist = np.sqrt(u**2 + v**2)
 
     maxuv = max(uvdist)*maxuv_factor
     minuv = min(uvdist)/minuv_factor
@@ -424,7 +426,7 @@ def matrix_size(udat, vdat, **kwargs):
     return Nuv, minuv, maxuv
 
 
-def apply_phase_array(u, v, fint, x0, y0):
+def apply_phase_array(u, v, vis, x0, y0):
     """
     Performs a translation in the real space by applying a phase shift in the Fourier space.
     This function applies the shift to data points sampling the Fourier transform of an image.
@@ -433,7 +435,7 @@ def apply_phase_array(u, v, fint, x0, y0):
     ----------
     u, v: 1D float array
         Coordinates of points in the Fourier space. units: observing wavelength
-    fint: 1D float array, complex
+    vis: 1D float array, complex
         Fourier Transform sampled in the (u, v) points.
         Re, Im, u, v must have the same length.
     x0, y0: floats, rad
@@ -441,7 +443,7 @@ def apply_phase_array(u, v, fint, x0, y0):
 
     Returns
     -------
-    fint_shifted: 1D float array, complex
+    vis_shifted: 1D float array, complex
         Phase-shifted of the Fourier Transform sampled in the (u, v) points.
 
     """
@@ -452,9 +454,9 @@ def apply_phase_array(u, v, fint, x0, y0):
     theta = u*x0 + v*y0
 
     # apply the phase change
-    fint_shifted = fint * (np.cos(theta) + 1j*np.sin(theta))
+    vis_shifted = vis * (np.cos(theta) + 1j * np.sin(theta))
 
-    return fint_shifted
+    return vis_shifted
 
 
 def generate_random_vis(nsamples, dtype):
@@ -469,15 +471,19 @@ def generate_random_vis(nsamples, dtype):
     return x, y, w
 
 
-def apply_rotation(PA, dRA, dDec, udat, vdat):
-    """ Rotates the RA, Dec offsets and the udat and vdat coordinates by Position Angle PA """
+def apply_rotation(PA, dRA, dDec, u, v):
+    """
+    Rotate the RA, Dec offsets and the u and v coordinates by Position Angle PA
+
+    TODO: add docs
+    """
     # PA: rad
 
     cos_PA = np.cos(PA)
     sin_PA = np.sin(PA)
 
-    urot = udat * cos_PA - vdat * sin_PA
-    vrot = udat * sin_PA + vdat * cos_PA
+    urot = u * cos_PA - v * sin_PA
+    vrot = u * sin_PA + v * cos_PA
 
     dRArot = dRA * cos_PA - dDec * sin_PA
     dDecrot = dRA * sin_PA + dDec * cos_PA
@@ -486,12 +492,18 @@ def apply_rotation(PA, dRA, dDec, udat, vdat):
 
 
 def unique_part(array):
-    """Extract the unique part of a real-to-complex Fourier transform"""
+    """
+    Extract the unique part of a real-to-complex Fourier transform
+
+    """
     return array[:, 0:int(array.shape[1]/2)+1]
 
 
 def assert_allclose(x, y, rtol=1e-10, atol=1e-8):
-    """Drop in replacement for `numpy.testing.assert_allclose` that shows the nonmatching elements"""
+    """
+    Drop in replacement for `numpy.testing.assert_allclose` that shows the nonmatching elements
+
+    """
     if np.isscalar(x) and np.isscalar(y) == 1:
         return np.testing.assert_allclose(x, y, rtol=rtol, atol=atol)
 

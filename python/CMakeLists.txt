@@ -35,6 +35,10 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in"
   "${PYGALARIO_DIR}/__init__.py"
   )
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/utils.py"
+  "${PYGALARIO_DIR}/utils.py"
+  )
 
 include(wrap_lib.cmake)
 wrap_lib()
