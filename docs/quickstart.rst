@@ -281,3 +281,8 @@ You now can plot the corelation between each parameter, using a corner plot.
        fontsize=8)
 
    fig.show()
+
+.. image:: images/quickstart_triangle_whole_chain.png
+    :width: 80%
+    :alt: CornerPlot
+    :align: center
