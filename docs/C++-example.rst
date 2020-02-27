@@ -20,7 +20,7 @@ After successfully installing |galario| to `/path/to/galario`, a simple
 test program running |galario| on the CPU with `openMP` and double
 precision can be built with::
 
-  g++ -I/path/to/galario/include -L/path/to/galario/lib -lgalario -DDOUBLE_PRECISION galario_test.c -o galario_test
+  g++ -I/path/to/galario/include -L/path/to/galario/lib -lgalario -DDOUBLE_PRECISION galario_test.cpp -o galario_test
 
 To use single precision, simply do not define the preprocessor symbol `-DDOUBLE_PRECISION` and link in the appropriate library with `-lgalario_single`. A mismatch between the library and the preprocessor symbol causes undefined behavior but usually a segmentation fault causes the program to abort at runtime.
 
