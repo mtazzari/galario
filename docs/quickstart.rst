@@ -2,16 +2,17 @@
 A quickstart example
 ====================
 
-Fit a single-wavelength data set
---------------------------------
-
-In this page we show how to use |galario| in some typical use cases, e.g. the fit of some interferometric data sets.
+In this page we show how to use |galario| in some typical use cases, e.g. how to the fit of some interferometric data sets.
 
 |galario| has been designed to simplify and accelerate the task of computing the synthetic visibilities given a model image, leaving to the user the freedom to choose the most appropriate statistical tool for the parameter space exploration.
 
 For the purpose of these examples we will adopt a Bayesian approach, using Monte Carlo Markov chains to explore the parameter space and to produce a sampling of the posterior probability function. In particular, we will use the MCMC implementation in the `emcee <http://dfm.io/emcee/current/>`_ Python package.
 
-In this page we will show how to fit the mock observations of a protoplanetary disk. In particular, in the example we will analyse mock visibilities of the disk continuum emission at :math:`\lambda=` 1 mm whose synthetized map is shown in this figure:
+
+Fit a single-wavelength data set
+--------------------------------
+
+In this section we will show how to fit the mock observations of a protoplanetary disk. In particular, in the example we will analyse mock visibilities of the disk continuum emission at :math:`\lambda=` 1 mm whose synthetized map is shown in this figure:
 
 
 .. image:: images/disk_example.jpg
@@ -22,30 +23,28 @@ In this page we will show how to fit the mock observations of a protoplanetary d
 
 You can download `here <https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt>`_ an ASCII version of the uv-table used in this example.
 
-1) Import the useful modules
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**1) Import the useful modules**
 
-.. code-block:: python
+    .. code-block:: python
 
-   ##### Import modules
-   import numpy as np
-   import matplotlib.pyplot as plt
-   import math
-   ##### galario
-   from galario.double import get_image_size, chi2Profile # computes the image size required from the (u,v) data , computes a chi2
-   from galario import deg, arcsec # for conversions
-   ##### Emcee
-   from emcee import EnsembleSampler
-   import corner
-   from multiprocessing import Pool
+       # import modules
+       import numpy as np
+       import matplotlib.pyplot as plt
 
-   ##### Because we don't want each thread to use multiple core for numpy computation.
-   #That forces the use of a proper multithreading
-   import os
-   os.environ["OMP_NUM_THREADS"] = "1"
+       # import galario
+       from galario.double import get_image_size, chi2Profile
+       from galario import deg, arcsec
 
-2) Import the uv table
-^^^^^^^^^^^^^^^^^^^^^^
+       # import emcee
+       from emcee import EnsembleSampler
+       import corner
+       from multiprocessing import Pool
+
+       # we don't want each thread to use multiple core for numpy computation.
+       import os
+       os.environ["OMP_NUM_THREADS"] = "1"
+
+**2) Import the uv table**
 
 First, let’s import the table containing the interferometric observations. Typically, an interferometric data set can be exported to a table containing the :math:`(u_j, v_j)` coordinates (:math:`j=1,...,M`), the Real and Imaginary part of the complex visibilities :math:`V_{obs,j}`, and their theoretical weight :math:`w_{j}`, for example:
 
@@ -74,63 +73,62 @@ code:
 
 .. code-block:: python
 
-   ##### load data
+   # load data
    u, v, Re, Im, w = np.require(np.loadtxt("uvtable.txt", unpack=True), requirements='C')
 
-   ##### for conversion
+   # convert baselines to units of observing wavelength
    wavelength = 1e-3  # [m]
    u /= wavelength
    v /= wavelength
 
 The :math:`u_j` and :math:`v_j` coordinates have been converted in units of the observing wavelength, 1 mm in this example. The ``np.require`` command is necessary to ensure that the arrays are C-contiguous as required by |galario| (see `FAQ 1.1 <https://mtazzari.github.io/galario/FAQ.html#faq1-1>`_\ ).
 
-3) Determine and fix the geometry
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**3) Determine and fix the geometry**
 
 Once imported the uv table, we can start using |galario| to compute the optimal image size.
 
 .. code-block:: python
 
-   ##### get size of the image
+   # get size of the image
    nxy, dxy = get_image_size(u, v, verbose=False) # Number of pixel, width of a pixel in rad
 
 the returned values are the number of pixels (\ ``nxy``\ ) and the pixel size (\ ``dxy``\ ) in radians. ``nxy`` and ``dxy`` are chosen to fulfil criteria that ensure a correct computation of the synthetic visibilities. For more details, refer to Sect. 3.2 in `Tazzari, Beaujean and Testi (2017) <https://arxiv.org/abs/1709.06999>`_.
 
-Then we define the mesh we will use to compute the model. Here is a 1D mesh manualy defined and fixed all through the example.
+Then we define the mesh we will use to compute the model. Here is a 1D mesh manually defined and fixed all through the example.
 
 .. code-block:: python
 
-   ##### radial grid parameters, fixed
+   # radial grid parameters, fixed
    Rmin = 1e-4  # arcsec
    dR = 0.005   # arcsec
    nR = 2000
 
-   ##### convert it to use it with galario.double.chi2Profile
+   # convert it to radians as required by galario.double.chi2Profile()
    dR *= arcsec
-   Rmin*=arcsec
+   Rmin *= arcsec
 
-   ##### Define a mesh for the space
+   # define a radial mesh
    R = np.linspace(Rmin, Rmin + dR*nR, nR, endpoint=False)
 
-Defining the mesh out of the functions, as a global constant, makes the computation faster for larger examples. Yet you might need to pass it as an argument, in which case you should refer to the documentation of `emcee <http://dfm.io/emcee/current/>`_.
+Caching (namely, storing) the mesh `R` is advisable to make the computation faster. This can be achieved by defining `R`
+as a global variable of the script. Alternatively, `R` can be passed as an argument to the `lnpostfn` function (see
+the documentation of `emcee <http://dfm.io/emcee/current/>`_).
 
-4) Define the brightness model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**4) Define the brightness model**
 
-Let us define the model: for this example, we will use a very simple Gaussian profile:
+Let us define the brightness radial profile. For this example, we will use a simple Gaussian profile:
 
 .. code-block:: python
 
-   ##### Define a gaussian profile
-   def GaussianProfile(f0, sigma):
+   # Define a gaussian profile
+   def gaussian_profile(f0, sigma):
        """ Gaussian brightness profile.
        """
        return( f0 * np.exp(-(0.5/(sigma**2.))*(R**2.) ))
 
 ``f0`` (Jy/sr) is a normalization, ``sigma`` is the width of the Gaussian, and ``R`` is the globaly defined mesh.
 
-5) Setup the MCMC Ensemble Sampler
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**5) Setup the MCMC Ensemble Sampler**
 
 In our fit we will have 6 free parameters: on top of the model parameters ``f0`` and ``sigma`` we want to fit the inclination ``inc``, the position angle ``PA``, and the angular offsets (\ ``dRA`` and\ ``dDec``\ ) with respect to the phase center. Following the notation of the `emcee <http://dfm.io/emcee/current/>`_ documentation, we initialise the EnsembleSampler.
 
@@ -138,10 +136,10 @@ In our fit we will have 6 free parameters: on top of the model parameters ``f0``
 
 .. code-block:: python
 
-   ##### Initialise the "first guess"
+   # Initialise the "first guess"
    p0 = np.array([10., 0.5, 70., 60., 0.1, 0.1]) #  2 parameters for the model + 4 (inc, PA, dRA, dDec)
 
-   ##### parameter space domain: the parameters can't go out of these
+   # parameter space domain: the parameters can't go out of these
    p_range = np.array([[1., 20.],  #f0
                [0., 8.],           #sigma
                [0., 90.],          #inc
@@ -149,17 +147,16 @@ In our fit we will have 6 free parameters: on top of the model parameters ``f0``
                [-2., 2.],          #dra
                [-2., 2.]])         #ddec
 
-   ##### define emcee parameters
+   # define emcee parameters
    ndim       = len(p_range)       # number of parameters to fit
    nwalkers   = 40                 # number of walkers (at least twice ndim)
    nthreads   = 4                  # CPU threads that emcee should use
    iterations = 3000               # total number of MCMC steps
 
-   ##### initialize the walkers with an ndim-dimensional ball
+   # initialize the walkers with an ndim-dimensional ball
    pos = np.array([(1. + 1e-4 * np.random.random(ndim)) * p0 for i in range(nwalkers)])
 
-6) Define the posterior and the prior probability functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**6) Define the posterior and the prior probability functions**
 
 We now need to define a likelyhood for our model, a way to evaluate how close to the data it is. For that, we implement the posterior function, using galario to compute the :math:`\chi^2`.
 
@@ -179,28 +176,29 @@ And then we implement the full cost function, using a conversion for the units o
 
 .. code-block:: python
 
-   ##### Define a conversion to translate the data for galario.double.chi2Profile
+   # Define a conversion to translate the data for galario.double.chi2Profile
    def convertp(p):
            f0, sigma, inc, PA, dRA, dDec = p
            return(10.**f0, sigma*arcsec, inc*deg, PA*deg, dRA*arcsec, dDec*arcsec)
 
-   ##### Define the cost
+   # Define the cost
    def lnpostfn(p):
        """ Log of posterior probability function """
        # test if we are in the boundaries
        lnp = lnpriorfn(p)
        if not np.isfinite(lnp):
            return -np.inf
+
        # unpack the parameters
        f0, sigma, inc, PA, dRA, dDec = convertp(p)
+
        # compute the model brightness profile
-       f = GaussianProfile(f0, sigma)
+       f = gaussian_profile(f0, sigma)
        # compute the cost
        chi2 = chi2Profile(f, Rmin, dR, nxy, dxy, u, v, Re, Im, w, inc=inc, PA=PA, dRA=dRA, dDec=dDec)
        return(-0.5 * chi2)
 
-7) Launching the MCMC process
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+**7) Launching the MCMC process**
 
 According to your version of emcee:
 
@@ -209,7 +207,7 @@ According to your version of emcee:
 
 .. code-block:: python
 
-   ##### execute the MCMC
+   # execute the MCMC
    with Pool(processes=nthreads) as pool:
        sampler = EnsembleSampler(nwalkers, ndim, lnpostfn,pool=pool)
        pos, prob, state = sampler.run_mcmc(pos, iterations, progress=True)
@@ -221,8 +219,7 @@ According to your version of emcee:
    sampler = EnsembleSampler(nwalkers, ndim, lnpostfn,threads=nthreads)
    pos, prob, state = sampler.run_mcmc(pos, iterations)
 
-8) Plot the optimization
-^^^^^^^^^^^^^^^^^^^^^^^^
+**8) Plot the optimization**
 
 You can see the advancement of each parameter and check their convergence using these few lines.
 
@@ -230,15 +227,15 @@ You can see the advancement of each parameter and check their convergence using 
 
    samples = sampler.chain
 
-   ##### Get the shape of the plot
+   # Get the shape of the plot
    nwalkers,iterations,ndims = samples.shape
    ncols = 2
    nrows = 3
 
-   ##### labeling
+   # labeling
    labels=[r"$f_0$", r"$\sigma$", r"$Inc$", r"PA", r"$\Delta$RA", r"$\Delta$Dec"]
 
-   ##### Make a figure
+   # make a figure
    fig, axes = plt.subplots(nrows=nrows,ncols=ncols, figsize=(15, 10), sharex=True)
    for i in range(ndims):
        ax = axes.flatten()[i]
@@ -262,17 +259,16 @@ You can see the advancement of each parameter and check their convergence using 
 
 It is possible to run the whole fit collecting the code blocks above into a single ``quickstart.py`` file and running ``python quickstart.py``. For reference, using ``nthreads=4``\ , the run takes approximately 5 minutes on a laptop with an Intel Core i5 @ 2.9GHz.
 
-9) Plot the fit results
-^^^^^^^^^^^^^^^^^^^^^^^
+**9) Plot the fit results**
 
-You now can plot the corelation between each parameter, using a corner plot.
+You now can plot the correlation between each parameter, using a corner plot.
 
 .. code-block:: python
 
-   ##### Reshape on the converged zone
-   cornering=(samples[:,-1000:,:].reshape((-1,ndims)))
+   # reshape on the converged zone
+   samples_reshaped = (samples[:,-1000:,:].reshape((-1,ndims)))
 
-   ##### plot
+   # plot
    fig = corner.corner(cornering,
        quantiles=[0.16, 0.50, 0.84],
        labels=labels,
