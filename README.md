@@ -49,4 +49,4 @@ License
 -------
 **galario** is free software licensed under the LGPLv3 License. For more details see the LICENSE.
 
-© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+© Copyright 2017-2020 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
