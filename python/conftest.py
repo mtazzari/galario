@@ -17,24 +17,8 @@
 # For documentation see https://mtazzari.github.io/galario/                   #
 ###############################################################################
 
-DEF DOUBLE_PRECISION = ${GALARIO_DOUBLE_PRECISION}
+import pytest
 
-# I don't understand why I have to import numpy here even it was already
-# imported in the file including this one...
-import numpy as np
-
-IF DOUBLE_PRECISION:
-    ctypedef double dreal
-    real_dtype = np.float64
-
-    ctypedef double complex dcomplex
-    complex_dtype = np.complex128
-    complex_typenum = np.NPY_COMPLEX128
-
-ELSE:
-    ctypedef float dreal
-    real_dtype = np.float32
-
-    ctypedef float complex dcomplex
-    complex_dtype = np.complex64
-    complex_typenum = np.NPY_COMPLEX64
+def pytest_addoption(parser):
+    parser.addoption("--gpu", action="store", default=0,
+        help="Run tests on gpu. Default: 0")

@@ -92,6 +92,7 @@ ENV/
 build/
 build2/
 build3/
+build*/
 
 # emacs backup files
 *~
