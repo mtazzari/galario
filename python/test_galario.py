@@ -616,14 +616,17 @@ def test_exception():
     """
     Make sure exceptions propagate from C++ to python
     """
-    with pytest.raises(ValueError, message="Image can't be too small"):
+    with pytest.raises(ValueError):
         g_double._fft2d(np.ones((1, 1), dtype=np.float64))
+        pytest.fail("Image can't be too small")
 
-    with pytest.raises(ValueError, message="Unequal image lengths are not permitted"):
+    with pytest.raises(ValueError):
         g_double._fft2d(np.ones((10, 9), dtype=np.float64))
+        pytest.fail("Unequal image lengths are not permitted")
 
-    with pytest.raises(ValueError, message="Odd image lengths are not permitted"):
+    with pytest.raises(ValueError):
         g_double._fft2d(np.ones((9, 9), dtype=np.float64))
+        pytest.fail("Odd image lengths are not permitted")
 
 
 @pytest.mark.parametrize("nxy, inc, dxy, Dx, Dy, real_type, tol, acc_lib",
