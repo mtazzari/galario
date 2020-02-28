@@ -20,17 +20,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 from __future__ import (division, print_function, absolute_import, unicode_literals)
 
 import numpy as np
 import pytest
+from os import environ
 
 from utils import *
 
 import galario
 from galario import deg, arcsec
 
-if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
+if galario.HAVE_CUDA and int(environ.get("GALARIO_TEST_GPU", 0)):
     from galario import double_cuda as g_double
     from galario import single_cuda as g_single
 else:
@@ -616,13 +618,13 @@ def test_exception():
     """
     Make sure exceptions propagate from C++ to python
     """
-    with pytest.raises(ValueError, message="Image can't be too small"):
+    with pytest.raises(ValueError, match="dimension.*is less than 2"):
         g_double._fft2d(np.ones((1, 1), dtype=np.float64))
 
-    with pytest.raises(ValueError, message="Unequal image lengths are not permitted"):
-        g_double._fft2d(np.ones((10, 9), dtype=np.float64))
+    with pytest.raises(ValueError, match="Expect a square image"):
+        g_double._fft2d(np.ones((10, 12), dtype=np.float64))
 
-    with pytest.raises(ValueError, message="Odd image lengths are not permitted"):
+    with pytest.raises(ValueError, match="dimension.*is odd"):
         g_double._fft2d(np.ones((9, 9), dtype=np.float64))
 
 
