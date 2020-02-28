@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>galario 1.2 &#8212; galario 1.2 documentation</title>
+    <title>galario 1.2.2 &#8212; galario 1.2.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
@@ -45,7 +45,7 @@
       <h3>Navigation</h3>
       <ul>
         <li class="responsive-menu"><a href="#sidebar-anchor" title="Navigation">&#9776;</a></li>
-        <li><a href="#">galario 1.2 documentation</a> &#187;</li> 
+        <li><a href="#">galario 1.2.2 documentation</a> &#187;</li> 
       </ul>
     </div>
     
@@ -63,7 +63,7 @@
             
   <a class="reference internal image-reference" href="_images/galario.jpg"><img alt="Galario logo. Credit: Tazzari, Beaujean, Testi." class="align-left" src="_images/galario.jpg" style="width: 216.4px; height: 101.60000000000001px;" /></a>
 <div class="section" id="galario-version">
-<h1><strong>galario</strong> 1.2<a class="headerlink" href="#galario-version" title="Permalink to this headline">¶</a></h1>
+<h1><strong>galario</strong> 1.2.2<a class="headerlink" href="#galario-version" title="Permalink to this headline">¶</a></h1>
 <hr class="docutils" />
 <div class="section" id="gpu-accelerated-library-for-analysing-radio-interferometer-observations">
 <h2><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong><a class="headerlink" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations" title="Permalink to this headline">¶</a></h2>
@@ -154,7 +154,14 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
 <div class="section" id="changelog">
 <h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id1">
-<h3>1.2.1 (2018-11-01)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>1.2.2 (2020-02-28)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>[core] Add support for Python 3.8</p></li>
+<li><p>[docs] Improved and expanded explanations in quickstart example.</p></li>
+</ul>
+</div>
+<div class="section" id="id2">
+<h3>1.2.1 (2018-11-01)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>[core] Add support for Python 3.7</p></li>
 <li><p>[docs] New FAQ page with Frequently Asked Questions.</p></li>
@@ -162,8 +169,8 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
 <li><p>[cmake] By default, install <strong>galario</strong> in the active conda environment directory unless <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DCMAKE_INSTALL_PREFIX=/path/...</span></code> is specified.</p></li>
 </ul>
 </div>
-<div class="section" id="id2">
-<h3>1.2 (2018-06-20)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id3">
+<h3>1.2 (2018-06-20)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] New <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option to specify direction of Dec axis for input image in <code class="code docutils literal notranslate"><span class="pre">*Image()</span></code> functions.</p></li>
 <li><p>[core/bugfix] More robust DFT interpolation for sources that are large or hugely offset from phase center.</p></li>
@@ -171,8 +178,8 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
 <li><p>[docs] New <code class="code docutils literal notranslate"><span class="pre">Cookbook</span></code> recipe on how to create the correct coordinate mesh grid.</p></li>
 </ul>
 </div>
-<div class="section" id="id3">
-<h3>1.1 (2018-05-14)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id4">
+<h3>1.1 (2018-05-14)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] Python and C++ code now throw detailed exceptions allowing fine-grained control, e.g. for executions on GPU.</p></li>
 <li><p>[core/bugfix] More robust interpolation of brightness profile in the central pixel for steep <code class="code docutils literal notranslate"><span class="pre">f(R)</span></code> profiles.</p></li>
@@ -180,8 +187,8 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
 <li><p>[core] Memory handling on GPU: memory is now automatically freed in case of an error (allows catching errors with Exceptions).</p></li>
 </ul>
 </div>
-<div class="section" id="id4">
-<h3>1.0.2 (2017-12-19)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id5">
+<h3>1.0.2 (2017-12-19)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] CPU version can now be installed with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">|galario|</span></code>.</p></li>
 <li><p>[core/bugfix] Fix memory leak in GPU version.</p></li>
@@ -189,15 +196,15 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
 <li><p>[docs] Improve installation notes and quickstart example.</p></li>
 </ul>
 </div>
-<div class="section" id="id5">
-<h3>1.0.1 (2017-10-05)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id6">
+<h3>1.0.1 (2017-10-05)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] Allow uninstalling <strong>galario</strong> with <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">uninstall</span></code>.</p></li>
 <li><p>[interface] Allow enabling/disabling check for CUDA on Mac OS with <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DGALARIO_CHECK_CUDA=1</span></code>.</p></li>
 </ul>
 </div>
-<div class="section" id="id6">
-<h3>1.0 (2017-09-19)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id7">
+<h3>1.0 (2017-09-19)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>First release.</p></li>
 </ul>
