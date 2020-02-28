@@ -48,20 +48,11 @@ endif()
 ###
 # installation
 ###
-# to set ${PYTHON_PKG_DIR}. It is prepended by ${CMAKE_INSTALL_PREFIX} if set by user
+# to set ${PYTHON_PKG_DIR}. It is prepended by ${CMAKE_INSTALL_PREFIX} if set
 include(PythonInstall)
 
-# if conda environment is found, prefer that. I know, the name
-# DEFAULT_PYTHON_PKG_DIR is confusing but I didn't choose it
-if(DEFINED ENV{CONDA_PREFIX})
-  set(GALARIO_PYTHON_PKG_DIR "${DEFAULT_PYTHON_PKG_DIR}" CACHE PATH
-    "Current python install path"
-    )
-else()
-  set(GALARIO_PYTHON_PKG_DIR "${PYTHON_PKG_DIR}" CACHE PATH
-  "Current python install path"
-  )
-endif()
+# I guess variable has to be in cache to survive reinvocations of cmake that happen during building
+set(GALARIO_PYTHON_PKG_DIR "${PYTHON_PKG_DIR}" CACHE PATH "Current python install path")
 
 # on unix: install .py and .so relative to ${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT}
 install(DIRECTORY ${PYGALARIO_DIR}
@@ -75,10 +66,6 @@ install(DIRECTORY ${PYGALARIO_DIR}
 configure_file(speed_benchmark.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 configure_file(utils.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 configure_file(speed_baseline.sh "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
-
-# this file is picked up only if in a parent directory of the actual test
-# but the test is invoked from `${CMAKE_CURRENT_BINARY_DIR}/../python_package/tests/`
-configure_file(conftest.py "${CMAKE_CURRENT_BINARY_DIR}/.." COPYONLY)
 
 # TODO avoid installation of test scripts
 # http://stackoverflow.com/questions/13381742/cmake-exclude-executable-during-install

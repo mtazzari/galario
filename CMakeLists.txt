@@ -28,10 +28,10 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 # if inside a conda env, install everything in there
-# if (DEFINED ENV{CONDA_PREFIX} AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-if (DEFINED ENV{CONDA_PREFIX})
-  message(STATUS "Installing inside conda env at $ENV{CONDA_PREFIX}")
-  set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}")
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND DEFINED ENV{CONDA_PREFIX})
+  # https://stackoverflow.com/questions/21437514/
+  set(CMAKE_INSTALL_PREFIX "$ENV{CONDA_PREFIX}" CACHE PATH "Set the prefix based on conda environment" FORCE)
+  message(STATUS "Installing inside conda env at ${CMAKE_INSTALL_PREFIX}")
 endif()
 
 # ship extra findXXX.cmake in `cmake/`
@@ -55,6 +55,7 @@ if(NOT DEFINED GALARIO_CHECK_CUDA)
 endif()
 if(GALARIO_CHECK_CUDA)
   find_package(CUDA)
+  #enable_language(CUDA)
 endif()
 
 # has to come before subdirectories are added

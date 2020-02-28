@@ -7,18 +7,22 @@ Operating system
 -------------------
 |galario| runs on Linux and Mac OS X. Windows is not supported.
 
-Installing via conda
---------------------
+Quickest installation: using conda
+----------------------------------
 
 By far the easiest way to install |galario| is via `conda <https://conda.io>`_.
 If you are new to `conda`, you may want to start with the minimal `miniconda
 <https://repo.continuum.io/miniconda/>`_. With `conda` all dependencies are
 installed automatically and you get access to |galario|'s C++ core and python
 bindings, both with support for multithreading.
+To install |galario|:
 
 .. code-block:: bash
 
    conda install -c conda-forge galario
+
+
+To create a conda environment for |galario|, see Section 1.4, step 2.
 
 Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build |galario| by hand.
@@ -30,7 +34,8 @@ To compile |galario| you will need:
 
 * a working internet connection (to download 1.5 MB of an external library)
 * either `g++`>=4.8.1 or `clang++`>=3.3 with full support of C++11. To use multiple threads, the compiler has to support `openMP <http://www.openmp.org/resources/openmp-compilers/>`_
-* `cmake <https://cmake.org>`_ and `make`
+* `cmake`: download from the `cmake website <https://cmake.org>`_ or install with `conda install -c conda-forge cmake` 
+* `make`
 * the `FFTW libraries <http://www.fftw.org>`_, for the CPU version: more details are given :ref:`below <fftw_requirement>`
 * [optional] the `CUDA toolkit <https://developer.nvidia.com/cuda-toolkit>`_ >=8.0 for the GPU version: it can be easily installed from the `NVIDIA website <https://developer.nvidia.com/cuda-toolkit>`_
 * [optional] Python and numpy for Python bindings to the CPU and GPU
@@ -59,14 +64,14 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
  2. to make the compilation easier, let's work in a Python environment. |galario| works with both Python 2 and 3.
 
     For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create and
-    activate a Python 3 environment with:
+    activate a Python 3.6 environment with:
 
     .. code-block:: bash
 
-        conda create --name galario3 python=3 numpy cython pytest
+        conda create --name galario3 python=3.6 numpy cython pytest scipy
         source activate galario3
 
- 2. Use `cmake` to prepare the compilation and `make all` to compile. From within `galario/build/`:
+ 3. Use `cmake` to prepare the compilation from within `galario/build/`:
 
     .. code-block:: bash
 
@@ -75,14 +80,13 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
     This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
     It will use the internet connection to automatically download `this <https://github.com/UCL/GreatCMakeCookOff>`_ additional library (1.5 MB).
 
-
- 3. Use `make` to build |galario| and `make install` to install it inside the active environment:
+ 4. Use `make` to build |galario| and `make install` to install it inside the active environment:
 
     .. code-block:: bash
 
         make && make install
 
-    If the installation fails due to permission problems, you either have to use `sudo make install`, or see the :ref:`instructions below <install_details>` to specify an alternate installation path.
+    If the installation fails due to permission problems, you either have to use `sudo make install`, or see the :ref:`instructions below <install_details>` to specify an alternate installation path. Permission problems may arise when you are using, e.g., a *shared* conda environment: in that case, it is preferable to create your own environment in a directory where you have write permissions.
 
 These instructions should be sufficient in most cases, but if you have problems
 or want more fine-grained control, check out the details below. If you find
@@ -459,7 +463,7 @@ Force it to show all output:
 
     make && python/py.test.sh -sv python_package/tests/test_galario.py
 
-By default, tests do not run on the GPU. Activate them by calling `py.test.sh --gpu=1 ...`.
+By default, tests do not run on the GPU. Activate them by setting an environment variable `GALARIO_TEST_GPU`; e.g. `GALARIO_TEST_GPU=1 py.test.sh ...`.
 To select a given parametrized test named `test_sample`, just run `py.test.sh -k sample`.
 
 A cuda error such as

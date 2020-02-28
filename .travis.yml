@@ -9,11 +9,16 @@ dist: trusty
 env:
   global:
     - OMP_NUM_THREADS=2
-    - secure: "ZoYNDjr2JtjwGjQn72Gcvc8kbrxub7LSYG3gjx4qMO/AWN+gik/NlsJUAxHR1vpBzxkVYNDGFAAWVZm64gN/L3oE/xv9TkhWdKrWbDPhWctzCntVfo7DobNfY45s2czLvwdrg67PT+8p8hSQ6YLHFGqi2iOgLMFCnyRwzKsgX72SW7zglyJR5n4iBzeXJJc84ch8Kwavsf4ai5qpZKGos3CX9clkFAESGxiPPNtbtcT4vvRQ9pNF0GkBKM6zfwVKQCo3Ae/f9kPc3lzta3OC4nm53jsTp4hCKXipLjLSyri27mnfiegHAkdK1+KUHYBFQJrzno3YX+PndLIZI91bPurueYIoTxc0qhICBiCmNq8q8UeLZd5kCwjoYqMLBMif52ovEw3LBgQVkQupZoazQdUe2EeS133bRJ2VisrzMyM7k5k09kveSPJpJEkknMD+WINEojw3PeV+qpKCdqkW2xL4UKXOen1U82f6XkC7du7CG6OtY1uUgNJV+UOk9iNKekMKg29+lBDMWvDpc4buBHth/I7QZVUytH1ZDWBLMDsl0WLnEPaGL1GncYGINbp81FRw2ej/Cg3ui0s9U0DkJqZmGi8PFamLlVvyhb1rzNaemObz+CvDAhgXCA1/ynhApTHlCN7Zrg8FxLG74i5F6tAw4l3uIn7w0zfts4AFNSI="
+    - secure: "Mw2+Cln1DKdJTb3w8oPmdTfDPqIox1j4Obq537wnerxU1g6BnPuNxMFuW7mEWYuSscttM95z6LDauNjBt1z/icZrC0tjkMO4SiJZkgvzpzEWzU+TXGzobxB5kyWNHFTsmFc8GAMIQI2PNIdXaD+9zlNgLfOcbkoew22lVySWlZBScaAu0evIhHIv9TVdHb1TbN9U8hAWFzrTCYhPKXo3HN8P3bG78s+m+y2kRBB3NQA38ALlp4cuFWhGkL8iZSmNCl+SvoBTMStwkDaJynDpStMnTcypFmcUoJbQ+PzQZ5wJQ8VkwBD2sosRGTLf9W/XWVv1445IeDbmlDTv0ClYo5oUvJ1gTARqjW8fulZtmjtjLFFIBTP243pQ6fYv+QsCJhXTGwFROu8kVa3vGKB2+RcGXOTvHAN3mf9iKQkHzJMkiyjIWREoAd+Ghb75lncPwdIlDvxrcaJhUN8U6ND6gIBnRQspRKrt9xAslW1CppIsRfdDwhVKE5c4+BAPi/5pRh3IT5g8yuqBCJCB4kxuSnHfAOiGMpLp/H2mwqJtwyxe2qHff+cJNbWLNGRkJtCrcD2FTQIe7+S8dQjnY1SCfLbT8vW97/gskcRXuAEWk4ZElIANcDQj1KBXJHgUpoAYvTtrtrLO2ll2NKEcHZ++IBEWzMZdPyBYSFKCtB3KA4Y="
 
-python:
-  - 2.7
-  - 3.6
+matrix:
+  include:
+    - python: 2.7
+    - python: 3.5
+    - python: 3.6
+    - python: 3.7
+      dist: xenial
+      sudo: true
 
 addons:
   apt:
