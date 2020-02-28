@@ -1,3 +1,10 @@
+1.2.2 (2020-02-28)
+++++++++++++++++++
+
+- [core] Add support for Python 3.8
+- [docs] Improved and expanded explanations in quickstart example.
+
+
 1.2.1 (2018-11-01)
 ++++++++++++++++++
 
