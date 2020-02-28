@@ -56,13 +56,13 @@ int main()
     apply_phase_sampled(r, r, n, rp, rp, cp);
 
     auto ncomplex = nx*(ny/2+1);
-    std::vector<dcomplex> fint(res, res + ncomplex);
+    std::vector<dcomplex> vis_int(res, res + ncomplex);
     auto chi2 = reduce_chi2(300, &realdata[0], &realdata[0], res, &realdata[0]);
     (void)chi2; // avoid unused variable warning
 
     // copy input before reduce_chi2 to see if it is modified inadvertently
     for (auto i = 0; i < ncomplex; ++i) {
-        assert(fint[i] == res[i]);
+        assert(vis_int[i] == res[i]);
     }
 
     galario_free(res);

@@ -316,16 +316,16 @@ def test_apply_phase_vis(real_type, complex_type, rtol, atol, acc_lib, pars):
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
 
     # generate mock visibility values
-    fint = np.zeros(nsamples, dtype=complex_type)
-    fint.real = np.random.random(nsamples) * 10.
-    fint.imag = np.random.random(nsamples) * 30.
+    vis_int = np.zeros(nsamples, dtype=complex_type)
+    vis_int.real = np.random.random(nsamples) * 10.
+    vis_int.imag = np.random.random(nsamples) * 30.
 
-    fint_numpy = apply_phase_array(udat, vdat, fint.copy(), dRA, dDec)
+    vis_int_numpy = apply_phase_array(udat, vdat, vis_int.copy(), dRA, dDec)
 
-    fint_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, fint)
+    vis_int_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, vis_int)
 
-    assert_allclose(fint_numpy.real, fint_shifted.real, rtol, atol)
-    assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
+    assert_allclose(vis_int_numpy.real, vis_int_shifted.real, rtol, atol)
+    assert_allclose(vis_int_numpy.imag, vis_int_shifted.imag, rtol, atol)
 
 
 @pytest.mark.parametrize("nsamples, real_type, tol, acc_lib",
@@ -566,16 +566,16 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     AmpInt = int_bilin_MT(np.abs(py_shift_cmplx), uroti, vroti).astype(real_type)
     PhaseInt = np.angle(ReInt + 1j*ImInt)
 
-    fint = AmpInt * (np.cos(PhaseInt) + 1j*np.sin(PhaseInt))
-    fint_acc = fint.copy()
-    fint_shifted = apply_phase_array(udat, vdat, fint, dRA, dDec)
-    fint_acc_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, fint_acc)
+    vis_int = AmpInt * (np.cos(PhaseInt) + 1j*np.sin(PhaseInt))
+    vis_int_acc = vis_int.copy()
+    vis_int_shifted = apply_phase_array(udat, vdat, vis_int, dRA, dDec)
+    vis_int_acc_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, vis_int_acc)
 
 
     # lose some absolute precision here  --> not anymore. Really? check by decreasing rtol, atol
     # atol *= 2
-    assert_allclose(fint_shifted.real, fint_acc_shifted.real, rtol, atol)
-    assert_allclose(fint_shifted.imag, fint_acc_shifted.imag, rtol, atol)
+    assert_allclose(vis_int_shifted.real, vis_int_acc_shifted.real, rtol, atol)
+    assert_allclose(vis_int_shifted.imag, vis_int_acc_shifted.imag, rtol, atol)
     # but continue with previous tolerance
     # atol /= 2
 
@@ -611,8 +611,8 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # # a lot of precision lost. Why? --> not anymore
     # # rtol = 1
     # # atol = 0.5
-    # assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
-    # assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
+    # assert_allclose(vis_int_shifted.real, sampled.real, rtol, atol)
+    # assert_allclose(vis_int_shifted.imag, sampled.imag, rtol, atol)
 
 def test_exception():
     """
