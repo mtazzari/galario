@@ -14,4 +14,4 @@ Comments, corrections and suggestions:
     - `Riccardo Pavesi <https://github.com/pavesiriccardo>`_
 
 The initial development of |galario| was boosted by the GPU Hackathon at the TU Dresden in February 2016 thanks to two
-supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge Leadership Com- puting Facility.
+supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge Leadership Computing Facility.
