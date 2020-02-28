@@ -2,20 +2,20 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>6. Python API reference &#8212; galario 1.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
-    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script src="_static/sidebar.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -63,20 +63,20 @@
           <div class="body" role="main">
             
   <div class="section" id="python-api-reference">
-<h1>6. Python API reference<a class="headerlink" href="#python-api-reference" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">6. </span>Python API reference<a class="headerlink" href="#python-api-reference" title="Permalink to this headline">¶</a></h1>
 <p>The documentation of each function that is reported in this page can also be directly accessed from Python with, e.g.:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="k">import</span> <span class="n">sampleImage</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">sampleImage</span>
 
 <span class="n">help</span><span class="p">(</span><span class="n">sampleImage</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="section" id="computing-synthetic-visibilities">
-<h2>6.1. Computing synthetic visibilities<a class="headerlink" href="#computing-synthetic-visibilities" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">6.1. </span>Computing synthetic visibilities<a class="headerlink" href="#computing-synthetic-visibilities" title="Permalink to this headline">¶</a></h2>
 <p>To compute the synthetic visibilities of a model use the <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a> and
 <a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a> functions.</p>
 <dl class="function">
 <dt id="galario.double.sampleImage">
-<code class="descclassname">galario.double.</code><code class="descname">sampleImage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleImage" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">sampleImage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleImage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the synthetic visibilities of a model image at the specified (u, v) locations.</p>
 <p>The 2D surface brightness in <code class="code docutils literal notranslate"><span class="pre">image</span></code> is Fourier transformed and sampled in the
 (u, v) locations given in the <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code> arrays.</p>
@@ -84,58 +84,54 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>image</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Square matrix of shape (nxy, nxy) containing the 2D surface brightness of the model.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Square matrix of shape (nxy, nxy) containing the 2D surface brightness of the model.
 Assume the x-axis (R.A.) increases from right (West) to left (East)
 and the y-axis (Dec.) increases from bottom (South) to top (North).
 <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> must be even.
-<strong>units</strong>: Jy/pixel</li>
-<li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
-<strong>units</strong>: rad</li>
-<li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
-<strong>units</strong>: wavelength</li>
-<li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: Jy/pixel</p></li>
+<li><p><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of v must be equal to the length of u.
-<strong>units</strong>: wavelength</li>
-<li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+<strong>units</strong>: rad</p></li>
+<li><p><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
 computing the synthetic visibilities in the (u, v) locations provided.
 Additionally check that the (u, v) points fall in the image to avoid
 segmentation violations. Default is False since the check might take
-time. For executions where speed is important, set to False.</li>
-<li><strong>origin</strong> (<em>[</em><em>'upper' | 'lower'</em><em>]</em><em>, </em><em>optional</em>) – Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+time. For executions where speed is important, set to False.</p></li>
+<li><p><strong>origin</strong> (<em>[</em><em>'upper' | 'lower'</em><em>]</em><em>, </em><em>optional</em>) – Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
 It follows the same convention as in matplotlib <code class="code docutils literal notranslate"><span class="pre">matshow</span></code> and <code class="code docutils literal notranslate"><span class="pre">imshow</span></code> commands.
 Declination axis and the matrix y axis are parallel for <code class="code docutils literal notranslate"><span class="pre">origin='lower'</span></code>, anti-parallel for <code class="code docutils literal notranslate"><span class="pre">origin='upper'</span></code>.
 The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
-For more details see the Technical Requirements page in the online docs.</li>
+For more details see the Technical Requirements page in the online docs.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code>.
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code>.
 <strong>units</strong>: Jy</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like, complex</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array_like, complex</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.sampleProfile">
-<code class="descclassname">galario.double.</code><code class="descname">sampleProfile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleProfile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">sampleProfile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleProfile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the synthetic visibilities of a model with an axisymmetric brightness profile.</p>
 <p>The brightness profile <code class="code docutils literal notranslate"><span class="pre">intensity</span></code> is used to build a 2D image of the model, which is
 then Fourier transformed and sampled in the (u, v) locations given in the <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code> arrays.</p>
@@ -146,81 +142,77 @@ from right (West) to left (East) and the y-axis (Dec.) increases from bottom (So
                     <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>intensity</strong> (<em>(</em><em>M</em><em>,</em><em>) </em><em>array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>intensity</strong> (<em>(</em><em>M</em><em>,</em><em>) </em><em>array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
 The profile is assumed to be sampled on a linear radial grid starting
 at <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal notranslate"><span class="pre">dR</span></code>.
-<strong>units</strong>: Jy/sr</li>
-<li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-<strong>units</strong>: rad</li>
-<li><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
-<strong>units</strong>: rad</li>
-<li><strong>nxy</strong> (<em>int</em>) – Side of the square model image, which is internally computed.
-<strong>units</strong>: pixel</li>
-<li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
-<strong>units</strong>: rad</li>
-<li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
-<strong>units</strong>: wavelength</li>
-<li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: Jy/sr</p></li>
+<li><p><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>nxy</strong> (<em>int</em>) – Side of the square model image, which is internally computed.
+<strong>units</strong>: pixel</p></li>
+<li><p><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of v must be equal to the length of u.
-<strong>units</strong>: wavelength</li>
-<li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=90. the image is edge-on.
-<strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+<strong>units</strong>: rad</p></li>
+<li><p><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
 computing the synthetic visibilities in the (u, v) locations provided.
 Additionally check that the (u, v) points fall in the image to avoid
 segmentation violations. Default is False since the check might take
-time. For executions where speed is important, set to False.</li>
+time. For executions where speed is important, set to False.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code>.
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>vis</strong> – Synthetic visibilities sampled in the (u, v) locations given in <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code>.
 <strong>units</strong>: Jy</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like, complex</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array_like, complex</p>
+</dd>
+</dl>
 <div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a></p>
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a></p>
 </div>
 </dd></dl>
 
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>The translation by (dRA, dDec) and the rotation by PA of the model image are optimized for speed: they are not obtained
 with extra interpolations of the model image, but rather applied in the Fourier plane.</p>
 <p>The offset is achieved by applying a complex phase to the sampled visibilities.
 To rotation is achieved by internally rotating the (u, v) locations by -PA.</p>
-<p class="last"><strong>Suggestion</strong>: We recommend starting with <code class="code docutils literal notranslate"><span class="pre">check</span></code> set to <code class="code docutils literal notranslate"><span class="pre">True</span></code> to ensure
+<p><strong>Suggestion</strong>: We recommend starting with <code class="code docutils literal notranslate"><span class="pre">check</span></code> set to <code class="code docutils literal notranslate"><span class="pre">True</span></code> to ensure
 the results obtained are correct. Once a combination of matrix size and
 <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> for the given data has been found, <code class="code docutils literal notranslate"><span class="pre">uvcheck</span></code> can be safely set to
 <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
 </div>
 </div>
 <div class="section" id="computing-chi-squared-directly">
-<h2>6.2. Computing chi squared directly<a class="headerlink" href="#computing-chi-squared-directly" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">6.2. </span>Computing chi squared directly<a class="headerlink" href="#computing-chi-squared-directly" title="Permalink to this headline">¶</a></h2>
 <p>To compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> of a model use the <a class="reference internal" href="#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> and
 <a class="reference internal" href="#galario.double.chi2Profile" title="galario.double.chi2Profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code></a> functions.</p>
 <dl class="function">
 <dt id="galario.double.chi2Image">
-<code class="descclassname">galario.double.</code><code class="descname">chi2Image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Image" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">chi2Image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the chi square of a model image given the observed visibilities.</p>
 <p>The chi square is computed from the observed and synthetic visibilities as:</p>
 <div class="math notranslate nohighlight">
@@ -232,69 +224,65 @@ as in <a class="reference internal" href="#galario.double.sampleImage" title="ga
                  <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>image</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Square matrix of shape (nxy, nxy) containing the 2D surface brightness of the model.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Square matrix of shape (nxy, nxy) containing the 2D surface brightness of the model.
 Assume the x-axis (R.A.) increases from right (West) to left (East)
 and the y-axis (Dec.) increases from bottom (South) to top (North).
 <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> must be even.
-<strong>units</strong>: Jy/pixel</li>
-<li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
-<strong>units</strong>: rad</li>
-<li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
-<strong>units</strong>: wavelength</li>
-<li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: Jy/pixel</p></li>
+<li><p><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of <code class="code docutils literal notranslate"><span class="pre">v</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">u</span></code>.
-<strong>units</strong>: wavelength</li>
-<li><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
-<strong>units</strong>: Jy</li>
-<li><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
+<strong>units</strong>: Jy</p></li>
+<li><p><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
 The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
-<strong>units</strong>: Jy</li>
-<li><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
+<strong>units</strong>: Jy</p></li>
+<li><p><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
 The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
-<strong>units</strong>:</li>
-<li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>:</p></li>
+<li><p><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+<strong>units</strong>: rad</p></li>
+<li><p><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
 computing the synthetic visibilities in the (u, v) locations provided.
 Additionally check that the (u, v) points fall in the image to avoid
 segmentation violations. Default is False since the check might take
-time. For executions where speed is important, set to False.</li>
-<li><strong>origin</strong> (<em>[</em><em>'upper' | 'lower'</em><em>]</em><em>, </em><em>optional</em>) – Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+time. For executions where speed is important, set to False.</p></li>
+<li><p><strong>origin</strong> (<em>[</em><em>'upper' | 'lower'</em><em>]</em><em>, </em><em>optional</em>) – Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
 It follows the same convention as in matplotlib <code class="code docutils literal notranslate"><span class="pre">matshow</span></code> and <code class="code docutils literal notranslate"><span class="pre">imshow</span></code> commands.
 Declination axis and the matrix y axis are parallel for <code class="code docutils literal notranslate"><span class="pre">origin='lower'</span></code>, anti-parallel for <code class="code docutils literal notranslate"><span class="pre">origin='upper'</span></code>.
 The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
-For more details see the Technical Requirements page in the online docs.</li>
+For more details see the Technical Requirements page in the online docs.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>chi2</strong> – The chi square, not normalized.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>chi2</strong> – The chi square, not normalized.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 <div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a></p>
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a></p>
 </div>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.chi2Profile">
-<code class="descclassname">galario.double.</code><code class="descname">chi2Profile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Profile" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">chi2Profile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the chi square of a model with an axisymmetric brightness profile
 given the observed visibilities.</p>
 <p>The image is created from the intensity profile as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a>.
@@ -308,75 +296,71 @@ as in <a class="reference internal" href="#galario.double.sampleProfile" title="
                    <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>intensity</strong> (<em>array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>intensity</strong> (<em>array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
 The profile is assumed to be sampled on a linear radial grid starting
 at <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> with spacing <code class="code docutils literal notranslate"><span class="pre">dR</span></code>.
-<strong>units</strong>: Jy/sr</li>
-<li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is <code class="code docutils literal notranslate"><span class="pre">intensity[0]</span></code>.
-<strong>units</strong>: rad</li>
-<li><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
-<strong>units</strong>: rad</li>
-<li><strong>nxy</strong> (<em>int</em>) – Side of the square model image, which is internally computed.
-<strong>units</strong>: pixel</li>
-<li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
-<strong>units</strong>: rad</li>
-<li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
-<strong>units</strong>: wavelength</li>
-<li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: Jy/sr</p></li>
+<li><p><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is <code class="code docutils literal notranslate"><span class="pre">intensity[0]</span></code>.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>nxy</strong> (<em>int</em>) – Side of the square model image, which is internally computed.
+<strong>units</strong>: pixel</p></li>
+<li><p><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of <code class="code docutils literal notranslate"><span class="pre">v</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">u</span></code>.
-<strong>units</strong>: wavelength</li>
-<li><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
-<strong>units</strong>: Jy</li>
-<li><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
+<strong>units</strong>: Jy</p></li>
+<li><p><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
 The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
-<strong>units</strong>: Jy</li>
-<li><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
+<strong>units</strong>: Jy</p></li>
+<li><p><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
 The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
-<strong>units</strong>:</li>
-<li><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>:</p></li>
+<li><p><strong>dRA</strong> (<em>float</em><em>, </em><em>optional</em>) – R.A. offset w.r.t. the phase center by which the image is translated.
 If dRA &gt; 0 translate the image towards the left (East). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dDec</strong> (<em>float</em><em>, </em><em>optional</em>) – Dec. offset w.r.t. the phase center by which the image is translated.
 If dDec &gt; 0 translate the image towards the top (North). Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
-<strong>units</strong>: rad</li>
-<li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>PA</strong> (<em>float</em><em>, </em><em>optional</em>) – Position Angle, defined East of North. Default is 0.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=pi/2 the image is edge-on.
-<strong>units</strong>: rad</li>
-<li><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
+<strong>units</strong>: rad</p></li>
+<li><p><strong>check</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, check whether <code class="code docutils literal notranslate"><span class="pre">image</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> satisfy Nyquist criterion for
 computing the synthetic visibilities in the (u, v) locations provided.
 Additionally check that the (u, v) points fall in the image to avoid
 segmentation violations. Default is False since the check might take
-time. For executions where speed is important, set to False.</li>
+time. For executions where speed is important, set to False.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>chi2</strong> – The chi square, not normalized.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>chi2</strong> – The chi square, not normalized.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 <div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a>, <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a></p>
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a>, <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a></p>
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="gpu-related">
-<h2>6.3. GPU related<a class="headerlink" href="#gpu-related" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">6.3. </span>GPU related<a class="headerlink" href="#gpu-related" title="Permalink to this headline">¶</a></h2>
 <dl class="data">
 <dt id="galario.HAVE_CUDA">
-<code class="descclassname">galario.</code><code class="descname">HAVE_CUDA</code><a class="headerlink" href="#galario.HAVE_CUDA" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.</code><code class="sig-name descname">HAVE_CUDA</code><a class="headerlink" href="#galario.HAVE_CUDA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Global variable (<code class="code docutils literal notranslate"><span class="pre">bool</span></code>). It is <code class="code docutils literal notranslate"><span class="pre">True</span></code> if the GPU libraries
 (<code class="code docutils literal notranslate"><span class="pre">galario.double_cuda</span></code> and <code class="code docutils literal notranslate"><span class="pre">galario.single_cuda</span></code>) are available, <code class="code docutils literal notranslate"><span class="pre">False</span></code>
 otherwise. On a machine without a CUDA-enabled GPU it is always <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
@@ -384,36 +368,31 @@ otherwise. On a machine without a CUDA-enabled GPU it is always <code class="cod
 
 <dl class="function">
 <dt id="galario.double.ngpus">
-<code class="descclassname">galario.double.</code><code class="descname">ngpus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.ngpus" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">ngpus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.ngpus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return how many GPUs are available on the machine.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>ngpus</strong> – Number of GPUs available on the machine.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>ngpus</strong> – Number of GPUs available on the machine.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.use_gpu">
-<code class="descclassname">galario.double.</code><code class="descname">use_gpu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.use_gpu" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">use_gpu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.use_gpu" title="Permalink to this definition">¶</a></dt>
 <dd><p>Select the GPU to be used for the computation.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_gpu</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>device_id</strong> (<em>int</em>) – ID of the GPU to be used for the computation.</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>device_id</strong> (<em>int</em>) – ID of the GPU to be used for the computation.</p>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>If more than one GPU is present, <code class="code docutils literal notranslate"><span class="pre">device_id</span></code> might not coincide with the <code class="code docutils literal notranslate"><span class="pre">ID</span></code>
 reported by the <code class="code docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command, which reflects the PCI order.
@@ -424,10 +403,10 @@ we recommend to start from <code class="code docutils literal notranslate"><span
 
 </div>
 <div class="section" id="other-useful-functions">
-<h2>6.4. Other useful functions<a class="headerlink" href="#other-useful-functions" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">6.4. </span>Other useful functions<a class="headerlink" href="#other-useful-functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="galario.double.threads">
-<code class="descclassname">galario.double.</code><code class="descname">threads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.threads" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">threads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.threads" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set and get the number of threads to be used in parallel sections of the code.</p>
 <p>To set, pass <code class="code docutils literal notranslate"><span class="pre">num&gt;0</span></code>. To get the current setting, call without any argument.</p>
 <p>Typical call signatures:</p>
@@ -435,21 +414,18 @@ we recommend to start from <code class="code docutils literal notranslate"><span
 <span class="n">threads</span><span class="p">(</span><span class="n">num</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span> <span class="c1"># now change the default</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>On the <em>GPU</em>, <code class="code docutils literal notranslate"><span class="pre">num</span></code> is the square root of the number of threads per block to be used.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>num</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>On the <em>GPU</em>, <code class="code docutils literal notranslate"><span class="pre">num</span></code> is the square root of the number of threads per block to be used.
 1D kernels are launched with linear blocks of size <code class="code docutils literal notranslate"><span class="pre">num*num</span></code>.
 2D Kernels are launched with square blocks of size <code class="code docutils literal notranslate"><span class="pre">num*num</span></code>.</p>
 <p>On the <em>CPU</em>, this sets the number of openMP threads. The default is
 <code class="code docutils literal notranslate"><span class="pre">omp_get_max_threads()</span></code> which can be set through the <code class="code docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code>
 environment variable. If compiled without openMP support, <code class="code docutils literal notranslate"><span class="pre">num</span></code> is
 ignored and this function always returns 1.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</p>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>The CUDA documentation suggests starting with <code class="code docutils literal notranslate"><span class="pre">num*num</span></code>&gt;=64 and multiples of 32,
 e.g. 128, 256. GPU cards with compute capability between 2 and 6.2 have
@@ -462,86 +438,78 @@ cores to see if hyperthreading provides any benefit.</p>
 
 <dl class="function">
 <dt id="galario.double.get_image_size">
-<code class="descclassname">galario.double.</code><code class="descname">get_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_image_size" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">get_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_image_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the recommended image size given the (u, v) locations.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">PB</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
-<strong>units</strong>: wavelength</li>
-<li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of v must be equal to the length of u.
-<strong>units</strong>: wavelength</li>
-<li><strong>PB</strong> (<em>float</em><em>, </em><em>optional</em>) – Primary beam of the antenna, e.g. 1.22*wavelength/Diameter for an idealized
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>PB</strong> (<em>float</em><em>, </em><em>optional</em>) – Primary beam of the antenna, e.g. 1.22*wavelength/Diameter for an idealized
 antenna with uniform illumination.
-<strong>units</strong>: rad</li>
-<li><strong>f_min</strong> (<em>float</em>) – Size of the field of view covered by the (u, v) plane grid w.r.t. the field
+<strong>units</strong>: rad</p></li>
+<li><p><strong>f_min</strong> (<em>float</em>) – Size of the field of view covered by the (u, v) plane grid w.r.t. the field
 of view covered by the image. Recommended to be larger than 3 for better results.
-<strong>units</strong>: pure number</li>
-<li><strong>f_max</strong> (<em>float</em>) – Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
+<strong>units</strong>: pure number</p></li>
+<li><p><strong>f_max</strong> (<em>float</em>) – Nyquist rate: numerical factor that ensures the Nyquist criterion is satisfied when sampling
 the synthetic visibilities at the specified (u, v) locations. Must be larger than 2.
 The maximum (u, v)-distance covered is <code class="code docutils literal notranslate"><span class="pre">f_max</span></code> times the maximum (u, v)-distance
 of the observed visibilities.
-<strong>units</strong>: pure number</li>
-<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>.</li>
+<strong>units</strong>: pure number</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>nxy</strong> (<em>int</em>) – Size of the image along x and y direction.
-<strong>units</strong>: pixel</li>
-<li><strong>dxy</strong> (<em>float</em>) – Returned only if not provided in input.
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>nxy</strong> (<em>int</em>) – Size of the image along x and y direction.
+<strong>units</strong>: pixel</p></li>
+<li><p><strong>dxy</strong> (<em>float</em>) – Returned only if not provided in input.
 Size of the image cell, assumed equal and uniform in both x and y direction.
-<strong>units</strong>: cm</li>
+<strong>units</strong>: cm</p></li>
 </ul>
 </p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.check_image_size">
-<code class="descclassname">galario.double.</code><code class="descname">check_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.check_image_size" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">check_image_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.check_image_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">check_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">duv</span><span class="p">,</span> <span class="n">PB</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
-<strong>units</strong>: wavelength</li>
-<li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u coordinate of the visibility points where the FT has to be sampled.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v coordinate of the visibility points where the FT has to be sampled.
 The length of v must be equal to the length of u.
-<strong>units</strong>: wavelength</li>
-<li><strong>nxy</strong> (<em>int</em>) – Size of the image along x and y direction.
-<strong>units</strong>: pixel</li>
-<li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
-<strong>units</strong>: rad</li>
-<li><strong>duv</strong> (<em>float</em>) – Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
-<strong>units</strong>: wavelength</li>
-<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>.</li>
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>nxy</strong> (<em>int</em>) – Size of the image along x and y direction.
+<strong>units</strong>: pixel</p></li>
+<li><p><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>duv</strong> (<em>float</em>) – Size of the cell in the (u, v) plane, assumed uniform and equal on both u and v directions.
+<strong>units</strong>: wavelength</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, prints information on the criteria to be fulfilled by <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code>.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.get_coords_meshgrid">
-<code class="descclassname">galario.double.</code><code class="descname">get_coords_meshgrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_coords_meshgrid" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">get_coords_meshgrid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_coords_meshgrid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the (R.A, Dec.) coordinate mesh grid to create the image.
 (x, y) axes are the (R.A, Dec.) axes: x increases leftwards, y increases upwards.
 All coordinates are computed in linear pixels units. To convert to angular units,
@@ -551,50 +519,46 @@ To put (0, 0) coordinates offset by (Dx, Dy) w.r.t. the image center, specify Dx
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">,</span> <span class="n">R_m</span> <span class="o">=</span> <span class="n">get_coords_meshgrid</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">Dx</span><span class="o">=</span><span class="n">Dx</span><span class="p">,</span> <span class="n">Dy</span><span class="o">=</span><span class="n">Dy</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>nrow</strong> (<em>int</em>) – Number of rows of the image.</li>
-<li><strong>ncol</strong> (<em>int</em>) – Number of columns of the image.</li>
-<li><strong>dxy</strong> (<em>float</em><em>, </em><em>optional</em>) – Size of the image cell, assumed equal in both x and y direction.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nrow</strong> (<em>int</em>) – Number of rows of the image.</p></li>
+<li><p><strong>ncol</strong> (<em>int</em>) – Number of columns of the image.</p></li>
+<li><p><strong>dxy</strong> (<em>float</em><em>, </em><em>optional</em>) – Size of the image cell, assumed equal in both x and y direction.
 By default is 1, thus implying the output arrays are expressed in number of pixels.
-<strong>units</strong>: rad</li>
-<li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination along the North-South axis, default is zero.
-<strong>units</strong>: rad</li>
-<li><strong>Dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset of the source along the x-axis (R.A.), default is zero.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination along the North-South axis, default is zero.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>Dx</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset of the source along the x-axis (R.A.), default is zero.
 If positive, moves the origin to the East (left).
-<strong>units</strong>: rad</li>
-<li><strong>Dy</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset of the source along the y-axis (Dec.), default is zero.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>Dy</strong> (<em>float</em><em>, </em><em>optional</em>) – Offset of the source along the y-axis (Dec.), default is zero.
 If positive, moves the origin to the North (top).
-<strong>units</strong>: rad</li>
-<li><strong>origin</strong> (<em>[</em><em>'upper' | 'lower'</em><em>]</em><em>, </em><em>optional</em>) – Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>origin</strong> (<em>[</em><em>'upper' | 'lower'</em><em>]</em><em>, </em><em>optional</em>) – Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
 It follows the same convention as in matplotlib <code class="code docutils literal notranslate"><span class="pre">matshow</span></code> and <code class="code docutils literal notranslate"><span class="pre">imshow</span></code> commands.
 Declination axis and the matrix y axis are parallel for <code class="code docutils literal notranslate"><span class="pre">origin='lower'</span></code>, anti-parallel for <code class="code docutils literal notranslate"><span class="pre">origin='upper'</span></code>.
 The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
-For more details see the Technical Requirements page in the online docs.</li>
+For more details see the Technical Requirements page in the online docs.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><strong>x, y</strong> (<em>array_like, float</em>) – Pixel coordinates along the (R.A., Dec.) directions.
-<strong>units</strong>: same as dxy. If dxy=1: number of pixels.</li>
-<li><strong>x_m, y_m</strong> (<em>array_like, float</em>) – Pixel coordinate meshgrid along the (R.A., Dec.) directions.
-<strong>units</strong>: same as dxy. If dxy=1: number of pixels.</li>
-<li><strong>R_m</strong> (<em>array_like, float</em>) – Radial coordinate meshgrid.
-<strong>units</strong>: same as dxy. If dxy=1: number of pixels.</li>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>x, y</strong> (<em>array_like, float</em>) – Pixel coordinates along the (R.A., Dec.) directions.
+<strong>units</strong>: same as dxy. If dxy=1: number of pixels.</p></li>
+<li><p><strong>x_m, y_m</strong> (<em>array_like, float</em>) – Pixel coordinate meshgrid along the (R.A., Dec.) directions.
+<strong>units</strong>: same as dxy. If dxy=1: number of pixels.</p></li>
+<li><p><strong>R_m</strong> (<em>array_like, float</em>) – Radial coordinate meshgrid.
+<strong>units</strong>: same as dxy. If dxy=1: number of pixels.</p></li>
 </ul>
 </p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.sweep">
-<code class="descclassname">galario.double.</code><code class="descname">sweep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sweep" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">sweep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sweep" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a 2D model image from an axisymmetric brightness profile.</p>
 <p>The image is created assuming that the x-axis (R.A.) increases
 from right (West) to left (East) and the y-axis (Dec.) increases
@@ -603,43 +567,39 @@ from bottom (South) to top (North).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">image</span> <span class="o">=</span> <span class="n">sweep</span><span class="p">(</span><span class="n">intensity</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>intensity</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>intensity</strong> (<em>2D array_like</em><em>, </em><em>float</em>) – Array containing the radial brightness profile of the model.
 The brightness profile is assumed to be sampled on a linear radial grid
 starting at <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> and with spacing <code class="code docutils literal notranslate"><span class="pre">dR</span></code>.
-<strong>units</strong>: Jy/sr</li>
-<li><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
-<strong>units</strong>: rad</li>
-<li><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
-<strong>units</strong>: rad</li>
-<li><strong>nxy</strong> (<em>int</em>) – Side of the square model image.
-<strong>units</strong>: pixel</li>
-<li><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
-<strong>units</strong>: rad</li>
-<li><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
+<strong>units</strong>: Jy/sr</p></li>
+<li><p><strong>Rmin</strong> (<em>float</em>) – Inner edge of the radial grid, i.e. the radius where the brightness is intensity[0].
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dR</strong> (<em>float</em>) – Size of the cell of the radial grid, assumed linear.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>nxy</strong> (<em>int</em>) – Side of the square model image.
+<strong>units</strong>: pixel</p></li>
+<li><p><strong>dxy</strong> (<em>float</em>) – Size of the image cell, assumed equal in both x and y direction.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>inc</strong> (<em>float</em><em>, </em><em>optional</em>) – Inclination of the image plane along a North-South (top-bottom) axis.
 If inc=0. the image is face-on; if inc=pi/2 the image is edge-on.
-<strong>units</strong>: rad</li>
+<strong>units</strong>: rad</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>image</strong> – Image of the surface brightness.
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>image</strong> – Image of the surface brightness.
 <strong>units</strong>: Jy/pixel</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(nxy, nxy) array_like, float</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(nxy, nxy) array_like, float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.apply_phase_vis">
-<code class="descclassname">galario.double.</code><code class="descname">apply_phase_vis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.apply_phase_vis" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">apply_phase_vis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.apply_phase_vis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply phase to sampled visibility points as to translate the image in the real
 space by an offset dRA along Right Ascension (R.A.) and dDec along Declination.
 R.A. increases towards left (East), thus dRA&gt;0 translates the image towards East.</p>
@@ -647,97 +607,89 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vis_shifted</span> <span class="o">=</span> <span class="n">apply_phase_vis</span><span class="p">(</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dRA</strong> (<em>float</em>) – Right Ascension offset.
-<strong>units</strong>: rad</li>
-<li><strong>dDec</strong> (<em>float</em>) – Declination offset.
-<strong>units</strong>: rad</li>
-<li><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u-coordinates of visibility points.
-<strong>units</strong>: observing wavelength</li>
-<li><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v-coordinates of visibility points.
-<strong>units</strong>: observing wavelength</li>
-<li><strong>vis</strong> (<em>array_like</em><em>, </em><em>complex</em>) – complex visibilities, of form Real(Vis) + i*Imag(Vis).
-<strong>units</strong>: Jy</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dRA</strong> (<em>float</em>) – Right Ascension offset.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>dDec</strong> (<em>float</em>) – Declination offset.
+<strong>units</strong>: rad</p></li>
+<li><p><strong>u</strong> (<em>array_like</em><em>, </em><em>float</em>) – u-coordinates of visibility points.
+<strong>units</strong>: observing wavelength</p></li>
+<li><p><strong>v</strong> (<em>array_like</em><em>, </em><em>float</em>) – v-coordinates of visibility points.
+<strong>units</strong>: observing wavelength</p></li>
+<li><p><strong>vis</strong> (<em>array_like</em><em>, </em><em>complex</em>) – complex visibilities, of form Real(Vis) + i*Imag(Vis).
+<strong>units</strong>: Jy</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vis_out</strong> – shifted complex visibilities
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>vis_out</strong> – shifted complex visibilities
 <strong>units</strong>: arbitrary, same as vis</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">array_like, complex</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>array_like, complex</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="galario.double.reduce_chi2">
-<code class="descclassname">galario.double.</code><code class="descname">reduce_chi2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.reduce_chi2" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">galario.double.</code><code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.reduce_chi2" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the chi square of observed and model visibilities.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">reduce_chi2</span><span class="p">(</span><span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
-<strong>units</strong>: Jy</li>
-<li><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vis_obs_re</strong> (<em>array_like</em><em>, </em><em>float</em>) – Real part of the observed visibilities.
+<strong>units</strong>: Jy</p></li>
+<li><p><strong>vis_obs_im</strong> (<em>array_like</em><em>, </em><em>float</em>) – Imaginary part of the observed visibilities.
 The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_im</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
-<strong>units</strong>: Jy</li>
-<li><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
-The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.</li>
-<li><strong>vis</strong> (<em>array_like</em><em>, </em><em>complex</em>) – Complex model visibilities.
+<strong>units</strong>: Jy</p></li>
+<li><p><strong>vis_obs_w</strong> (<em>array_like</em><em>, </em><em>float</em>) – Weight associated to the observed visibilities.
+The length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_w</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.</p></li>
+<li><p><strong>vis</strong> (<em>array_like</em><em>, </em><em>complex</em>) – Complex model visibilities.
 The length of <code class="code docutils literal notranslate"><span class="pre">vis</span></code> must be equal to the length of <code class="code docutils literal notranslate"><span class="pre">vis_obs_re</span></code>.
-<strong>units</strong>: Jy</li>
+<strong>units</strong>: Jy</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>chi2</strong> – The chi square, not normalized.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">float</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>chi2</strong> – The chi square, not normalized.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
 <div class="section" id="exceptions">
-<span id="galario-exceptions"></span><h2>6.5. Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<span id="galario-exceptions"></span><h2><span class="section-number">6.5. </span>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
 <p><strong>galario</strong>’s C++ core throws various exception. They can be distinguished by the type and the error message.</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="55%" />
-<col width="26%" />
-<col width="18%" />
+<col style="width: 55%" />
+<col style="width: 26%" />
+<col style="width: 18%" />
 </colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><strong>Event</strong></td>
-<td><strong>C++</strong></td>
-<td><strong>Python</strong></td>
+<tbody>
+<tr class="row-odd"><td><p><strong>Event</strong></p></td>
+<td><p><strong>C++</strong></p></td>
+<td><p><strong>Python</strong></p></td>
 </tr>
-<tr class="row-even"><td>Out of memory on GPU</td>
-<td><code class="code docutils literal notranslate"><span class="pre">std::bad_alloc</span></code></td>
-<td><code class="code docutils literal notranslate"><span class="pre">MemoryError</span></code></td>
+<tr class="row-even"><td><p>Out of memory on GPU</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">std::bad_alloc</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">MemoryError</span></code></p></td>
 </tr>
-<tr class="row-odd"><td>Invalid argument (CPU/GPU)</td>
-<td><code class="code docutils literal notranslate"><span class="pre">std::invalid_argument</span></code></td>
-<td><code class="code docutils literal notranslate"><span class="pre">ValueError</span></code></td>
+<tr class="row-odd"><td><p>Invalid argument (CPU/GPU)</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">std::invalid_argument</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">ValueError</span></code></p></td>
 </tr>
-<tr class="row-even"><td>Miscellaneous, including out of memory (CPU/GPU)</td>
-<td><code class="code docutils literal notranslate"><span class="pre">std::runtime_error</span></code></td>
-<td><code class="code docutils literal notranslate"><span class="pre">RuntimeError</span></code></td>
+<tr class="row-even"><td><p>Miscellaneous, including out of memory (CPU/GPU)</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">std::runtime_error</span></code></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">RuntimeError</span></code></p></td>
 </tr>
 </tbody>
 </table>
@@ -778,10 +730,10 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="cookbook.html"
-                        title="previous chapter">5. <strong>galario</strong> Cookbook</a></p>
+                        title="previous chapter"><span class="section-number">5. </span><strong>galario</strong> Cookbook</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="C++-api.html"
-                        title="next chapter">7. C++ API reference</a></p>
+                        title="next chapter"><span class="section-number">7. </span>C++ API reference</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -790,17 +742,15 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -821,8 +771,8 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+        &#169; Copyright 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.3.
     </div>
   </body>
 </html>

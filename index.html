@@ -2,20 +2,20 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>galario 1.2 &#8212; galario 1.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
-    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script src="_static/sidebar.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -85,14 +85,14 @@ relevant equations and the algorithm implementation.</p>
 <p><strong>galario</strong> is actively developed on <a class="reference external" href="https://github.com/mtazzari/galario/">GitHub</a>
 and has already been employed in <a class="reference internal" href="publications.html"><span class="doc">these publications</span></a>.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>The Python and C++ bindings of <strong>galario</strong> can be installed easily via <a class="reference external" href="https://conda.io">conda</a>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c conda-forge galario
 </pre></div>
 </div>
 <p>Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, you have to build <strong>galario</strong> by hand.</p>
-<p class="last">All the details on how to build and install <strong>galario</strong> can be found in the <a class="reference internal" href="install.html"><span class="doc">Setup</span></a> page.</p>
+<p>All the details on how to build and install <strong>galario</strong> can be found in the <a class="reference internal" href="install.html"><span class="doc">Setup</span></a> page.</p>
 </div>
 <p>Basic functionality of <strong>galario</strong>: see the <a class="reference internal" href="basic_usage.html"><span class="doc">Basic Usage</span></a> page.</p>
 <p>How to fit some data with <strong>galario</strong>: check the <a class="reference internal" href="quickstart.html"><span class="doc">Getting started example</span></a>.</p>
@@ -130,77 +130,76 @@ version of <strong>galario</strong> used in a paper.</p>
 </div>
 <div class="section" id="contributors">
 <h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h2>
-<dl class="docutils">
-<dt>Authors:</dt>
-<dd><ul class="first last simple">
-<li><a class="reference external" href="https://github.com/mtazzari">Marco Tazzari (University of Cambridge)</a></li>
-<li><a class="reference external" href="https://github.com/fredRos">Frederik Beaujean</a></li>
-<li><a class="reference external" href="https://github.com/ltesti">Leonardo Testi (European Southern Observatory)</a></li>
+<dl class="simple">
+<dt>Authors:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/mtazzari">Marco Tazzari (University of Cambridge)</a></p></li>
+<li><p><a class="reference external" href="https://github.com/fredRos">Frederik Beaujean</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ltesti">Leonardo Testi (European Southern Observatory)</a></p></li>
 </ul>
 </dd>
-<dt>Contributions to the code base:</dt>
-<dd><ul class="first last simple">
-<li><a class="reference external" href="https://github.com/lucadimascolo">Luca Di Mascolo</a></li>
-<li><a class="reference external" href="https://github.com/equant">Nathanial Hendler</a></li>
+<dt>Contributions to the code base:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/lucadimascolo">Luca Di Mascolo</a></p></li>
+<li><p><a class="reference external" href="https://github.com/equant">Nathanial Hendler</a></p></li>
 </ul>
 </dd>
-<dt>Comments, corrections and suggestions:</dt>
-<dd><ul class="first last simple">
-<li><a class="reference external" href="https://github.com/drgmk">Grant Kennedy</a></li>
-<li><a class="reference external" href="https://github.com/pavesiriccardo">Riccardo Pavesi</a></li>
+<dt>Comments, corrections and suggestions:</dt><dd><ul class="simple">
+<li><p><a class="reference external" href="https://github.com/drgmk">Grant Kennedy</a></p></li>
+<li><p><a class="reference external" href="https://github.com/pavesiriccardo">Riccardo Pavesi</a></p></li>
 </ul>
 </dd>
 </dl>
+<p>The initial development of <strong>galario</strong> was boosted by the GPU Hackathon at the TU Dresden in February 2016 thanks to two
+supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge Leadership Computing Facility.</p>
 </div>
 <div class="section" id="changelog">
 <h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="id1">
 <h3>1.2.1 (2018-11-01)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>[core] Add support for Python 3.7</li>
-<li>[docs] New FAQ page with Frequently Asked Questions.</li>
-<li>[docs] Better documentation of <code class="code docutils literal notranslate"><span class="pre">get_coords_meshgrid</span></code> function.</li>
-<li>[cmake] By default, install <strong>galario</strong> in the active conda environment directory unless <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DCMAKE_INSTALL_PREFIX=/path/...</span></code> is specified.</li>
+<li><p>[core] Add support for Python 3.7</p></li>
+<li><p>[docs] New FAQ page with Frequently Asked Questions.</p></li>
+<li><p>[docs] Better documentation of <code class="code docutils literal notranslate"><span class="pre">get_coords_meshgrid</span></code> function.</p></li>
+<li><p>[cmake] By default, install <strong>galario</strong> in the active conda environment directory unless <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DCMAKE_INSTALL_PREFIX=/path/...</span></code> is specified.</p></li>
 </ul>
 </div>
 <div class="section" id="id2">
 <h3>1.2 (2018-06-20)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>[interface] New <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option to specify direction of Dec axis for input image in <code class="code docutils literal notranslate"><span class="pre">*Image()</span></code> functions.</li>
-<li>[core/bugfix] More robust DFT interpolation for sources that are large or hugely offset from phase center.</li>
-<li>[docs] New <code class="code docutils literal notranslate"><span class="pre">Tech</span> <span class="pre">specs</span></code> page on specifications of the input image with new <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option.</li>
-<li>[docs] New <code class="code docutils literal notranslate"><span class="pre">Cookbook</span></code> recipe on how to create the correct coordinate mesh grid.</li>
+<li><p>[interface] New <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option to specify direction of Dec axis for input image in <code class="code docutils literal notranslate"><span class="pre">*Image()</span></code> functions.</p></li>
+<li><p>[core/bugfix] More robust DFT interpolation for sources that are large or hugely offset from phase center.</p></li>
+<li><p>[docs] New <code class="code docutils literal notranslate"><span class="pre">Tech</span> <span class="pre">specs</span></code> page on specifications of the input image with new <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option.</p></li>
+<li><p>[docs] New <code class="code docutils literal notranslate"><span class="pre">Cookbook</span></code> recipe on how to create the correct coordinate mesh grid.</p></li>
 </ul>
 </div>
 <div class="section" id="id3">
 <h3>1.1 (2018-05-14)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>[interface] Python and C++ code now throw detailed exceptions allowing fine-grained control, e.g. for executions on GPU.</li>
-<li>[core/bugfix] More robust interpolation of brightness profile in the central pixel for steep <code class="code docutils literal notranslate"><span class="pre">f(R)</span></code> profiles.</li>
-<li>[core] Drop support for C. Only C++ and Python are now supported.</li>
-<li>[core] Memory handling on GPU: memory is now automatically freed in case of an error (allows catching errors with Exceptions).</li>
+<li><p>[interface] Python and C++ code now throw detailed exceptions allowing fine-grained control, e.g. for executions on GPU.</p></li>
+<li><p>[core/bugfix] More robust interpolation of brightness profile in the central pixel for steep <code class="code docutils literal notranslate"><span class="pre">f(R)</span></code> profiles.</p></li>
+<li><p>[core] Drop support for C. Only C++ and Python are now supported.</p></li>
+<li><p>[core] Memory handling on GPU: memory is now automatically freed in case of an error (allows catching errors with Exceptions).</p></li>
 </ul>
 </div>
 <div class="section" id="id4">
 <h3>1.0.2 (2017-12-19)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>[interface] CPU version can now be installed with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">|galario|</span></code>.</li>
-<li>[core/bugfix] Fix memory leak in GPU version.</li>
-<li>[core] Allow multiple processes to use the GPU concurrently by default.</li>
-<li>[docs] Improve installation notes and quickstart example.</li>
+<li><p>[interface] CPU version can now be installed with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">|galario|</span></code>.</p></li>
+<li><p>[core/bugfix] Fix memory leak in GPU version.</p></li>
+<li><p>[core] Allow multiple processes to use the GPU concurrently by default.</p></li>
+<li><p>[docs] Improve installation notes and quickstart example.</p></li>
 </ul>
 </div>
 <div class="section" id="id5">
 <h3>1.0.1 (2017-10-05)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>[interface] Allow uninstalling <strong>galario</strong> with <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">uninstall</span></code>.</li>
-<li>[interface] Allow enabling/disabling check for CUDA on Mac OS with <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DGALARIO_CHECK_CUDA=1</span></code>.</li>
+<li><p>[interface] Allow uninstalling <strong>galario</strong> with <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">uninstall</span></code>.</p></li>
+<li><p>[interface] Allow enabling/disabling check for CUDA on Mac OS with <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DGALARIO_CHECK_CUDA=1</span></code>.</p></li>
 </ul>
 </div>
 <div class="section" id="id6">
 <h3>1.0 (2017-09-19)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>First release.</li>
+<li><p>First release.</p></li>
 </ul>
 </div>
 </div>
@@ -292,7 +291,7 @@ version of <strong>galario</strong> used in a paper.</p>
 
   <h4>Next topic</h4>
   <p class="topless"><a href="install.html"
-                        title="next chapter">1. How to build and install <strong>galario</strong></a></p>
+                        title="next chapter"><span class="section-number">1. </span>How to build and install <strong>galario</strong></a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -301,17 +300,15 @@ version of <strong>galario</strong> used in a paper.</p>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -329,8 +326,8 @@ version of <strong>galario</strong> used in a paper.</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+        &#169; Copyright 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.3.
     </div>
   </body>
 </html>

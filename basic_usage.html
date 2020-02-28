@@ -2,20 +2,20 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>2. Basic Usage &#8212; galario 1.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
-    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script src="_static/sidebar.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -63,7 +63,7 @@
           <div class="body" role="main">
             
   <div class="section" id="basic-usage">
-<h1>2. Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">2. </span>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h1>
 <p>Let’s say you have an observational dataset of <code class="code docutils literal notranslate"><span class="pre">M</span></code> visibility points located at <span class="math notranslate nohighlight">\((u_j, v_j)\)</span>, with <span class="math notranslate nohighlight">\(j=1...M\)</span> and <span class="math notranslate nohighlight">\(u_j\)</span>, <span class="math notranslate nohighlight">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math notranslate nohighlight">\(V_{obs\ j}\)</span> (Jy) is the <span class="math notranslate nohighlight">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math notranslate nohighlight">\(w_j\)</span>.
 With <strong>galario</strong> you can:</p>
 <p><strong>1) Compute visibilities from a model image</strong></p>
@@ -110,8 +110,8 @@ or to rotate the image by a Position Angle PA (rad) (defined East of North), you
 </div>
 </div></blockquote>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If you work on a machine <strong>without</strong> a CUDA-enabled GPU, don’t worry: you can use the CPU version
+<p class="admonition-title">Note</p>
+<p>If you work on a machine <strong>without</strong> a CUDA-enabled GPU, don’t worry: you can use the CPU version
 of <strong>galario</strong> by just removing the subscript <code class="code docutils literal notranslate"><span class="pre">&quot;_cuda&quot;</span></code> from the imports above and benefit from the openMP parallelization.
 All the function names and interfaces are the same for GPU and CPU version!</p>
 </div>
@@ -144,10 +144,10 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="install.html"
-                        title="previous chapter">1. How to build and install <strong>galario</strong></a></p>
+                        title="previous chapter"><span class="section-number">1. </span>How to build and install <strong>galario</strong></a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="quickstart.html"
-                        title="next chapter">3. A quickstart example</a></p>
+                        title="next chapter"><span class="section-number">3. </span>A quickstart example</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -156,17 +156,15 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -187,8 +185,8 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+        &#169; Copyright 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.3.
     </div>
   </body>
 </html>

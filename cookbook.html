@@ -2,20 +2,20 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>5. galario Cookbook &#8212; galario 1.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
-    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script src="_static/sidebar.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -63,9 +63,9 @@
           <div class="body" role="main">
             
   <div class="section" id="galario-cookbook">
-<span id="cookbook"></span><h1>5. <strong>galario</strong> Cookbook<a class="headerlink" href="#galario-cookbook" title="Permalink to this headline">¶</a></h1>
+<span id="cookbook"></span><h1><span class="section-number">5. </span><strong>galario</strong> Cookbook<a class="headerlink" href="#galario-cookbook" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="using-the-gpu-and-cpu-version">
-<span id="cookbook-gpu-cpu-version"></span><h2>5.1. Using the GPU and CPU version<a class="headerlink" href="#using-the-gpu-and-cpu-version" title="Permalink to this headline">¶</a></h2>
+<span id="cookbook-gpu-cpu-version"></span><h2><span class="section-number">5.1. </span>Using the GPU and CPU version<a class="headerlink" href="#using-the-gpu-and-cpu-version" title="Permalink to this headline">¶</a></h2>
 <p>The CPU version of <strong>galario</strong> is always compiled, even on a system without a CUDA-enabled GPU. In this case you can import
 the double and single precision CPU versions of the library with:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double</span>
@@ -93,7 +93,7 @@ have the same interfaces, by adding this snippet to the imports of the module yo
 without a GPU, then move to a machine with a GPU and run it on the GPU without any change.</p>
 </div>
 <div class="section" id="selecting-the-gpu">
-<h2>5.2. Selecting the GPU<a class="headerlink" href="#selecting-the-gpu" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">5.2. </span>Selecting the GPU<a class="headerlink" href="#selecting-the-gpu" title="Permalink to this headline">¶</a></h2>
 <p><strong>galario</strong> can be used on machines with one or more CUDA-capable GPUs. The number of GPUs available on the machine can be
 obtained with the <a class="reference internal" href="py-api.html#galario.double.ngpus" title="galario.double.ngpus"><code class="xref py py-func docutils literal notranslate"><span class="pre">ngpus()</span></code></a> function:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">ngpus</span><span class="p">()</span>   <span class="c1"># or single_cuda.ngpus()</span>
@@ -107,15 +107,15 @@ obtained with the <a class="reference internal" href="py-api.html#galario.double
 <p>where <code class="code docutils literal notranslate"><span class="pre">ID</span></code> is an integer number representing the GPU ID. By default, <strong>galario</strong> uses the GPU with <code class="code docutils literal notranslate"><span class="pre">ID=0</span></code>. This means that on machines
 with only one CUDA-capable GPU it is not necessary to call <code class="code docutils literal notranslate"><span class="pre">double_cuda.use_GPU(0)</span></code> as this is the default behaviour.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The <code class="code docutils literal notranslate"><span class="pre">ID</span></code> to be used in <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code></a> might differ from the device ID reported by the <code class="code docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command.
+<p class="admonition-title">Note</p>
+<p>The <code class="code docutils literal notranslate"><span class="pre">ID</span></code> to be used in <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code></a> might differ from the device ID reported by the <code class="code docutils literal notranslate"><span class="pre">nvidia-smi</span></code> command.
 See the documentation of <a class="reference internal" href="py-api.html#galario.double.use_gpu" title="galario.double.use_gpu"><code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code></a> for more details.</p>
 </div>
 </div>
 <div class="section" id="parallelization-setting-the-threads">
-<h2>5.3. Parallelization: setting the threads<a class="headerlink" href="#parallelization-setting-the-threads" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">5.3. </span>Parallelization: setting the threads<a class="headerlink" href="#parallelization-setting-the-threads" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="on-the-cpu">
-<h3>5.3.1. On the CPU<a class="headerlink" href="#on-the-cpu" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">5.3.1. </span>On the CPU<a class="headerlink" href="#on-the-cpu" title="Permalink to this headline">¶</a></h3>
 <p>The CPU version of <strong>galario</strong> uses OpenMP to parallelize its operations by distributing the workload to different threads.</p>
 <p>Once you imported the CPU version of <strong>galario</strong> (either double or single precision), you can set the number of threads with
 the <a class="reference internal" href="py-api.html#galario.double.threads" title="galario.double.threads"><code class="xref py py-func docutils literal notranslate"><span class="pre">threads()</span></code></a> function:</p>
@@ -128,18 +128,18 @@ This means that, at runtime, OpenMP is free to set the number of threads dynamic
 <p>It is possible to retrieve the number of threads used by galario by calling <code class="code docutils literal notranslate"><span class="pre">double.threads()</span></code> without argument.</p>
 <blockquote>
 <div><div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>Setting <code class="code docutils literal notranslate"><span class="pre">N_OMP</span></code> larger than the number of <strong>physical</strong> cores, one can use  the HyperThreading technology,
 which can give anything from a moderate boost to a significant performance penalty. This depends on the image size, the memory latency and bandwidth, and other parameters. Experiment around what works best.</p>
 <p>In most cases, a considerable speedup can be obtained by setting <code class="code docutils literal notranslate"><span class="pre">N_OMP</span></code> equal to the number of <strong>physical</strong> cores, which for matrix sizes up to 4k x 4k
 yields an almost linear scaling in our benchmark results.</p>
-<p class="last"><strong>Suggestion</strong>: if <strong>galario</strong> is to be used in a code that already uses <strong>MPI</strong> to parallelize the tasks over multiple processes,
+<p><strong>Suggestion</strong>: if <strong>galario</strong> is to be used in a code that already uses <strong>MPI</strong> to parallelize the tasks over multiple processes,
 setting <code class="code docutils literal notranslate"><span class="pre">double.threads(1)</span></code> might turn out to give a better overall performance.</p>
 </div>
 </div></blockquote>
 </div>
 <div class="section" id="on-the-gpu">
-<h3>5.3.2. On the GPU<a class="headerlink" href="#on-the-gpu" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">5.3.2. </span>On the GPU<a class="headerlink" href="#on-the-gpu" title="Permalink to this headline">¶</a></h3>
 <p>It is possible to change the number of threads per block used to launch 1D and 2D kernels on the GPU with:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">double_cuda</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">N</span><span class="p">)</span>
 </pre></div>
@@ -151,13 +151,13 @@ documentation of <a class="reference internal" href="py-api.html#galario.double.
 </div>
 </div>
 <div class="section" id="computing-the-r-a-dec-coordinate-mesh-grid-for-the-image-creation">
-<span id="cookbook-meshgrid"></span><h2>5.4. Computing the (R.A., Dec.) coordinate mesh grid for the image creation<a class="headerlink" href="#computing-the-r-a-dec-coordinate-mesh-grid-for-the-image-creation" title="Permalink to this headline">¶</a></h2>
+<span id="cookbook-meshgrid"></span><h2><span class="section-number">5.4. </span>Computing the (R.A., Dec.) coordinate mesh grid for the image creation<a class="headerlink" href="#computing-the-r-a-dec-coordinate-mesh-grid-for-the-image-creation" title="Permalink to this headline">¶</a></h2>
 <p>In this recipe we will adopt the definitions described in the <a class="reference internal" href="tech-specs.html#technical-requirements-image-specs"><span class="std std-ref">image specifications</span></a>.</p>
 <p>To compute a model image defined in the real <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> space, it is necessary to map the pixel indices to the
 celestial coordinates. This can be easily done with the <a class="reference internal" href="py-api.html#galario.double.get_coords_meshgrid" title="galario.double.get_coords_meshgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_coords_meshgrid()</span></code></a>
 function (see an example below).</p>
 <p>In general, the <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> coordinates of the pixel centers can be computed as:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># axes indices</span>
 <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">+</span> <span class="mf">1.</span><span class="o">/</span><span class="nb">float</span><span class="p">(</span><span class="n">ncol</span><span class="p">),</span> <span class="n">ncol</span><span class="p">))</span> <span class="o">*</span> <span class="n">ncol</span> <span class="o">*</span> <span class="n">dxy</span>               <span class="c1"># R.A.</span>
@@ -168,7 +168,7 @@ function (see an example below).</p>
 and <code class="code docutils literal notranslate"><span class="pre">v_origin=1</span></code> for <code class="code docutils literal notranslate"><span class="pre">origin=upper</span></code>, <code class="code docutils literal notranslate"><span class="pre">v_origin=-1</span></code> for <code class="code docutils literal notranslate"><span class="pre">origin=lower</span></code>. <code class="code docutils literal notranslate"><span class="pre">x</span></code> and <code class="code docutils literal notranslate"><span class="pre">y</span></code> contain the <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> coordinates
 reported in the Figure of the <a class="reference internal" href="tech-specs.html#technical-requirements-image-specs"><span class="std std-ref">image specifications</span></a> page.</p>
 <p>A coordinate mesh grid can be created with:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># (x, y) mesh grid</span>
 <span class="n">R_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hypot</span><span class="p">(</span><span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">)</span>      <span class="c1"># radial mesh grid</span>
@@ -177,7 +177,7 @@ reported in the Figure of the <a class="reference internal" href="tech-specs.htm
 <p><code class="code docutils literal notranslate"><span class="pre">x_m</span></code> and <code class="code docutils literal notranslate"><span class="pre">y_m</span></code> contain the <span class="math notranslate nohighlight">\((R.A., Dec.)\)</span> meshgrid, while <code class="code docutils literal notranslate"><span class="pre">R_m</span></code> is the radial meshgrid containing radial distance
 from the centre (which is always located in the <code class="code docutils literal notranslate"><span class="pre">[i,</span> <span class="pre">j]=[Nxy/2,</span> <span class="pre">Nxy/2]</span></code> pixel), useful for axisymmetric brightness functions.</p>
 <div class="section" id="an-example">
-<h3>5.4.1. An example<a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h3>
+<h3><span class="section-number">5.4.1. </span>An example<a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h3>
 <p>All the above calculations can be easily done with just one call to the <a class="reference internal" href="py-api.html#galario.double.get_coords_meshgrid" title="galario.double.get_coords_meshgrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_coords_meshgrid()</span></code></a>
 function, e.g.:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">get_coords_meshgrid</span><span class="p">,</span> <span class="n">arcsec</span>
@@ -251,10 +251,10 @@ additional offset parameters defined along the same direction of R.A. and Dec. (
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="tech-specs.html"
-                        title="previous chapter">4. Technical specifications</a></p>
+                        title="previous chapter"><span class="section-number">4. </span>Technical specifications</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="py-api.html"
-                        title="next chapter">6. Python API reference</a></p>
+                        title="next chapter"><span class="section-number">6. </span>Python API reference</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -263,17 +263,15 @@ additional offset parameters defined along the same direction of R.A. and Dec. (
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -294,8 +292,8 @@ additional offset parameters defined along the same direction of R.A. and Dec. (
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+        &#169; Copyright 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.3.
     </div>
   </body>
 </html>

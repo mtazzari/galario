@@ -2,20 +2,20 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>3. A quickstart example &#8212; galario 1.2 documentation</title>
     <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
-    <script type="text/javascript" src="_static/sidebar.js"></script>
+    <script src="_static/sidebar.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -63,7 +63,7 @@
           <div class="body" role="main">
             
   <div class="section" id="a-quickstart-example">
-<h1>3. A quickstart example<a class="headerlink" href="#a-quickstart-example" title="Permalink to this headline">¶</a></h1>
+<h1><span class="section-number">3. </span>A quickstart example<a class="headerlink" href="#a-quickstart-example" title="Permalink to this headline">¶</a></h1>
 <p>In this page we show how to use <strong>galario</strong> in some typical use cases, e.g. the fit of some interferometric data sets.</p>
 <p><strong>galario</strong> has been designed to simplify and accelerate the task of computing the synthetic visibilities given a model
 image, leaving to the user the freedom to choose the most appropriate statistical tool for the parameter space exploration.</p>
@@ -76,7 +76,7 @@ analyse mock visibilities of the disk continuum emission at <span class="math no
 <p>You can download <a class="reference external" href="https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
 <hr class="docutils" />
 <div class="section" id="fit-a-single-wavelength-data-set">
-<h2>3.1. Fit a single-wavelength data set<a class="headerlink" href="#fit-a-single-wavelength-data-set" title="Permalink to this headline">¶</a></h2>
+<h2><span class="section-number">3.1. </span>Fit a single-wavelength data set<a class="headerlink" href="#fit-a-single-wavelength-data-set" title="Permalink to this headline">¶</a></h2>
 <p><strong>1) Import the uv table</strong></p>
 <blockquote>
 <div><p>First, let’s import the table containing the interferometric observations. Typically, an interferometric data set
@@ -102,7 +102,7 @@ can be exported to a table containing the <span class="math notranslate nohighli
 </div>
 <p>You can download <a class="reference external" href="https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
 <p>A table like this one can be read with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span> <span class="n">requirements</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">requirements</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
 <span class="n">wle</span> <span class="o">=</span> <span class="mf">1e-3</span>  <span class="c1"># [m]</span>
 <span class="n">u</span> <span class="o">/=</span> <span class="n">wle</span>
 <span class="n">v</span> <span class="o">/=</span> <span class="n">wle</span>
@@ -110,37 +110,34 @@ can be exported to a table containing the <span class="math notranslate nohighli
 </div>
 <p>where the <span class="math notranslate nohighlight">\(u_j\)</span> and <span class="math notranslate nohighlight">\(v_j\)</span> coordinates have been converted in units of the observing wavelength, 1 mm in this example. The <code class="code docutils literal notranslate"><span class="pre">np.require</span></code> command is necessary to ensure that the arrays are C-contiguous as required by <strong>galario</strong> (see <a class="reference internal" href="FAQ.html#faq1-1"><span class="std std-ref">FAQ 1.1</span></a>).</p>
 </div></blockquote>
-<dl class="docutils">
-<dt><strong>2) Determine the image size</strong></dt>
-<dd><p class="first">Once imported the uv table, we can start using <strong>galario</strong> to compute the optimal image size</p>
+<dl>
+<dt><strong>2) Determine the image size</strong></dt><dd><p>Once imported the uv table, we can start using <strong>galario</strong> to compute the optimal image size</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">get_image_size</span>
 
-<span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="last">where the returned values are the number of pixels (<code class="code docutils literal notranslate"><span class="pre">nxy</span></code>) and the pixel size (<code class="code docutils literal notranslate"><span class="pre">dxy</span></code>) in radians.
+<p>where the returned values are the number of pixels (<code class="code docutils literal notranslate"><span class="pre">nxy</span></code>) and the pixel size (<code class="code docutils literal notranslate"><span class="pre">dxy</span></code>) in radians.
 <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> are chosen to fulfil criteria that ensure a correct computation of the synthetic visibilities.
 For more details, refer to Sect. 3.2 in <a class="reference external" href="LINK">Tazzari, Beaujean and Testi (2017)</a>.</p>
 </dd>
-<dt><strong>3) Define the brightness model</strong></dt>
-<dd><p class="first">Let us define the model: for this example, we will use a very simple Gaussian profile:</p>
+<dt><strong>3) Define the brightness model</strong></dt><dd><p>Let us define the model: for this example, we will use a very simple Gaussian profile:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">arcsec</span>
 
 <span class="k">def</span> <span class="nf">GaussianProfile</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nR</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Gaussian brightness profile. &quot;&quot;&quot;</span>
 
     <span class="c1"># radial grid</span>
-    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Rmin</span><span class="p">,</span> <span class="n">Rmin</span> <span class="o">+</span> <span class="n">dR</span><span class="o">*</span><span class="n">nR</span><span class="p">,</span> <span class="n">nR</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Rmin</span><span class="p">,</span> <span class="n">Rmin</span> <span class="o">+</span> <span class="n">dR</span><span class="o">*</span><span class="n">nR</span><span class="p">,</span> <span class="n">nR</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">f0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">R</span><span class="o">/</span><span class="n">sigma</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="last">where <code class="code docutils literal notranslate"><span class="pre">f0</span></code> (Jy/sr) is a normalization, <code class="code docutils literal notranslate"><span class="pre">sigma</span></code> is the width of the Gaussian, <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> is the
+<p>where <code class="code docutils literal notranslate"><span class="pre">f0</span></code> (Jy/sr) is a normalization, <code class="code docutils literal notranslate"><span class="pre">sigma</span></code> is the width of the Gaussian, <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code> is the
 innermost radius of the grid, <code class="code docutils literal notranslate"><span class="pre">dR</span></code> is the size of radial grid and <code class="code docutils literal notranslate"><span class="pre">nR</span></code> is the number of radial grid cells.
 <code class="code docutils literal notranslate"><span class="pre">sigma</span></code>, <code class="code docutils literal notranslate"><span class="pre">Rmin</span></code>, <code class="code docutils literal notranslate"><span class="pre">dR</span></code> should be passed to <code class="code docutils literal notranslate"><span class="pre">GaussianProfile()</span></code> in arcseconds and <code class="code docutils literal notranslate"><span class="pre">f0</span></code> in Jy/sr.</p>
 </dd>
-<dt><strong>4) Setup the MCMC Ensemble Sampler</strong></dt>
-<dd><p class="first">In our fit we will have 6 free parameters: on top of the model parameters <code class="code docutils literal notranslate"><span class="pre">f0</span></code> and <code class="code docutils literal notranslate"><span class="pre">sigma</span></code> we want to fit
+<dt><strong>4) Setup the MCMC Ensemble Sampler</strong></dt><dd><p>In our fit we will have 6 free parameters: on top of the model parameters <code class="code docutils literal notranslate"><span class="pre">f0</span></code> and <code class="code docutils literal notranslate"><span class="pre">sigma</span></code> we want to fit
 the inclination <code class="code docutils literal notranslate"><span class="pre">inc</span></code>, the position angle <code class="code docutils literal notranslate"><span class="pre">PA</span></code>, and the angular offsets <span class="math notranslate nohighlight">\((\Delta RA, \Delta Dec)\)</span>
 with respect to the phase center.
 Following the notation of the <a class="reference external" href="http://dfm.io/emcee/current/">emcee</a> documentation, we initialise the EnsembleSampler</p>
@@ -170,16 +167,15 @@ Following the notation of the <a class="reference external" href="http://dfm.io/
 </pre></div>
 </div>
 <p>where:</p>
-<blockquote class="last">
+<blockquote>
 <div><ul class="simple">
-<li><code class="code docutils literal notranslate"><span class="pre">p_ranges</span></code> is a rectangular domain in the parameter space that defines the search region;</li>
-<li><code class="code docutils literal notranslate"><span class="pre">lnpostfn</span></code> is the posterior probability function;</li>
-<li><code class="code docutils literal notranslate"><span class="pre">args</span></code> defines an array of fixed parameters that <code class="code docutils literal notranslate"><span class="pre">lnpostfn</span></code> takes additionally in input.</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">p_ranges</span></code> is a rectangular domain in the parameter space that defines the search region;</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">lnpostfn</span></code> is the posterior probability function;</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">args</span></code> defines an array of fixed parameters that <code class="code docutils literal notranslate"><span class="pre">lnpostfn</span></code> takes additionally in input.</p></li>
 </ul>
 </div></blockquote>
 </dd>
-<dt><strong>5) Define the posterior and the prior probability functions</strong></dt>
-<dd><p class="first">Let us now implement the posterior function, using <strong>galario</strong> to compute the <span class="math notranslate nohighlight">\(\chi^2\)</span>. Since in this example
+<dt><strong>5) Define the posterior and the prior probability functions</strong></dt><dd><p>Let us now implement the posterior function, using <strong>galario</strong> to compute the <span class="math notranslate nohighlight">\(\chi^2\)</span>. Since in this example
 we are assuming an axisymmetric brightness profile we will use the <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> function, but the same design holds
 for the <code class="code docutils literal notranslate"><span class="pre">chi2Image</span></code> function that should be used for non-axisymmetric profiles.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">deg</span><span class="p">,</span> <span class="n">arcsec</span>
@@ -229,10 +225,9 @@ is the prior probability function defined as a uniform prior:</p>
     <span class="k">return</span> <span class="n">jacob</span>
 </pre></div>
 </div>
-<p class="last">which, up to a constant, basically checks that <code class="code docutils literal notranslate"><span class="pre">p</span></code> lies inside the rectangular domain defined by the extents in <code class="code docutils literal notranslate"><span class="pre">p_ranges</span></code>.</p>
+<p>which, up to a constant, basically checks that <code class="code docutils literal notranslate"><span class="pre">p</span></code> lies inside the rectangular domain defined by the extents in <code class="code docutils literal notranslate"><span class="pre">p_ranges</span></code>.</p>
 </dd>
-<dt><strong>6) Ready to go: run the MCMC!</strong></dt>
-<dd><p class="first">We are now ready to start the MCMC:</p>
+<dt><strong>6) Ready to go: run the MCMC!</strong></dt><dd><p>We are now ready to start the MCMC:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">nsteps</span> <span class="o">=</span> <span class="mi">3000</span>     <span class="c1"># total number of MCMC steps</span>
 
 <span class="c1"># initial guess for the parameters</span>
@@ -245,7 +240,7 @@ is the prior probability function defined as a uniform prior:</p>
 <span class="n">pos</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">run_mcmc</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">nsteps</span><span class="p">,</span> <span class="n">rstate0</span><span class="o">=</span><span class="n">state</span><span class="p">,</span> <span class="n">lnprob0</span><span class="o">=</span><span class="n">prob</span><span class="p">)</span>
 </pre></div>
 </div>
-<p class="last">It is possible to run the whole fit collecting the code blocks above into a single <code class="code docutils literal notranslate"><span class="pre">quickstart.py</span></code> file and running <code class="code docutils literal notranslate"><span class="pre">python</span> <span class="pre">quickstart.py</span></code>. For reference, using <code class="code docutils literal notranslate"><span class="pre">nthreads=4</span></code>, the run takes approximately 5-8 mins on a laptop with an Intel i5 2.9GHz.</p>
+<p>It is possible to run the whole fit collecting the code blocks above into a single <code class="code docutils literal notranslate"><span class="pre">quickstart.py</span></code> file and running <code class="code docutils literal notranslate"><span class="pre">python</span> <span class="pre">quickstart.py</span></code>. For reference, using <code class="code docutils literal notranslate"><span class="pre">nthreads=4</span></code>, the run takes approximately 5-8 mins on a laptop with an Intel i5 2.9GHz.</p>
 </dd>
 </dl>
 <p><strong>7) Plot the fit results</strong></p>
@@ -255,7 +250,7 @@ is the prior probability function defined as a uniform prior:</p>
 <span class="kn">import</span> <span class="nn">corner</span>
 <span class="n">samples</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">chain</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1000</span><span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ndim</span><span class="p">))</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">corner</span><span class="o">.</span><span class="n">corner</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;$f_0$&quot;</span><span class="p">,</span> <span class="s2">&quot;$\sigma$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$i$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;PA&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\Delta$RA&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\Delta$Dec&quot;</span><span class="p">],</span>
-                    <span class="n">show_titles</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="p">[</span><span class="mf">0.16</span><span class="p">,</span> <span class="mf">0.50</span><span class="p">,</span> <span class="mf">0.84</span><span class="p">],</span>
+                    <span class="n">show_titles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">quantiles</span><span class="o">=</span><span class="p">[</span><span class="mf">0.16</span><span class="p">,</span> <span class="mf">0.50</span><span class="p">,</span> <span class="mf">0.84</span><span class="p">],</span>
                     <span class="n">label_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;labelpad&#39;</span><span class="p">:</span><span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;fontsize&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">},</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;triangle_example.png&quot;</span><span class="p">)</span>
 </pre></div>
@@ -298,36 +293,35 @@ is the prior probability function defined as a uniform prior:</p>
 <span class="n">uv_mod</span> <span class="o">=</span> <span class="n">UVTable</span><span class="p">(</span><span class="n">uvtable</span><span class="o">=</span><span class="p">[</span><span class="n">u</span><span class="o">*</span><span class="n">wle</span><span class="p">,</span> <span class="n">v</span><span class="o">*</span><span class="n">wle</span><span class="p">,</span> <span class="n">vis_mod</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">vis_mod</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">],</span> <span class="n">wle</span><span class="o">=</span><span class="n">wle</span><span class="p">)</span>
 <span class="n">uv_mod</span><span class="o">.</span><span class="n">apply_phase</span><span class="p">(</span><span class="o">-</span><span class="n">dRA</span><span class="p">,</span> <span class="o">-</span><span class="n">dDec</span><span class="p">)</span>     <span class="c1"># center the source on the phase center</span>
 <span class="n">uv_mod</span><span class="o">.</span><span class="n">deproject</span><span class="p">(</span><span class="n">inc</span><span class="p">,</span> <span class="n">PA</span><span class="p">)</span>
-<span class="n">uv_mod</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Model&#39;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">uvbin_size</span><span class="o">=</span><span class="n">uvbin_size</span><span class="p">)</span>
+<span class="n">uv_mod</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">axes</span><span class="o">=</span><span class="n">axes</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Model&#39;</span><span class="p">,</span> <span class="n">yerr</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">uvbin_size</span><span class="o">=</span><span class="n">uvbin_size</span><span class="p">)</span>
 
 <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">&quot;uvplot_example.pdf&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="54%" />
-<col width="46%" />
+<col style="width: 54%" />
+<col style="width: 46%" />
 </colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><a class="first last reference internal image-reference" href="_images/quickstart_triangle_whole_chain.png"><img alt="Chains" src="_images/quickstart_triangle_whole_chain.png" style="width: 80%;" /></a>
+<tbody>
+<tr class="row-odd"><td><a class="reference internal image-reference" href="_images/quickstart_triangle_whole_chain.png"><img alt="Chains" src="_images/quickstart_triangle_whole_chain.png" style="width: 80%;" /></a>
 </td>
-<td><a class="first last reference internal image-reference" href="_images/uvplot.png"><img alt="Chains" src="_images/uvplot.png" style="width: 98%;" /></a>
+<td><a class="reference internal image-reference" href="_images/uvplot.png"><img alt="Chains" src="_images/uvplot.png" style="width: 98%;" /></a>
 </td>
 </tr>
-<tr class="row-even"><td>Corner plot showing the marginalised posteriors</td>
-<td>Uv-plot showing the deprojected visibilities</td>
+<tr class="row-even"><td><p>Corner plot showing the marginalised posteriors</p></td>
+<td><p>Uv-plot showing the deprojected visibilities</p></td>
 </tr>
 </tbody>
 </table>
 </div></blockquote>
-<dl class="docutils">
-<dt><strong>7) CPU vs GPU execution</strong></dt>
-<dd><p class="first">So far we have run <strong>galario</strong> on the CPU. Running it on a GPU can be done by just changing the import at the beginning:</p>
+<dl>
+<dt><strong>7) CPU vs GPU execution</strong></dt><dd><p>So far we have run <strong>galario</strong> on the CPU. Running it on a GPU can be done by just changing the import at the beginning:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">double_cuda</span> <span class="k">as</span> <span class="n">g_double</span>
 </pre></div>
 </div>
 <p>All the rest of the code remains the same!</p>
-<p class="last">For more details on the GPU vs CPU execution, see the <a class="reference internal" href="cookbook.html#cookbook"><span class="std std-ref">Cookbook</span></a>.</p>
+<p>For more details on the GPU vs CPU execution, see the <a class="reference internal" href="cookbook.html#cookbook"><span class="std std-ref">Cookbook</span></a>.</p>
 </dd>
 </dl>
 </div>
@@ -363,10 +357,10 @@ is the prior probability function defined as a uniform prior:</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="basic_usage.html"
-                        title="previous chapter">2. Basic Usage</a></p>
+                        title="previous chapter"><span class="section-number">2. </span>Basic Usage</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="tech-specs.html"
-                        title="next chapter">4. Technical specifications</a></p>
+                        title="next chapter"><span class="section-number">4. </span>Technical specifications</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -375,17 +369,15 @@ is the prior probability function defined as a uniform prior:</p>
     </ul>
    </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -406,8 +398,8 @@ is the prior probability function defined as a uniform prior:</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.2.
+        &#169; Copyright 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.3.
     </div>
   </body>
 </html>
