@@ -25,12 +25,12 @@ namespace galario {
 
 /* Main user functions */
 void sample_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
-                    dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *fint);
-void sample_image(int nx, int ny, const dreal* image, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint);
+                    dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *vis_int);
+void sample_image(int nx, int ny, const dreal* image, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* vis_int);
 dreal chi2_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
-                   dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *fobs_re,
-                   const dreal *fobs_im, const dreal *weights);
-dreal chi2_image(int nx, int ny, const dreal* image, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights);
+                   dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *vis_obs_re,
+                   const dreal *vis_obs_im, const dreal *weights);
+dreal chi2_image(int nx, int ny, const dreal* image, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* vis_obs_re, const dreal* vis_obs_im, const dreal* weights);
 void sweep(int nr, const dreal* intensity, dreal Rmin, dreal dR, int nxy, dreal dxy, dreal inc, dcomplex *image);
 void uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, int nd, const dreal* u, const dreal* v, dreal* urot, dreal* vrot);
 
@@ -42,11 +42,11 @@ void fftshift(int nx, int ny, dcomplex* image);
 void fftshift_axis0(int nx, int ny, dcomplex* matrix);
 void interpolate(int nrow, int ncol, const dcomplex *image, const dreal v_origin, int nd,
                  const dreal* u, const dreal* v, const dreal duv,
-                 dcomplex* fint);
+                 dcomplex* vis_int);
 void apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u,
-                         const dreal* v, dcomplex* fint);
-dreal reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im,
-                 const dcomplex* fint, const dreal* weights);
+                         const dreal* v, dcomplex* vis_int);
+dreal reduce_chi2(int nd, const dreal* vis_obs_re, const dreal* vis_obs_im,
+                 const dcomplex* vis_int, const dreal* weights);
 
 /* Required for multithreading */
 void init();
