@@ -71,7 +71,7 @@ are in <code class="code docutils literal notranslate"><span class="pre">namespa
 <p>lhere are four main functions that should serve the standard use of <strong>galario</strong>.</p>
 <dl class="function">
 <dt id="c.sample_profile">
-void <code class="sig-name descname">sample_profile</code><span class="sig-paren">(</span>int<em> nr</em>, const dreal*<em> intensity</em>, dreal<em> Rmin</em>, dreal<em> dR</em>, dreal<em> dxy</em>, int<em> nxy</em>, dreal<em> inc</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> fint</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_profile" title="Permalink to this definition">¶</a></dt>
+void <code class="sig-name descname">sample_profile</code><span class="sig-paren">(</span>int<em> nr</em>, const dreal*<em> intensity</em>, dreal<em> Rmin</em>, dreal<em> dR</em>, dreal<em> dxy</em>, int<em> nxy</em>, dreal<em> inc</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute visibilities for a model defined by a radial profile.</p>
 <p>The parameters are described in more detail in the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code>.</p>
 <dl class="field-list simple">
@@ -91,7 +91,7 @@ void <code class="sig-name descname">sample_profile</code><span class="sig-paren
 <li><p><strong>nd</strong> – Number of visibility points.</p></li>
 <li><p><strong>u</strong> – u coordinate of visibility points. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code></p></li>
 <li><p><strong>v</strong> – v coordinate of visibility points. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code></p></li>
-<li><p><strong>fint</strong> – Interpolated visibilities at the points <code class="code docutils literal notranslate"><span class="pre">u,</span> <span class="pre">v</span></code>. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code></p></li>
+<li><p><strong>vis_int</strong> – Interpolated visibilities at the points <code class="code docutils literal notranslate"><span class="pre">u,</span> <span class="pre">v</span></code>. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code></p></li>
 </ul>
 </dd>
 </dl>
@@ -99,7 +99,7 @@ void <code class="sig-name descname">sample_profile</code><span class="sig-paren
 
 <dl class="function">
 <dt id="c.sample_image">
-void <code class="sig-name descname">sample_image</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, const dreal*<em> image</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> fint</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_image" title="Permalink to this definition">¶</a></dt>
+void <code class="sig-name descname">sample_image</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, const dreal*<em> image</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute visibilities for a model defined by a real image.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -115,7 +115,7 @@ void <code class="sig-name descname">sample_image</code><span class="sig-paren">
 
 <dl class="function">
 <dt id="c.chi2_profile">
-dreal <code class="sig-name descname">chi2_profile</code><span class="sig-paren">(</span>int<em> nr</em>, const dreal*<em> intensity</em>, dreal<em> Rmin</em>, dreal<em> dR</em>, dreal<em> dxy</em>, int<em> nxy</em>, dreal<em> inc</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, const dreal*<em> fobs_re</em>, const dreal*<em> fobs_im</em>, const dreal*<em> weights</em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_profile" title="Permalink to this definition">¶</a></dt>
+dreal <code class="sig-name descname">chi2_profile</code><span class="sig-paren">(</span>int<em> nr</em>, const dreal*<em> intensity</em>, dreal<em> Rmin</em>, dreal<em> dR</em>, dreal<em> dxy</em>, int<em> nxy</em>, dreal<em> inc</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, const dreal*<em> vis_obs_re</em>, const dreal*<em> vis_obs_im</em>, const dreal*<em> weights</em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> between observed visibilities and the
 interpolation based on a radial profile and return in <code class="code docutils literal notranslate"><span class="pre">chi2</span></code>.</p>
 <p>For details, see the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code>.</p>
@@ -125,8 +125,8 @@ compared to weighted observations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fobs_re</strong> – The real part of the visibilities. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</p></li>
-<li><p><strong>fobs_im</strong> – The imaginary part of the visibilities. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</p></li>
+<li><p><strong>vis_obs_re</strong> – The real part of the visibilities. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</p></li>
+<li><p><strong>vis_obs_im</strong> – The imaginary part of the visibilities. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</p></li>
 <li><p><strong>weights</strong> – The weights of the observations. Size: <code class="code docutils literal notranslate"><span class="pre">nd</span></code>.</p></li>
 </ul>
 </dd>
@@ -135,7 +135,7 @@ compared to weighted observations.</p>
 
 <dl class="function">
 <dt id="c.chi2_image">
-dreal <code class="sig-name descname">chi2_image</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, const dreal*<em> image</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, const dreal*<em> fobs_re</em>, const dreal*<em> fobs_im</em>, const dreal*<em> weights</em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_image" title="Permalink to this definition">¶</a></dt>
+dreal <code class="sig-name descname">chi2_image</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, const dreal*<em> image</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, const dreal*<em> vis_obs_re</em>, const dreal*<em> vis_obs_im</em>, const dreal*<em> weights</em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_image" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> between observed visibilities and the
 interpolation based on the input <code class="code docutils literal notranslate"><span class="pre">image</span></code> and return in <code class="code docutils literal notranslate"><span class="pre">chi2</span></code>.</p>
 <p>For details, see <a class="reference internal" href="#c.chi2_profile" title="chi2_profile"><code class="xref c c-func docutils literal notranslate"><span class="pre">chi2_profile()</span></code></a> and the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code>.</p>
@@ -233,17 +233,17 @@ void <code class="sig-name descname">fftshift_axis0</code><span class="sig-paren
 
 <dl class="function">
 <dt id="c.interpolate">
-void <code class="sig-name descname">interpolate</code><span class="sig-paren">(</span>int<em> nrow</em>, int<em> ncol</em>, const dcomplex<em> *image</em>, int<em> nd</em>, const dreal<em> *u</em>, const dreal<em> *v</em>, const dreal<em> duv</em>, dcomplex<em> *fint</em><span class="sig-paren">)</span><a class="headerlink" href="#c.interpolate" title="Permalink to this definition">¶</a></dt>
+void <code class="sig-name descname">interpolate</code><span class="sig-paren">(</span>int<em> nrow</em>, int<em> ncol</em>, const dcomplex<em> *image</em>, int<em> nd</em>, const dreal<em> *u</em>, const dreal<em> *v</em>, const dreal<em> duv</em>, dcomplex<em> *vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.interpolate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="c.apply_phase_sampled">
-void <code class="sig-name descname">apply_phase_sampled</code><span class="sig-paren">(</span>dreal<em> dRA</em>, dreal<em> dDec</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> fint</em><span class="sig-paren">)</span><a class="headerlink" href="#c.apply_phase_sampled" title="Permalink to this definition">¶</a></dt>
+void <code class="sig-name descname">apply_phase_sampled</code><span class="sig-paren">(</span>dreal<em> dRA</em>, dreal<em> dDec</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.apply_phase_sampled" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="c.reduce_chi2">
-void <code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(</span>int<em> nd</em>, const dreal*<em> fobs_re</em>, const dreal*<em> fobs_im</em>, const dcomplex*<em> fint</em>, const dreal*<em> weights</em>, dreal*<em> chi2</em><span class="sig-paren">)</span><a class="headerlink" href="#c.reduce_chi2" title="Permalink to this definition">¶</a></dt>
+void <code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(</span>int<em> nd</em>, const dreal*<em> vis_obs_re</em>, const dreal*<em> vis_obs_im</em>, const dcomplex*<em> vis_int</em>, const dreal*<em> weights</em>, dreal*<em> chi2</em><span class="sig-paren">)</span><a class="headerlink" href="#c.reduce_chi2" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

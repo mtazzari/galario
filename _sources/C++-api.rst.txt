@@ -15,7 +15,7 @@ Sample and chi2 functions
 lhere are four main functions that should serve the standard use of |galario|.
 
 .. function::
-   void sample_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint)
+   void sample_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* vis_int)
 
    Compute visibilities for a model defined by a radial profile.
 
@@ -35,11 +35,11 @@ lhere are four main functions that should serve the standard use of |galario|.
    :param nd: Number of visibility points.
    :param u: u coordinate of visibility points. Size: `nd`
    :param v: v coordinate of visibility points. Size: `nd`
-   :param fint: Interpolated visibilities at the points `u, v`. Size: `nd`
+   :param vis_int: Interpolated visibilities at the points `u, v`. Size: `nd`
 
 
 .. function::
-   void sample_image(int nx, int ny, const dreal* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* fint)
+   void sample_image(int nx, int ny, const dreal* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* vis_int)
 
    Compute visibilities for a model defined by a real image.
 
@@ -51,7 +51,7 @@ lhere are four main functions that should serve the standard use of |galario|.
 
 
 .. function::
-   dreal chi2_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights)
+   dreal chi2_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* vis_obs_re, const dreal* vis_obs_im, const dreal* weights)
 
    Compute the :math:`\chi^2` between observed visibilities and the
    interpolation based on a radial profile and return in `chi2`.
@@ -62,12 +62,12 @@ lhere are four main functions that should serve the standard use of |galario|.
    except that the model visibilities are not returned but directly
    compared to weighted observations.
 
-   :param fobs_re: The real part of the visibilities. Size: `nd`.
-   :param fobs_im: The imaginary part of the visibilities. Size: `nd`.
+   :param vis_obs_re: The real part of the visibilities. Size: `nd`.
+   :param vis_obs_im: The imaginary part of the visibilities. Size: `nd`.
    :param weights: The weights of the observations. Size: `nd`.
 
 .. function::
-   dreal chi2_image(int nx, int ny, const dreal* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* fobs_re, const dreal* fobs_im, const dreal* weights)
+   dreal chi2_image(int nx, int ny, const dreal* image, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* vis_obs_re, const dreal* vis_obs_im, const dreal* weights)
 
    Compute the :math:`\chi^2` between observed visibilities and the
    interpolation based on the input `image` and return in `chi2`.
@@ -153,10 +153,10 @@ Free the memory buffer allocated and returned by :func:`copy_input`.
    void fftshift_axis0(int nx, int ny, dcomplex* matrix)
 
 .. function::
-   void interpolate(int nrow, int ncol, const dcomplex *image, int nd, const dreal *u, const dreal *v, const dreal duv, dcomplex *fint)
+   void interpolate(int nrow, int ncol, const dcomplex *image, int nd, const dreal *u, const dreal *v, const dreal duv, dcomplex *vis_int)
 
 .. function::
-   void apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* fint)
+   void apply_phase_sampled(dreal dRA, dreal dDec, int nd, const dreal* u, const dreal* v, dcomplex* vis_int)
 
 .. function::
-   void reduce_chi2(int nd, const dreal* fobs_re, const dreal* fobs_im, const dcomplex* fint, const dreal* weights, dreal* chi2)
+   void reduce_chi2(int nd, const dreal* vis_obs_re, const dreal* vis_obs_im, const dcomplex* vis_int, const dreal* weights, dreal* chi2)
