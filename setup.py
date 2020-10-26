@@ -124,7 +124,7 @@ version = '1.2.2'
 
 setup(name='galario',
       version=version,
-      description='',
+      description='Gpu Accelerated Library for Analysing Radio Interferometer Observations',
       author='Marco Tazzari',
       url='https://mtazzari.github.io/galario',
       long_description=open('README.md').read(),
