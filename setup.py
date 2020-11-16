@@ -102,8 +102,13 @@ class InstallCMakeLibsData(install_data):
     def run(self):
         print(self.install_dir)
 
+        if sys.platform == 'darwin':
+            fileext = ".dylib"
+        else:
+            fileext = ".so"
+
         libs = ["{0:s}/lib/{1:s}".format(self.distribution.bin_dir, 
-            lib) for lib in ["libgalario.dylib","libgalario_single.dylib"]]
+            lib) for lib in ["libgalario"+fileext,"libgalario_single"+fileext]]
 
         for lib in libs:
             dst = os.path.join(self.install_dir, "lib", os.path.dirname(lib.
