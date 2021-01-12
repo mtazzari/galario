@@ -68,10 +68,13 @@ class CMakeBuild(build_ext):
                 os.makedirs(extension_path)
 
             # Config and build the extension
-            subprocess.check_call(['cmake', ext.cmake_lists_dir] + cmake_args,
-                                  cwd=self.build_temp)
-            subprocess.check_call(['make'], cwd=self.build_temp)
-            subprocess.check_call(['make', 'install'], cwd=self.build_temp)
+            subprocess.check_call(["env"]+ext.extra_compile_args+\
+                    ['cmake', ext.cmake_lists_dir] + cmake_args,
+                    cwd=self.build_temp)
+            subprocess.check_call(["env"]+ext.extra_compile_args+\
+                    ['make'], cwd=self.build_temp)
+            subprocess.check_call(["env"]+ext.extra_compile_args+\
+                    ['make', 'install'], cwd=self.build_temp)
 
             # Copy files to the relevant location.
 
@@ -124,6 +127,15 @@ class InstallCMakeLibs(install_lib):
         self.distribution.run_command("install_data")
         self.distribution.run_command("install_headers")
 
+# Check which set of extra compile args are needed, based on OS.
+
+extra_compile_args = []
+
+if sys.prefix == 'darwin':
+    extra_compile_args += ['LDFLAGS="-Wl,-rpath='+sys.base_prefix+'/lib"']
+else:
+    extra_compile_args += ['LDFLAGS="-Wl,-rpath,'+sys.base_prefix+'/lib"']
+
 # The following line is parsed by Sphinx
 version = '1.2.2'
 
@@ -135,7 +147,8 @@ setup(name='galario',
       long_description=open('README.md').read(),
       long_description_content_type='text/markdown',
       install_requires=['numpy','pytest','cython'],
-      ext_modules=[CMakeExtension(c_module_name)],
+      ext_modules=[CMakeExtension(c_module_name, 
+          extra_compile_args=extra_compile_args)],
       cmdclass={
           'build_ext': CMakeBuild,
           'install_headers': InstallCMakeHeaders,
