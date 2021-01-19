@@ -50,7 +50,6 @@ class CMakeBuild(build_ext):
         for ext in self.extensions:
             cmake_args = [
                     '-DCMAKE_INSTALL_PREFIX=../../{}'.format(self.build_temp),
-                    '-DGALARIO_CHECK_CUDA=0',
                     '-DPython_ADDITIONAL_VERSIONS={0:d}.{1:d}'.format(
                         sys.version_info[0], sys.version_info[1]),
             ]
@@ -111,14 +110,16 @@ class InstallCMakeLibsData(install_data):
             fileext = ".so"
 
         libs = ["{0:s}/lib/{1:s}".format(self.distribution.bin_dir, 
-            lib) for lib in ["libgalario"+fileext,"libgalario_single"+fileext]]
+            lib) for lib in ["libgalario"+fileext,"libgalario_single"+fileext, \
+            "libgalario_cuda"+fileext,"libgalario_single_cuda"+fileext]]
 
         for lib in libs:
-            dst = os.path.join(self.install_dir, "lib", os.path.dirname(lib.
-                split("/")[-1]))
-            self.mkpath(dst)
-            (out, _) = self.copy_file(lib, dst)
-            self.outfiles.append(out)
+            if os.path.exists(lib):
+                dst = os.path.join(self.install_dir, "lib", os.path.dirname(lib.
+                    split("/")[-1]))
+                self.mkpath(dst)
+                (out, _) = self.copy_file(lib, dst)
+                self.outfiles.append(out)
 
 class InstallCMakeLibs(install_lib):
     def run(self):
