@@ -2,7 +2,7 @@
 # This file is part of GALARIO:                                               #
 # Gpu Accelerated Library for Analysing Radio Interferometer Observations     #
 #                                                                             #
-# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
+# Copyright (C) 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
 #                                                                             #
 # This program is free software: you can redistribute it and/or modify        #
 # it under the terms of the Lesser GNU General Public License as published by #
@@ -20,17 +20,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 from __future__ import (division, print_function, absolute_import, unicode_literals)
 
 import numpy as np
 import pytest
+from os import environ
 
 from utils import *
 
 import galario
 from galario import deg, arcsec
 
-if galario.HAVE_CUDA and int(pytest.config.getoption("--gpu")):
+if galario.HAVE_CUDA and int(environ.get("GALARIO_TEST_GPU", 0)):
     from galario import double_cuda as g_double
     from galario import single_cuda as g_single
 else:
@@ -314,16 +316,16 @@ def test_apply_phase_vis(real_type, complex_type, rtol, atol, acc_lib, pars):
     udat, vdat = create_sampling_points(nsamples, maxuv_generator, dtype=real_type)
 
     # generate mock visibility values
-    fint = np.zeros(nsamples, dtype=complex_type)
-    fint.real = np.random.random(nsamples) * 10.
-    fint.imag = np.random.random(nsamples) * 30.
+    vis_int = np.zeros(nsamples, dtype=complex_type)
+    vis_int.real = np.random.random(nsamples) * 10.
+    vis_int.imag = np.random.random(nsamples) * 30.
 
-    fint_numpy = apply_phase_array(udat, vdat, fint.copy(), dRA, dDec)
+    vis_int_numpy = apply_phase_array(udat, vdat, vis_int.copy(), dRA, dDec)
 
-    fint_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, fint)
+    vis_int_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, vis_int)
 
-    assert_allclose(fint_numpy.real, fint_shifted.real, rtol, atol)
-    assert_allclose(fint_numpy.imag, fint_shifted.imag, rtol, atol)
+    assert_allclose(vis_int_numpy.real, vis_int_shifted.real, rtol, atol)
+    assert_allclose(vis_int_numpy.imag, vis_int_shifted.imag, rtol, atol)
 
 
 @pytest.mark.parametrize("nsamples, real_type, tol, acc_lib",
@@ -564,16 +566,16 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     AmpInt = int_bilin_MT(np.abs(py_shift_cmplx), uroti, vroti).astype(real_type)
     PhaseInt = np.angle(ReInt + 1j*ImInt)
 
-    fint = AmpInt * (np.cos(PhaseInt) + 1j*np.sin(PhaseInt))
-    fint_acc = fint.copy()
-    fint_shifted = apply_phase_array(udat, vdat, fint, dRA, dDec)
-    fint_acc_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, fint_acc)
+    vis_int = AmpInt * (np.cos(PhaseInt) + 1j*np.sin(PhaseInt))
+    vis_int_acc = vis_int.copy()
+    vis_int_shifted = apply_phase_array(udat, vdat, vis_int, dRA, dDec)
+    vis_int_acc_shifted = acc_lib.apply_phase_vis(dRA, dDec, udat, vdat, vis_int_acc)
 
 
     # lose some absolute precision here  --> not anymore. Really? check by decreasing rtol, atol
     # atol *= 2
-    assert_allclose(fint_shifted.real, fint_acc_shifted.real, rtol, atol)
-    assert_allclose(fint_shifted.imag, fint_acc_shifted.imag, rtol, atol)
+    assert_allclose(vis_int_shifted.real, vis_int_acc_shifted.real, rtol, atol)
+    assert_allclose(vis_int_shifted.imag, vis_int_acc_shifted.imag, rtol, atol)
     # but continue with previous tolerance
     # atol /= 2
 
@@ -609,20 +611,20 @@ def test_loss(nsamples, real_type, complex_type, rtol, atol, acc_lib, pars):
     # # a lot of precision lost. Why? --> not anymore
     # # rtol = 1
     # # atol = 0.5
-    # assert_allclose(fint_shifted.real, sampled.real, rtol, atol)
-    # assert_allclose(fint_shifted.imag, sampled.imag, rtol, atol)
+    # assert_allclose(vis_int_shifted.real, sampled.real, rtol, atol)
+    # assert_allclose(vis_int_shifted.imag, sampled.imag, rtol, atol)
 
 def test_exception():
     """
     Make sure exceptions propagate from C++ to python
     """
-    with pytest.raises(ValueError, message="Image can't be too small"):
+    with pytest.raises(ValueError, match="dimension.*is less than 2"):
         g_double._fft2d(np.ones((1, 1), dtype=np.float64))
 
-    with pytest.raises(ValueError, message="Unequal image lengths are not permitted"):
-        g_double._fft2d(np.ones((10, 9), dtype=np.float64))
+    with pytest.raises(ValueError, match="Expect a square image"):
+        g_double._fft2d(np.ones((10, 12), dtype=np.float64))
 
-    with pytest.raises(ValueError, message="Odd image lengths are not permitted"):
+    with pytest.raises(ValueError, match="dimension.*is odd"):
         g_double._fft2d(np.ones((9, 9), dtype=np.float64))
 
 

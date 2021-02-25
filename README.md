@@ -7,6 +7,7 @@ galario
 [![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
 ![Python versions](https://img.shields.io/badge/python-2.7%20%7C%203.6%20%7C%203.7-%20%230078BC.svg)
+[![codecov](https://codecov.io/gh/mtazzari/galario/branch/master/graph/badge.svg)](https://codecov.io/gh/mtazzari/galario)
 
 
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/galario/badges/latest_release_date.svg)](https://anaconda.org/conda-forge/galario)
@@ -49,4 +50,4 @@ License
 -------
 **galario** is free software licensed under the LGPLv3 License. For more details see the LICENSE.
 
-© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+© Copyright 2017-2020 Marco Tazzari, Frederik Beaujean, Leonardo Testi.

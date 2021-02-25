@@ -102,7 +102,7 @@ version of |galario| used in a paper.
 
 |galario| is free software licensed under the LGPLv3 License. For more details see the :doc:`LICENSE <license>`.
 
-© Copyright 2017-2018 Marco Tazzari, Frederik Beaujean, Leonardo Testi and contributors.
+© Copyright 2017-2020 Marco Tazzari, Frederik Beaujean, Leonardo Testi and contributors.
 
 Contributors
 ------------

@@ -2,7 +2,7 @@
 # This file is part of GALARIO:                                               #
 # Gpu Accelerated Library for Analysing Radio Interferometer Observations     #
 #                                                                             #
-# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
+# Copyright (C) 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
 #                                                                             #
 # This program is free software: you can redistribute it and/or modify        #
 # it under the terms of the Lesser GNU General Public License as published by #
@@ -389,7 +389,7 @@ def uv_idx_r2c(udat, vdat, du, half_size):
 
 def int_bilin_MT(f, x, y):
     # assume x, y are in pixel
-    fint = np.zeros(len(x))
+    vis_int = np.zeros(len(x))
 
     for i in range(len(x)):
         t = y[i] - np.floor(y[i])
@@ -399,12 +399,12 @@ def int_bilin_MT(f, x, y):
         y2 = f[np.int(np.floor(y[i])) + 1, np.int(np.floor(x[i])) + 1]
         y3 = f[np.int(np.floor(y[i])), np.int(np.floor(x[i])) + 1]
 
-        fint[i] = t * u * (y0 - y1 + y2 - y3)
-        fint[i] += t * (y1 - y0)
-        fint[i] += u * (y3 - y0)
-        fint[i] += y0
+        vis_int[i] = t * u * (y0 - y1 + y2 - y3)
+        vis_int[i] += t * (y1 - y0)
+        vis_int[i] += u * (y3 - y0)
+        vis_int[i] += y0
 
-    return fint
+    return vis_int
 
 
 def matrix_size(udat, vdat, **kwargs):
@@ -424,7 +424,7 @@ def matrix_size(udat, vdat, **kwargs):
     return Nuv, minuv, maxuv
 
 
-def apply_phase_array(u, v, fint, x0, y0):
+def apply_phase_array(u, v, vis_int, x0, y0):
     """
     Performs a translation in the real space by applying a phase shift in the Fourier space.
     This function applies the shift to data points sampling the Fourier transform of an image.
@@ -433,7 +433,7 @@ def apply_phase_array(u, v, fint, x0, y0):
     ----------
     u, v: 1D float array
         Coordinates of points in the Fourier space. units: observing wavelength
-    fint: 1D float array, complex
+    vis_int: 1D float array, complex
         Fourier Transform sampled in the (u, v) points.
         Re, Im, u, v must have the same length.
     x0, y0: floats, rad
@@ -441,7 +441,7 @@ def apply_phase_array(u, v, fint, x0, y0):
 
     Returns
     -------
-    fint_shifted: 1D float array, complex
+    vis_int_shifted: 1D float array, complex
         Phase-shifted of the Fourier Transform sampled in the (u, v) points.
 
     """
@@ -452,9 +452,9 @@ def apply_phase_array(u, v, fint, x0, y0):
     theta = u*x0 + v*y0
 
     # apply the phase change
-    fint_shifted = fint * (np.cos(theta) + 1j*np.sin(theta))
+    vis_int_shifted = vis_int * (np.cos(theta) + 1j*np.sin(theta))
 
-    return fint_shifted
+    return vis_int_shifted
 
 
 def generate_random_vis(nsamples, dtype):

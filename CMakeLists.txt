@@ -2,7 +2,7 @@
 # This file is part of GALARIO:                                               #
 # Gpu Accelerated Library for Analysing Radio Interferometer Observations     #
 #                                                                             #
-# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
+# Copyright (C) 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
 #                                                                             #
 # This program is free software: you can redistribute it and/or modify        #
 # it under the terms of the Lesser GNU General Public License as published by #
@@ -19,7 +19,7 @@
 
 cmake_minimum_required(VERSION 3.0)
 project(galario)
-set(PACKAGE_VERSION "'1.2'")
+set(PACKAGE_VERSION "'1.2.2'")
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING

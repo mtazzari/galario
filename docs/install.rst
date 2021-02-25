@@ -61,14 +61,14 @@ To manually turn ON/OFF the GPU CUDA compilation, see :ref:`these instructions <
         cd galario
         mkdir build && cd build
 
- 2. to make the compilation easier, let's work in a Python environment. |galario| works with both Python 2 and 3.
+ 2. to make the compilation easier, let's work in a Python environment. |galario| works in Python 2.7, 3.5, 3.6, 3.7, and 3.8
 
     For example, if you are using the `Anaconda <https://www.continuum.io/downloads>`_ distribution, you can create and
-    activate a Python 3.6 environment with:
+    activate a Python 3.7 environment with:
 
     .. code-block:: bash
 
-        conda create --name galario3 python=3.6 numpy cython pytest scipy
+        conda create --name galario3 python=3.7 numpy cython pytest scipy
         source activate galario3
 
  3. Use `cmake` to prepare the compilation from within `galario/build/`:
@@ -463,7 +463,7 @@ Force it to show all output:
 
     make && python/py.test.sh -sv python_package/tests/test_galario.py
 
-By default, tests do not run on the GPU. Activate them by calling `py.test.sh --gpu=1 ...`.
+By default, tests do not run on the GPU. Activate them by setting an environment variable `GALARIO_TEST_GPU`; e.g. `GALARIO_TEST_GPU=1 py.test.sh ...`.
 To select a given parametrized test named `test_sample`, just run `py.test.sh -k sample`.
 
 A cuda error such as

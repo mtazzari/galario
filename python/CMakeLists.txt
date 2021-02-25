@@ -2,7 +2,7 @@
 # This file is part of GALARIO:                                               #
 # Gpu Accelerated Library for Analysing Radio Interferometer Observations     #
 #                                                                             #
-# Copyright (C) 2017-2018, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
+# Copyright (C) 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.  #
 #                                                                             #
 # This program is free software: you can redistribute it and/or modify        #
 # it under the terms of the Lesser GNU General Public License as published by #
@@ -67,10 +67,6 @@ configure_file(speed_benchmark.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 configure_file(utils.py "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 configure_file(speed_baseline.sh "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 
-# this file is picked up only if in a parent directory of the actual test
-# but the test is invoked from `${CMAKE_CURRENT_BINARY_DIR}/../python_package/tests/`
-configure_file(conftest.py "${CMAKE_CURRENT_BINARY_DIR}/.." COPYONLY)
-
 # TODO avoid installation of test scripts
 # http://stackoverflow.com/questions/13381742/cmake-exclude-executable-during-install
 set(galario_test test_galario.py)
@@ -90,4 +86,4 @@ setup_pytest("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/py.test.
 # https://github.com/UCL/GreatCMakeCookOff/issues/56
 #
 # need to run in binary_dir so import of pygalario works
-add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${galario_test}" NOINSTALL)
+add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${galario_test}" NOINSTALL CMDLINE --cov=./)
