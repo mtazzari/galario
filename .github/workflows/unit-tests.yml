@@ -1,4 +1,4 @@
-name: Test and build docs
+name: Build Galario and Run Unit Tests
 
 # branch filtering:
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
@@ -7,11 +7,6 @@ name: Test and build docs
 # https://stackoverflow.com/questions/57982945/how-to-apt-get-install-in-a-github-actions-workflow
 
 on: push
-#    branches:
-#      # Push events to all branches except master
-#      # https://stackoverflow.com/questions/57699839/github-actions-how-to-target-all-branches-except-master
-#      - '**'
-#      - '!master'
 
 jobs:
   test:
@@ -29,11 +24,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-#      - name: Set up Python ${{ matrix.python-version }}
-#        uses: actions/setup-python@v2
-#        with:
-#          python-version: ${{ matrix.python-version }}
-      - name: Setup conda
+      - name: Setup conda for Python ${{ matrix.python-version }}
         uses: conda-incubator/setup-miniconda@v2
         with:
           activate-environment: test
@@ -43,29 +34,16 @@ jobs:
           channel-priority: flexible
           show-channel-urls: true
           use-only-tar-bz2: true
-      - name: Printout conda config
+      - name: Print conda config
         run: |
           conda info
           conda list
           conda config --show-sources
           conda config --show
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
       - name: Install FFTW3
         run: sudo apt-get install libfftw3-dev
-#      - name: Install conda environment
-#        run: |
-#          conda config --set always_yes yes --set changeps1 no
-#          conda update -q conda
-#          conda info -a
-#          wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-#          bash miniconda.sh -b -p $HOME/miniconda
-#          export PATH="$HOME/miniconda/bin:$PATH"
-#          hash -r
       - name: Build and install galario
         run: |
-          echo "CONDA_PREFIX=${CONDA_PREFIX}"
-          env
           conda activate test
           conda install astropy cython nomkl numpy pytest scipy sphinx
           pip install coverage codecov pytest-cov
@@ -74,6 +52,7 @@ jobs:
           make
           make install
       - name: Run unit tests
-        run: cd build && pwd && ls && python/py.test.sh -sv --cov=./ python/test_galario.py
+        run: python/py.test.sh -sv --cov=./ python/test_galario.py
+        working-directory: build
       - name: Upload code coverage report
         run: bash <(curl -s https://codecov.io/bash) || echo 'Codecov failed to upload'
