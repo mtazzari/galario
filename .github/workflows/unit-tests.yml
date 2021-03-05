@@ -36,14 +36,15 @@ jobs:
       - name: Setup conda
         uses: conda-incubator/setup-miniconda@v2
         with:
-          activate-environment: foo
+          activate-environment: test
           python-version: ${{ matrix.python-version }}
           channels: conda-forge
           allow-softlinks: true
           channel-priority: flexible
           show-channel-urls: true
           use-only-tar-bz2: true
-      - run: |
+      - name: Printout conda config
+        run: |
           conda info
           conda list
           conda config --show-sources
@@ -52,28 +53,27 @@ jobs:
         run: python -c "import sys; print(sys.version)"
       - name: Install FFTW3
         run: sudo apt-get install libfftw3-dev
-
-      - name: Install conda environment
-        run: |
-          conda config --set always_yes yes --set changeps1 no
-          conda update -q conda
-          conda info -a
-          conda config --add channels conda-forge
+#      - name: Install conda environment
+#        run: |
+#          conda config --set always_yes yes --set changeps1 no
+#          conda update -q conda
+#          conda info -a
 #          wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
 #          bash miniconda.sh -b -p $HOME/miniconda
 #          export PATH="$HOME/miniconda/bin:$PATH"
 #          hash -r
       - name: Build and install galario
         run: |
-          conda init bash
-          conda create -q -n test-environment python=${{ matrix.python-version }} astropy cython nomkl numpy pytest scipy sphinx
-          conda activate test-environment
+          echo "CONDA_PREFIX=${CONDA_PREFIX}"
+          env
+          conda activate test
+          conda install astropy cython nomkl numpy pytest scipy sphinx
           pip install coverage codecov pytest-cov
           mkdir build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=/tmp -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} ..
           make
           make install
       - name: Run unit tests
-        run: python/py.test.sh -sv --cov=./ python/test_galario.py
+        run: cd build && pwd && ls && python/py.test.sh -sv --cov=./ python/test_galario.py
       - name: Upload code coverage report
         run: bash <(curl -s https://codecov.io/bash) || echo 'Codecov failed to upload'
