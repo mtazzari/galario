@@ -7,7 +7,7 @@ coverage:
   round: down
   range: "70...100"
   status:
-    project:
+    project: yes
       default:
         threshold: 1%
         # Allow the coverage to drop by X%, and posting a success status.
