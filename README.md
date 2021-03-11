@@ -3,7 +3,7 @@ galario
 
 **Gpu Accelerated Library for Analysing Radio Interferometer Observations**
 
-[![Build Status](https://travis-ci.org/mtazzari/galario.svg?branch=master)](https://travis-ci.org/mtazzari/galario)
+[![Build Status](https://github.com/mtazzari/galario/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/mtazzari/galario/actions/workflows/unit-tests.yml)
 [![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
 ![Python versions](https://img.shields.io/badge/python-2.7%20%7C%203.6%20%7C%203.7-%20%230078BC.svg)
