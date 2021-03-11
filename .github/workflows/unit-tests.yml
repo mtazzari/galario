@@ -42,7 +42,7 @@ jobs:
           conda config --show
       - name: Install FFTW3
         run: sudo apt-get install libfftw3-dev
-      - name: Build and install galario
+      - name: Build and install galario, build docs
         run: |
           conda activate test
           conda install astropy cython nomkl numpy pytest scipy sphinx
@@ -56,3 +56,16 @@ jobs:
         working-directory: build
       - name: Upload code coverage report
         run: bash <(curl -s https://codecov.io/bash) || echo 'Codecov failed to upload'
+      - name: build docs
+        run: |
+          conda activate test
+          pip install sphinx_py3doc_enhanced_theme sphinxcontrib-fulltoc
+          cd build
+          make docs
+      - name: deploy docs
+        if: github.ref == 'refs/heads/main' && matrix.python-version == '3.7'
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          branch: gh-pages  # The branch the action should deploy to.
+          folder: build/docs/html  # The folder the action should deploy.
+          dry-run: false
