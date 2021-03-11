@@ -1,0 +1,58 @@
+name: Build Galario and Run Unit Tests
+
+# branch filtering:
+# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
+
+# workflows running on Linux and MacOS have passwordless sudo rights:
+# https://stackoverflow.com/questions/57982945/how-to-apt-get-install-in-a-github-actions-workflow
+
+on: push
+
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        # pinning the shell name helps to properly set conda
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+    env:
+      OMP_NUM_THREADS: 2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup conda for Python ${{ matrix.python-version }}
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: test
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge
+          allow-softlinks: true
+          channel-priority: flexible
+          show-channel-urls: true
+          use-only-tar-bz2: true
+      - name: Print conda config
+        run: |
+          conda info
+          conda list
+          conda config --show-sources
+          conda config --show
+      - name: Install FFTW3
+        run: sudo apt-get install libfftw3-dev
+      - name: Build and install galario
+        run: |
+          conda activate test
+          conda install astropy cython nomkl numpy pytest scipy sphinx
+          pip install coverage codecov pytest-cov
+          mkdir build && cd build
+          cmake -DCMAKE_INSTALL_PREFIX=/tmp -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} ..
+          make
+          make install
+      - name: Run unit tests
+        run: python/py.test.sh -sv --cov=./ python/test_galario.py
+        working-directory: build
+      - name: Upload code coverage report
+        run: bash <(curl -s https://codecov.io/bash) || echo 'Codecov failed to upload'
