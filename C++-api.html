@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>7. C++ API reference &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
     <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
     <script src="_static/sidebar.js"></script>
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="8. Using galario from C++" href="C++-example.html" />
+    <link rel="next" title="8. Using galario from C++" href="C%2B%2B-example.html" />
     <link rel="prev" title="6. Python API reference" href="py-api.html" />
 
     
@@ -69,9 +69,9 @@ are in <code class="code docutils literal notranslate"><span class="pre">namespa
 <div class="section" id="sample-and-chi2-functions">
 <h2><span class="section-number">7.1. </span>Sample and chi2 functions<a class="headerlink" href="#sample-and-chi2-functions" title="Permalink to this headline">¶</a></h2>
 <p>lhere are four main functions that should serve the standard use of <strong>galario</strong>.</p>
-<dl class="function">
+<dl class="c function">
 <dt id="c.sample_profile">
-void <code class="sig-name descname">sample_profile</code><span class="sig-paren">(</span>int<em> nr</em>, const dreal*<em> intensity</em>, dreal<em> Rmin</em>, dreal<em> dR</em>, dreal<em> dxy</em>, int<em> nxy</em>, dreal<em> inc</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_profile" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">sample_profile</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nr</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">intensity</span></em>, <span class="pre">dreal</span> <em><span class="pre">Rmin</span></em>, <span class="pre">dreal</span> <em><span class="pre">dR</span></em>, <span class="pre">dreal</span> <em><span class="pre">dxy</span></em>, <span class="pre">int</span> <em><span class="pre">nxy</span></em>, <span class="pre">dreal</span> <em><span class="pre">inc</span></em>, <span class="pre">dreal</span> <em><span class="pre">dRA</span></em>, <span class="pre">dreal</span> <em><span class="pre">dDec</span></em>, <span class="pre">dreal</span> <em><span class="pre">duv</span></em>, <span class="pre">dreal</span> <em><span class="pre">PA</span></em>, <span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">u</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">v</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">vis_int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_profile" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute visibilities for a model defined by a radial profile.</p>
 <p>The parameters are described in more detail in the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code>.</p>
 <dl class="field-list simple">
@@ -97,9 +97,9 @@ void <code class="sig-name descname">sample_profile</code><span class="sig-paren
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.sample_image">
-void <code class="sig-name descname">sample_image</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, const dreal*<em> image</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_image" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">sample_image</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nx</span></em>, <span class="pre">int</span> <em><span class="pre">ny</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">image</span></em>, <span class="pre">dreal</span> <em><span class="pre">dRA</span></em>, <span class="pre">dreal</span> <em><span class="pre">dDec</span></em>, <span class="pre">dreal</span> <em><span class="pre">duv</span></em>, <span class="pre">dreal</span> <em><span class="pre">PA</span></em>, <span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">u</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">v</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">vis_int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.sample_image" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute visibilities for a model defined by a real image.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -113,9 +113,9 @@ void <code class="sig-name descname">sample_image</code><span class="sig-paren">
 <p>For the other parameters, see <a class="reference internal" href="#c.sample_profile" title="sample_profile"><code class="xref c c-func docutils literal notranslate"><span class="pre">sample_profile()</span></code></a>.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.chi2_profile">
-dreal <code class="sig-name descname">chi2_profile</code><span class="sig-paren">(</span>int<em> nr</em>, const dreal*<em> intensity</em>, dreal<em> Rmin</em>, dreal<em> dR</em>, dreal<em> dxy</em>, int<em> nxy</em>, dreal<em> inc</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, const dreal*<em> vis_obs_re</em>, const dreal*<em> vis_obs_im</em>, const dreal*<em> weights</em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_profile" title="Permalink to this definition">¶</a></dt>
+<span class="pre">dreal</span> <code class="sig-name descname"><span class="pre">chi2_profile</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nr</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">intensity</span></em>, <span class="pre">dreal</span> <em><span class="pre">Rmin</span></em>, <span class="pre">dreal</span> <em><span class="pre">dR</span></em>, <span class="pre">dreal</span> <em><span class="pre">dxy</span></em>, <span class="pre">int</span> <em><span class="pre">nxy</span></em>, <span class="pre">dreal</span> <em><span class="pre">inc</span></em>, <span class="pre">dreal</span> <em><span class="pre">dRA</span></em>, <span class="pre">dreal</span> <em><span class="pre">dDec</span></em>, <span class="pre">dreal</span> <em><span class="pre">duv</span></em>, <span class="pre">dreal</span> <em><span class="pre">PA</span></em>, <span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">u</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">v</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">vis_obs_re</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">vis_obs_im</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">weights</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_profile" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> between observed visibilities and the
 interpolation based on a radial profile and return in <code class="code docutils literal notranslate"><span class="pre">chi2</span></code>.</p>
 <p>For details, see the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code>.</p>
@@ -133,9 +133,9 @@ compared to weighted observations.</p>
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.chi2_image">
-dreal <code class="sig-name descname">chi2_image</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, const dreal*<em> image</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal<em> duv</em>, dreal<em> PA</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, const dreal*<em> vis_obs_re</em>, const dreal*<em> vis_obs_im</em>, const dreal*<em> weights</em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_image" title="Permalink to this definition">¶</a></dt>
+<span class="pre">dreal</span> <code class="sig-name descname"><span class="pre">chi2_image</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nx</span></em>, <span class="pre">int</span> <em><span class="pre">ny</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">image</span></em>, <span class="pre">dreal</span> <em><span class="pre">dRA</span></em>, <span class="pre">dreal</span> <em><span class="pre">dDec</span></em>, <span class="pre">dreal</span> <em><span class="pre">duv</span></em>, <span class="pre">dreal</span> <em><span class="pre">PA</span></em>, <span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">u</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">v</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">vis_obs_re</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">vis_obs_im</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">weights</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.chi2_image" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> between observed visibilities and the
 interpolation based on the input <code class="code docutils literal notranslate"><span class="pre">image</span></code> and return in <code class="code docutils literal notranslate"><span class="pre">chi2</span></code>.</p>
 <p>For details, see <a class="reference internal" href="#c.chi2_profile" title="chi2_profile"><code class="xref c c-func docutils literal notranslate"><span class="pre">chi2_profile()</span></code></a> and the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code>.</p>
@@ -152,23 +152,23 @@ may lead to segfaults.</p>
 </div>
 <div class="section" id="management-functions">
 <h2><span class="section-number">7.2. </span>Management functions<a class="headerlink" href="#management-functions" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<dl class="c function">
 <dt id="c.init">
-void <code class="sig-name descname">init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.init" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">init</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.init" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Initialize memory and environment for galario.</p>
 <p>Call this function before any computation is performed.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.cleanup">
-void <code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.cleanup" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">cleanup</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.cleanup" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Free memory and clean up environment created by
 <a class="reference internal" href="#c.init" title="init"><code class="xref c c-func docutils literal notranslate"><span class="pre">init()</span></code></a>. Call after all computations in galario.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.threads">
-int <code class="sig-name descname">threads</code><span class="sig-paren">(</span>int num =<em> 0</em><span class="sig-paren">)</span><a class="headerlink" href="#c.threads" title="Permalink to this definition">¶</a></dt>
+<span class="pre">int</span> <code class="sig-name descname"><span class="pre">threads</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">num</span></em> <span class="pre">=</span> <span class="pre">0</span><span class="sig-paren">)</span><a class="headerlink" href="#c.threads" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Set the number of <code class="code docutils literal notranslate"><span class="pre">openMP</span></code> threads that galario uses in parallel
 regions to <code class="code docutils literal notranslate"><span class="pre">num</span></code>. The default of 0 doesn’t change the number of
 threads. Return the current number of threads.</p>
@@ -178,15 +178,15 @@ affected for example by setting the <code class="code docutils literal notransla
 <p>For more details, see the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">threads()</span></code>.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.ngpus">
-int <code class="sig-name descname">ngpus</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.ngpus" title="Permalink to this definition">¶</a></dt>
+<span class="pre">int</span> <code class="sig-name descname"><span class="pre">ngpus</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#c.ngpus" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Get the number of available GPUs.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.use_gpu">
-void <code class="sig-name descname">use_gpu</code><span class="sig-paren">(</span>int<em> device_id</em><span class="sig-paren">)</span><a class="headerlink" href="#c.use_gpu" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">use_gpu</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">device_id</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.use_gpu" title="Permalink to this definition">¶</a><br /></dt>
 <dd><p>Set the GPU to be used for the computations.</p>
 <p>For details, see the python function <code class="xref py py-func docutils literal notranslate"><span class="pre">use_gpu()</span></code>.</p>
 </dd></dl>
@@ -195,61 +195,62 @@ void <code class="sig-name descname">use_gpu</code><span class="sig-paren">(</sp
 <div class="section" id="individual-operations">
 <h2><span class="section-number">7.3. </span>Individual operations<a class="headerlink" href="#individual-operations" title="Permalink to this headline">¶</a></h2>
 <p>The following functions provide low-level access to individual operations performed by the <code class="code docutils literal notranslate"><span class="pre">sample</span></code> and <code class="code docutils literal notranslate"><span class="pre">chi2</span></code> functions. A standard user will likely have little use for them. Refer to the python API documentation of the wrappers for details on the individual functions.</p>
-<dl class="function">
+<dl class="c function">
 <dt id="c.sweep">
-void <code class="sig-name descname">sweep</code><span class="sig-paren">(</span>int<em> nr</em>, dreal*<em> intensity</em>, dreal<em> Rmin</em>, dreal<em> dR</em>, int<em> nxy</em>, dreal<em> dxy</em>, dreal<em> inc</em>, dcomplex*<em> image</em><span class="sig-paren">)</span><a class="headerlink" href="#c.sweep" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">sweep</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nr</span></em>, <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">intensity</span></em>, <span class="pre">dreal</span> <em><span class="pre">Rmin</span></em>, <span class="pre">dreal</span> <em><span class="pre">dR</span></em>, <span class="pre">int</span> <em><span class="pre">nxy</span></em>, <span class="pre">dreal</span> <em><span class="pre">dxy</span></em>, <span class="pre">dreal</span> <em><span class="pre">inc</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">image</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.sweep" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.uv_rotate">
-void <code class="sig-name descname">uv_rotate</code><span class="sig-paren">(</span>dreal<em> PA</em>, dreal<em> dRA</em>, dreal<em> dDec</em>, dreal*<em> dRArot</em>, dreal*<em> dDecrot</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dreal*<em> urot</em>, dreal*<em> vrot</em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rotate" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">uv_rotate</span></code><span class="sig-paren">(</span><span class="pre">dreal</span> <em><span class="pre">PA</span></em>, <span class="pre">dreal</span> <em><span class="pre">dRA</span></em>, <span class="pre">dreal</span> <em><span class="pre">dDec</span></em>, <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">dRArot</span></em>, <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">dDecrot</span></em>, <span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">u</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">v</span></em>, <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">urot</span></em>, <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">vrot</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.uv_rotate" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.copy_input">
-dcomplex* <code class="sig-name descname">copy_input</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, const dreal*<em> image</em><span class="sig-paren">)</span><a class="headerlink" href="#c.copy_input" title="Permalink to this definition">¶</a></dt>
+<span class="pre">dcomplex</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">copy_input</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nx</span></em>, <span class="pre">int</span> <em><span class="pre">ny</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">image</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.copy_input" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.galario_free">
-void <code class="sig-name descname">galario_free</code><span class="sig-paren">(</span>void*<span class="sig-paren">)</span><a class="headerlink" href="#c.galario_free" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">galario_free</span></code><span class="sig-paren">(</span><span class="pre">void</span><span class="pre">*</span><span class="sig-paren">)</span><a class="headerlink" href="#c.galario_free" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 <p>Free the memory buffer allocated and returned by <a class="reference internal" href="#c.copy_input" title="copy_input"><code class="xref c c-func docutils literal notranslate"><span class="pre">copy_input()</span></code></a>.</p>
-<dl class="function">
+<dl class="c function">
 <dt id="c.fft2d">
-void <code class="sig-name descname">fft2d</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, dcomplex*<em> image</em><span class="sig-paren">)</span><a class="headerlink" href="#c.fft2d" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">fft2d</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nx</span></em>, <span class="pre">int</span> <em><span class="pre">ny</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">image</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.fft2d" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.fftshift">
-void <code class="sig-name descname">fftshift</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, dcomplex*<em> image</em><span class="sig-paren">)</span><a class="headerlink" href="#c.fftshift" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">fftshift</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nx</span></em>, <span class="pre">int</span> <em><span class="pre">ny</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">image</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.fftshift" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.fftshift_axis0">
-void <code class="sig-name descname">fftshift_axis0</code><span class="sig-paren">(</span>int<em> nx</em>, int<em> ny</em>, dcomplex*<em> matrix</em><span class="sig-paren">)</span><a class="headerlink" href="#c.fftshift_axis0" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">fftshift_axis0</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nx</span></em>, <span class="pre">int</span> <em><span class="pre">ny</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">matrix</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.fftshift_axis0" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.interpolate">
-void <code class="sig-name descname">interpolate</code><span class="sig-paren">(</span>int<em> nrow</em>, int<em> ncol</em>, const dcomplex<em> *image</em>, int<em> nd</em>, const dreal<em> *u</em>, const dreal<em> *v</em>, const dreal<em> duv</em>, dcomplex<em> *vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.interpolate" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">interpolate</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nrow</span></em>, <span class="pre">int</span> <em><span class="pre">ncol</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">image</span></em>, <span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">u</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">v</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <em><span class="pre">duv</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">vis_int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.interpolate" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.apply_phase_sampled">
-void <code class="sig-name descname">apply_phase_sampled</code><span class="sig-paren">(</span>dreal<em> dRA</em>, dreal<em> dDec</em>, int<em> nd</em>, const dreal*<em> u</em>, const dreal*<em> v</em>, dcomplex*<em> vis_int</em><span class="sig-paren">)</span><a class="headerlink" href="#c.apply_phase_sampled" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">apply_phase_sampled</span></code><span class="sig-paren">(</span><span class="pre">dreal</span> <em><span class="pre">dRA</span></em>, <span class="pre">dreal</span> <em><span class="pre">dDec</span></em>, <span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">u</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">v</span></em>, <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">vis_int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.apply_phase_sampled" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="c function">
 <dt id="c.reduce_chi2">
-void <code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(</span>int<em> nd</em>, const dreal*<em> vis_obs_re</em>, const dreal*<em> vis_obs_im</em>, const dcomplex*<em> vis_int</em>, const dreal*<em> weights</em>, dreal*<em> chi2</em><span class="sig-paren">)</span><a class="headerlink" href="#c.reduce_chi2" title="Permalink to this definition">¶</a></dt>
+<span class="pre">void</span> <code class="sig-name descname"><span class="pre">reduce_chi2</span></code><span class="sig-paren">(</span><span class="pre">int</span> <em><span class="pre">nd</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">vis_obs_re</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">vis_obs_im</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dcomplex</span> <span class="pre">*</span><em><span class="pre">vis_int</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">weights</span></em>, <span class="pre">dreal</span> <span class="pre">*</span><em><span class="pre">chi2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#c.reduce_chi2" title="Permalink to this definition">¶</a><br /></dt>
 <dd></dd></dl>
 
 </div>
 </div>
 
 
+            <div class="clearer"></div>
           </div>
         </div>
       </div>
@@ -273,7 +274,7 @@ void <code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(
 <li class="toctree-l2"><a class="reference internal" href="#individual-operations">7.3. Individual operations</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="C++-example.html">8. C++ Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="C%2B%2B-example.html">8. C++ Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="publications.html">9. Publications</a></li>
 <li class="toctree-l1"><a class="reference internal" href="FAQ.html">10. FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
@@ -283,7 +284,7 @@ void <code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(
   <p class="topless"><a href="py-api.html"
                         title="previous chapter"><span class="section-number">6. </span>Python API reference</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="C++-example.html"
+  <p class="topless"><a href="C%2B%2B-example.html"
                         title="next chapter"><span class="section-number">8. </span>Using galario from C++</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -313,7 +314,7 @@ void <code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="C++-example.html" title="8. Using galario from C++"
+          <a href="C%2B%2B-example.html" title="8. Using galario from C++"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="py-api.html" title="6. Python API reference"
@@ -322,8 +323,8 @@ void <code class="sig-name descname">reduce_chi2</code><span class="sig-paren">(
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2020, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 2.4.3.
+        &#169; Copyright 2017-2021, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
     </div>
   </body>
 </html>
