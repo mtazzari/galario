@@ -26,6 +26,7 @@ import numpy as np
 np.import_array()
 
 from scipy.interpolate import LinearNDInterpolator
+from scipy.spatial import Voronoi, ConvexHull
 
 include "galario_config.pxi"
 
@@ -446,7 +447,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 
 def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
-                nxy, dxy, dreal[::1] u, dreal[::1] v,
+                int nxy, dreal dxy, dreal[::1] u, dreal[::1] v,
                 dRA=0., dDec=0., PA=0., check=False, origin='upper'):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
@@ -515,13 +516,51 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
         **units**: Jy
 
     """
-    #nxy = image.shape[0]
 
+    # Use scipy to inerpolate onto a regular grid.
     interp = LinearNDInterpolator(list(zip(x, y)), image, fill_value=0)
 
-    _, _, grid_x, grid_y, _ = get_coords_meshgrid(nxy, nxy, dxy, origin=origin)
+    cdef dreal[:,::1] grid_x, grid_y
+    grid_x_1D, grid_y_1D, grid_x, grid_y, _ = get_coords_meshgrid(nxy, nxy, \
+            dxy, origin=origin)
     cdef dreal[:,::1] new_image = interp(grid_x, grid_y) * dxy**2
 
+    # In pixels where we oversample, average instead of interpolate in case the
+    # intensity is varying quickly over the pixel. And use the volume of the 
+    # associated Voronoi cell to weight each point being averaged.
+    cdef int[::1] i, j
+    cdef int[:,::1] npoints = np.zeros((nxy, nxy), dtype=np.dtype('i'))
+    cdef dreal[:,::1] binned_image = np.zeros((nxy, nxy))
+    cdef dreal[:,::1] binned_weights = np.zeros((nxy, nxy))
+    cdef int k, l, m
+    cdef int nx = x.shape[0]
+
+    i = ((x - grid_x_1D.min()) / dxy + 0.5).astype(np.dtype('i'))
+    j = ((y - grid_y_1D.min()) / dxy + 0.5).astype(np.dtype('i'))
+
+    vor = Voronoi(list(zip(x, y)))
+    cdef dreal[::1] vol = np.zeros(vor.npoints)+1
+    for k, reg_num in enumerate(vor.point_region):
+        indices = vor.regions[reg_num]
+        if -1 in indices:
+            vol[k] = np.inf
+        else:
+            vol[k] = ConvexHull(vor.vertices[indices]).volume
+
+    with nogil:
+        for k in range(nx):
+            if j[k] >= 0 and j[k] < nxy and i[k] >= 0 and i[k] < nxy:
+                npoints[j[k],i[k]] += 1
+                binned_image[j[k],i[k]] += image[k]*vol[k]
+                binned_weights[j[k],i[k]] += vol[k]
+
+        for l in range(nxy):
+            for m in range(nxy):
+                if npoints[l,m] > 1:
+                    new_image[l,m] = binned_image[l,m] / binned_weights[l,m] * \
+                            dxy**2
+
+    # Now pick back up with what is typically done for regular grids.
     duv = 1 / (dxy*nxy)
 
     if check:
