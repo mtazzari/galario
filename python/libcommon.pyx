@@ -445,7 +445,7 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     return vis
 
 
-def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[:,::1] image, 
+def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
                 nxy, dxy, dreal[::1] u, dreal[::1] v,
                 dRA=0., dDec=0., PA=0., check=False, origin='upper'):
     """
