@@ -448,7 +448,8 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
 
 def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
                 int nxy, dreal dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., check=False, origin='upper'):
+                dRA=0., dDec=0., PA=0., check=False, origin='upper', \
+                dreal[::1] vol=None, return_weights=False):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
@@ -538,14 +539,15 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
     i = ((x - grid_x_1D.min()) / dxy + 0.5).astype(np.dtype('i'))
     j = ((y - grid_y_1D.min()) / dxy + 0.5).astype(np.dtype('i'))
 
-    vor = Voronoi(list(zip(x, y)))
-    cdef dreal[::1] vol = np.zeros(vor.npoints)+1
-    for k, reg_num in enumerate(vor.point_region):
-        indices = vor.regions[reg_num]
-        if -1 in indices:
-            vol[k] = np.inf
-        else:
-            vol[k] = ConvexHull(vor.vertices[indices]).volume
+    if vol is None:
+        vor = Voronoi(list(zip(x, y)))
+        vol = np.zeros(vor.npoints)
+        for k, reg_num in enumerate(vor.point_region):
+            indices = vor.regions[reg_num]
+            if -1 in indices:
+                vol[k] = np.inf
+            else:
+                vol[k] = ConvexHull(vor.vertices[indices]).volume
 
     with nogil:
         for k in range(nx):
@@ -570,7 +572,10 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
     v_origin = set_v_origin(origin)
     cpp._sample_image(nxy, nxy, <void*>&new_image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
-    return vis
+    if return_weights:
+        return vis, vol
+    else:
+        return vis
 
 
 
