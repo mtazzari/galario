@@ -518,6 +518,10 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
 
     """
 
+    if origin == "upper":
+        for n in range(y.size):
+            y[n] *= -1
+
     # Use scipy to inerpolate onto a regular grid.
     interp = LinearNDInterpolator(list(zip(x, y)), image, fill_value=0)
 
@@ -536,8 +540,11 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
     cdef int k, l, m
     cdef int nx = x.shape[0]
 
-    i = ((x - grid_x_1D.min()) / dxy + 0.5).astype(np.dtype('i'))
-    j = ((y - grid_y_1D.min()) / dxy + 0.5).astype(np.dtype('i'))
+    i = ((x - grid_x_1D.max()) / -dxy + 0.5).astype(np.dtype('i'))
+    if origin == "upper":
+        j = ((y - grid_y_1D.max()) / -dxy + 0.5).astype(np.dtype('i'))
+    elif origin == "lower":
+        j = ((y - grid_y_1D.min()) / dxy + 0.5).astype(np.dtype('i'))
 
     if vol is None:
         vor = Voronoi(list(zip(x, y)))
@@ -561,6 +568,10 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
                 if npoints[l,m] > 1:
                     new_image[l,m] = binned_image[l,m] / binned_weights[l,m] * \
                             dxy**2
+
+    if origin == "upper":
+        for n in range(y.size):
+            y[n] *= -1
 
     # Now pick back up with what is typically done for regular grids.
     duv = 1 / (dxy*nxy)
