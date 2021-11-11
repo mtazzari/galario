@@ -30,6 +30,7 @@ namespace galario {
 void _sample_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
                      dreal duv, dreal PA, int nd, void *u, void *v, void *vis_int);
 void _sample_image(int nx, int ny, void* data, dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_int);
+void _sample_unstructured_image(void* x, void* y, int nx, int ny, dreal dxy, int ni, void* data, dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_int);
 dreal _chi2_profile(int nr, void *intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA, dreal dDec,
                     dreal duv, dreal PA, int nd, void *u, void *v, void *vis_obs_re, void *vis_obs_im, void *weights);
 dreal _chi2_image(int nx, int ny, void* data, dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* weights);
@@ -38,6 +39,7 @@ void _uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, in
 
 /* Interface for the experts */
 void* _copy_input(int nx, int ny, void* realdata);
+void* interpolate_to_image(int nx, int ny, int ni, dreal dxy, void* x, void* y, void* data, dreal v_origin);
 void _fft2d(int nx, int ny, void* data);
 void _fftshift(int nx, int ny, void* data);
 void _fftshift_axis0(int nx, int ncol, void* data);

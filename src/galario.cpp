@@ -19,6 +19,7 @@
 
 #include "galario.h"
 #include "galario_py.h"
+#include <delaunator-header-only.hpp>
 
 // full function makes code hard to read
 #define tpb galario::threads()
@@ -1351,6 +1352,96 @@ void sample_h(int nx, int ny, dcomplex* data, const dreal v_origin, dreal dRA, d
 
 #endif
 
+namespace galario {
+/**
+ * Interpolate from an unstructured image onto a regular grid.
+ */
+dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* y, const dreal* realdata, dreal v_origin) {
+    // Set up the Delauney triangulation.
+
+    std::vector<double> coords;
+
+    for (int i=0; i < ni; i++) {
+        coords.push_back(x[i]);
+        coords.push_back(y[i]);
+    }
+
+    delaunator::Delaunator d(coords);
+
+    // Create an image including the appropriate coordinates.
+    auto gx = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
+    auto gy = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
+    auto image = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
+
+    for (int i = 0; i < nx; i++)
+        gx[i] = (0.5 - i * 1./nx) * nx * dxy;
+    for (int i = 0; i < ny; i++)
+        gy[i] = (0.5 - i * 1./ny) * ny * dxy * v_origin;
+
+    // Now loop through the pixels in the image pixels, find the triangle each point is in, and interpolate.
+    for (int i = 0; i < nx; i++) {
+        for (int j = 0; j < ny; j++) {
+            bool found_triangle = false;
+            // First, find the triangle that this point is in.
+            for (int k = 0; k < d.triangles.size(); k+=3) {
+                int ia = d.triangles[k];
+                double ax = x[ia];
+                double ay = y[ia];
+
+                int ib = d.triangles[k+1];
+                double bx = x[ib];
+                double by = y[ib];
+
+                int ic = d.triangles[k+2];
+                double cx = x[ic];
+                double cy = y[ic];
+
+                double vbx = bx - ax;
+                double vby = by - ay;
+                double vcx = cx - ax;
+                double vcy = cy - ay;
+
+                double det_vv2 = gx[i]*vcy - gy[j]*vcx;
+                double det_v0v2 = ax*vcy - ay*vcx;
+                double det_v1v2 = vbx*vcy - vby*vcx;
+                double det_vv1 = gx[i]*vby - gy[j]*vbx;
+                double det_v0v1 = ax*vby - ay*vbx;
+
+                double a = (det_vv2 - det_v0v2) / det_v1v2;
+                double b = -(det_vv1 - det_v0v1) / det_v1v2;
+
+                // We've found the right triangle, now interpolate.
+                if ((a > 0) & (b > 0) & (a + b < 1)) {
+                    double wa = ((by - cy)*(gx[i] - cx) + (cx - bx)*(gy[j] - cy)) / 
+                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+                    double wb = ((cy - ay)*(gx[i] - cx) + (ax - cx)*(gy[j] - cy)) /
+                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+                    double wc = 1 - wa - wb;
+
+                    image[i * nx + j] = (wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic])*dxy*dxy;
+
+                    found_triangle = true;
+                    break;
+                }
+            }
+
+            // If no triangle was found, the point is outside the area with data so set to 0.
+            if (not found_triangle)
+                image[i * nx + j] = 0.;
+        }
+    }
+
+    // Now copy to an image.
+    auto buffer = copy_input(nx, ny, image);
+
+    return buffer;
+}
+
+void* _interpolate_to_image(int nx, int ny, int ni, dreal dxy, void* x, void *y, void* realdata, dreal v_origin) {
+    return interpolate_to_image(nx, ny, ni, dxy, static_cast<dreal*>(x), static_cast<dreal*>(y), static_cast<dreal*>(realdata), v_origin);
+}
+}
+
 
 namespace galario {
 /**
@@ -1395,6 +1486,50 @@ void sample_image(int nx, int ny, const dreal* realdata, dreal v_origin, dreal d
 void _sample_image(int nx, int ny, void* data, dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_int) {
     sample_image(nx, ny, static_cast<dreal*>(data), v_origin, dRA, dDec, duv, PA, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(vis_int));
 }
+
+/**
+ * return result in `vis_int`
+ */
+void sample_unstructured_image(const dreal* realx, const dreal* realy, int nx, int ny, dreal dxy, int ni, const dreal* realdata, dreal v_origin, dreal dRA, dreal dDec, dreal duv,
+                          const dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* vis_int) {
+    CPUTimer t_start;
+
+    // Initialization for uv_idx and interpolate
+    CHECK_INPUT(nx);
+
+/*#ifdef __CUDACC__
+    GPUTimer t_total;
+    CudaMemory<dcomplex> vis_int_d(nd);
+
+    auto data_d = copy_input_d(nx, ny, realdata);
+
+    // do the actual computation
+    sample_d(nx, ny, data_d.ptr, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int_d.ptr);
+
+    // retrieve interpolated values
+    CCheck(cudaDeviceSynchronize());
+
+    GPUTimer t;
+    vis_int_d.Retrieve(vis_int);
+    t.Elapsed("sample_image::vis_int_ D->H");
+
+    t_total.Elapsed("sample_image_tot");
+#else*/
+    CPUTimer t;
+
+    auto data = interpolate_to_image(nx, ny, ni, dxy, realx, realy, realdata, v_origin); t.Elapsed("sample_image::copy_input");
+
+    sample_h(nx, ny, data, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int);
+
+    t = CPUTimer(); galario_free(data); t.Elapsed("sample_image::free_data");
+//#endif
+    t_start.Elapsed("sample_image_tot");
+}
+
+void _sample_unstructured_image(void* x, void* y, int nx, int ny, dreal dxy, int ni, void* data, dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_int) {
+    sample_unstructured_image(static_cast<dreal*>(x), static_cast<dreal*>(y), nx, ny, dxy, ni, static_cast<dreal*>(data), v_origin, dRA, dDec, duv, PA, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(vis_int));
+}
+
 
 
 /**

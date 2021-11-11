@@ -36,7 +36,7 @@ __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup', 'set_v_origin',
            'ngpus', 'use_gpu', 'threads',
            'check_obs', 'check_image_size', 'get_image_size',
-           'sampleImage', 'sampleUnstructuredImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
+           'sampleImage', 'sampleUnstructuredImage', 'sampleUnstructuredImageCPP', 'sampleProfile', 'chi2Image', 'chi2Profile',
            'get_coords_meshgrid',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
            '_fft2d', '_fftshift', '_fftshift_axis0']
@@ -583,10 +583,99 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
     v_origin = set_v_origin(origin)
     cpp._sample_image(nxy, nxy, <void*>&new_image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
+    """
     if return_weights:
         return vis, vol
     else:
         return vis
+    """
+    return new_image
+
+
+def sampleUnstructuredImageCPP(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
+                int nxy, dreal dxy, dreal[::1] u, dreal[::1] v,
+                dRA=0., dDec=0., PA=0., check=False, origin='upper', \
+                dreal[::1] vol=None, return_weights=False):
+    """
+    Compute the synthetic visibilities of a model image at the specified (u, v) locations.
+
+    The 2D surface brightness in `image` is Fourier transformed and sampled in the
+    (u, v) locations given in the `u` and `v` arrays.
+
+    Typical call signature::
+
+        vis = sampleImage(image, dxy, u, v, dRA=0, dDec=0, PA=0, check=False, origin='upper')
+
+    Parameters
+    ----------
+    x : 1D array_like, float
+        List of x coordinates at which intensities are known.
+        **units**: rad
+    y : 1D array_like, float
+        List of y coordinates at which intensities are known.
+        **units**: rad
+    image : 1D array_like, float
+        Array containing the surface brightness of the model.
+        Assume the x-axis (R.A.) increases from right (West) to left (East)
+        and the y-axis (Dec.) increases from bottom (South) to top (North).
+        `nxy` must be even.
+        **units**: Jy/st
+    nxy : int
+        Number of pixels to use for the interpolated gridded image.
+    dxy : float
+        Size of the image cell in the interpolated image, assumed equal in both x and y direction.
+        **units**: rad
+    u : array_like, float
+        u coordinate of the visibility points where the FT has to be sampled.
+        **units**: wavelength
+    v : array_like, float
+        v coordinate of the visibility points where the FT has to be sampled.
+        The length of v must be equal to the length of u.
+        **units**: wavelength
+    dRA : float, optional
+        R.A. offset w.r.t. the phase center by which the image is translated.
+        If dRA > 0 translate the image towards the left (East). Default is 0.
+        **units**: rad
+    dDec : float, optional
+        Dec. offset w.r.t. the phase center by which the image is translated.
+        If dDec > 0 translate the image towards the top (North). Default is 0.
+        **units**: rad
+    PA : float, optional
+        Position Angle, defined East of North. Default is 0.
+        **units**: rad
+    check : bool, optional
+        If True, check whether `image` and `dxy` satisfy Nyquist criterion for
+        computing the synthetic visibilities in the (u, v) locations provided.
+        Additionally check that the (u, v) points fall in the image to avoid
+        segmentation violations. Default is False since the check might take
+        time. For executions where speed is important, set to False.
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the Technical Requirements page in the online docs.
+
+    Returns
+    -------
+    vis : array_like, complex
+        Synthetic visibilities sampled in the (u, v) locations given in `u` and `v`.
+        **units**: Jy
+
+    """
+
+    # Now pick back up with what is typically done for regular grids.
+    duv = 1 / (dxy*nxy)
+
+    if check:
+        check_image_size(u, v, nxy, dxy, duv)
+
+    vis = np.zeros(len(u), dtype=complex_dtype)
+    v_origin = set_v_origin(origin)
+    cpp._sample_unstructured_image(<void*>&x[0], <void*>&y[0], nxy, nxy, dxy, len(x), <void*>&image[0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+
+    return vis
+
 
 
 

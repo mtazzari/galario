@@ -27,6 +27,7 @@ namespace galario {
 void sample_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                     dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, dcomplex *vis_int);
 void sample_image(int nx, int ny, const dreal* image, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* vis_int);
+void sample_unstructured_image(const dreal* x, const dreal *y, int nx, int ny, dreal dxy, int ni, const dreal* image, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* vis_int);
 dreal chi2_profile(int nr, const dreal* intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                    dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *vis_obs_re,
                    const dreal *vis_obs_im, const dreal *weights);
@@ -36,6 +37,7 @@ void uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, i
 
 /* Interface for the experts */
 dcomplex* copy_input(int nx, int ny, const dreal* image);
+dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* y, const dreal* data, dreal v_origin);
 void galario_free(void*);
 void fft2d(int nx, int ny, dcomplex* image);
 void fftshift(int nx, int ny, dcomplex* image);
