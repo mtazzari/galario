@@ -583,13 +583,10 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
     v_origin = set_v_origin(origin)
     cpp._sample_image(nxy, nxy, <void*>&new_image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
 
-    """
     if return_weights:
         return vis, vol
     else:
         return vis
-    """
-    return new_image
 
 
 def sampleUnstructuredImageCPP(dreal[::1] x, dreal[::1] y, dreal[::1] image, 

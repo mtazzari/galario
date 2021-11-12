@@ -20,6 +20,7 @@
 #include "galario.h"
 #include "galario_py.h"
 #include <delaunator-header-only.hpp>
+#include "timer.h"
 
 // full function makes code hard to read
 #define tpb galario::threads()
@@ -1352,6 +1353,130 @@ void sample_h(int nx, int ny, dcomplex* data, const dreal v_origin, dreal dRA, d
 
 #endif
 
+/**
+ * Find the index of the triangle that a point is in using brute force.
+ */
+int find_triangle_bruteforce(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy) {
+
+    bool found_triangle = false;
+    int which_triangle = -1;
+
+    // Loop through all the triangles to brute force-find which one a point is in.
+    for (int k = 0; k < d->triangles.size(); k+=3) {
+        int ia = d->triangles[k];
+        double ax = x[ia];
+        double ay = y[ia];
+
+        int ib = d->triangles[k+1];
+        double bx = x[ib];
+        double by = y[ib];
+
+        int ic = d->triangles[k+2];
+        double cx = x[ic];
+        double cy = y[ic];
+
+        double vbx = bx - ax;
+        double vby = by - ay;
+        double vcx = cx - ax;
+        double vcy = cy - ay;
+
+        double det_vv2 = gx*vcy - gy*vcx;
+        double det_v0v2 = ax*vcy - ay*vcx;
+        double det_v1v2 = vbx*vcy - vby*vcx;
+        double det_vv1 = gx*vby - gy*vbx;
+        double det_v0v1 = ax*vby - ay*vbx;
+
+        double a = (det_vv2 - det_v0v2) / det_v1v2;
+        double b = -(det_vv1 - det_v0v1) / det_v1v2;
+
+        // We've found the right triangle, now interpolate.
+        if ((a > 0) & (b > 0) & (a + b < 1)) {
+            which_triangle = k;
+            found_triangle = true;
+            break;
+        }
+    }
+
+    return which_triangle;
+}
+
+/**
+ * Find which triangle a point is in using a directed walk.
+ */
+int find_triangle_directedwalk(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double *time) {
+    int which_triangle = -2;
+    int count = 0;
+    dreal eps = 1.0e-3;
+    bool found_triangle = false;
+    //TCREATE(moo); TCLEAR(moo);
+    //TSTART(moo);
+    while (count < d->triangles.size() / (3*4)) {
+        int ia = d->triangles[start];
+        double ax = x[ia];
+        double ay = y[ia];
+        int ib = d->triangles[start+1];
+        double bx = x[ib];
+        double by = y[ib];
+        int ic = d->triangles[start+2];
+        double cx = x[ic];
+        double cy = y[ic];
+
+        double wa = ((by - cy)*(gx - cx) + (cx - bx)*(gy - cy)) / 
+            ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+        double wb = ((cy - ay)*(gx - cx) + (ax - cx)*(gy - cy)) /
+            ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+        double wc = 1 - wa - wb;
+
+        if (wa < -eps) {
+            start = d->halfedges[start+1];
+        } else if (wb < -eps) {
+            start = d->halfedges[start+2];
+        } else if (wc < -eps) {
+            start = d->halfedges[start+0];
+        } else {
+            which_triangle = start;
+            found_triangle = true;
+        }
+
+        if (start >= 0) {
+            start = start - start%3;
+            *last_good = start;
+        }
+        else
+            which_triangle = start;
+
+        if ((found_triangle) or (which_triangle == -1))
+            break;
+
+        count++;
+    }
+    //    TSTOP(moo);
+    //if (count > 0) printf("gx = %f, gy = %f, count = %d \n", gx, gy, count);
+    //*time += TGIVE(moo);
+
+    return which_triangle;
+}
+
+/**
+ * First try to find the triangle index using a directed walk, and if that fails switch to brute force.
+ */
+int find_triangle(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double* time) {
+#ifdef GALARIO_TIMING
+    TCREATE(boo); TCLEAR(boo); TSTART(boo);
+#endif
+    int which_triangle = find_triangle_directedwalk(d, x, y, gx, gy, start, last_good, time);
+    if (which_triangle == -2) {
+        printf("Switching to brute force \n");
+        which_triangle = find_triangle_bruteforce(d, x, y, gx, gy);
+    }
+#ifdef GALARIO_TIMING
+    TSTOP(boo); *time += TGIVE(boo);
+#endif
+
+    return which_triangle;
+}
+
+
 namespace galario {
 /**
  * Interpolate from an unstructured image onto a regular grid.
@@ -1361,12 +1486,26 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
 
     std::vector<double> coords;
 
+    dreal xmin = std::numeric_limits<dreal>::max(); dreal xmax = -std::numeric_limits<dreal>::max();
+    dreal ymin = std::numeric_limits<dreal>::max(); dreal ymax = -std::numeric_limits<dreal>::max();
     for (int i=0; i < ni; i++) {
         coords.push_back(x[i]);
         coords.push_back(y[i]);
+
+        if (x[i] > xmax) xmax = x[i];
+        if (x[i] < xmin) xmin = x[i];
+        if (y[i] > ymax) ymax = y[i];
+        if (y[i] < ymin) ymin = y[i];
     }
 
+#ifdef GALARIO_TIMING
+    TCREATE(moo); TCLEAR(moo); TSTART(moo);
+#endif
     delaunator::Delaunator d(coords);
+#ifdef GALARIO_TIMING
+    TSTOP(moo);
+    printf("Time to triangulate %f \n", TGIVE(moo));
+#endif
 
     // Create an image including the appropriate coordinates.
     auto gx = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
@@ -1378,58 +1517,70 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     for (int i = 0; i < ny; i++)
         gy[i] = (0.5 - i * 1./ny) * ny * dxy * v_origin;
 
+    int which_triangle = 0;
+    int last_triangle = 0;
+    int col_start_triangle = -1;
+    double time = 0.;
+#ifdef GALARIO_TIMING
+    TCLEAR(moo);
+#endif
     // Now loop through the pixels in the image pixels, find the triangle each point is in, and interpolate.
     for (int i = 0; i < nx; i++) {
+        if ((i > 0) and (col_start_triangle > -1)) {
+            which_triangle = col_start_triangle;
+            last_triangle = col_start_triangle;
+            col_start_triangle = -1;
+        }
         for (int j = 0; j < ny; j++) {
-            bool found_triangle = false;
-            // First, find the triangle that this point is in.
-            for (int k = 0; k < d.triangles.size(); k+=3) {
-                int ia = d.triangles[k];
+            // Check whether the triangle is out of the triangulation.
+            if ((gx[i] > xmin) and (gx[i] < xmax) and (gy[j] > ymin) and (gy[j] < ymax)) {
+                // Find which triangle this grid point is in.
+#ifdef GALARIO_TIMING
+                TSTART(moo);
+#endif
+                which_triangle = find_triangle(&d, x, y, gx[i], gy[j], which_triangle, &last_triangle, &time);
+#ifdef GALARIO_TIMING
+                TSTOP(moo);
+#endif
+            }
+            else
+                which_triangle = -1;
+
+            // We've found the right triangle, now interpolate.
+            if (which_triangle > -1) {
+                int ia = d.triangles[which_triangle];
                 double ax = x[ia];
                 double ay = y[ia];
-
-                int ib = d.triangles[k+1];
+                int ib = d.triangles[which_triangle+1];
                 double bx = x[ib];
                 double by = y[ib];
-
-                int ic = d.triangles[k+2];
+                int ic = d.triangles[which_triangle+2];
                 double cx = x[ic];
                 double cy = y[ic];
 
-                double vbx = bx - ax;
-                double vby = by - ay;
-                double vcx = cx - ax;
-                double vcy = cy - ay;
+                double wa = ((by - cy)*(gx[i] - cx) + (cx - bx)*(gy[j] - cy)) / 
+                    ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+                double wb = ((cy - ay)*(gx[i] - cx) + (ax - cx)*(gy[j] - cy)) /
+                    ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+                double wc = 1 - wa - wb;
 
-                double det_vv2 = gx[i]*vcy - gy[j]*vcx;
-                double det_v0v2 = ax*vcy - ay*vcx;
-                double det_v1v2 = vbx*vcy - vby*vcx;
-                double det_vv1 = gx[i]*vby - gy[j]*vbx;
-                double det_v0v1 = ax*vby - ay*vbx;
+                image[i * nx + j] = (wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic])*dxy*dxy;
 
-                double a = (det_vv2 - det_v0v2) / det_v1v2;
-                double b = -(det_vv1 - det_v0v1) / det_v1v2;
-
-                // We've found the right triangle, now interpolate.
-                if ((a > 0) & (b > 0) & (a + b < 1)) {
-                    double wa = ((by - cy)*(gx[i] - cx) + (cx - bx)*(gy[j] - cy)) / 
-                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                    double wb = ((cy - ay)*(gx[i] - cx) + (ax - cx)*(gy[j] - cy)) /
-                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                    double wc = 1 - wa - wb;
-
-                    image[i * nx + j] = (wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic])*dxy*dxy;
-
-                    found_triangle = true;
-                    break;
+                if (col_start_triangle == -1) {
+                    col_start_triangle = last_triangle;
                 }
             }
-
             // If no triangle was found, the point is outside the area with data so set to 0.
-            if (not found_triangle)
+            else {
                 image[i * nx + j] = 0.;
+                which_triangle = last_triangle;
+            }
         }
     }
+#ifdef GALARIO_TIMING
+    printf("Time to calculate barycentric coords %f \n", time);
+    printf("Time to find triangles %f \n", TGIVE(moo));
+#endif
 
     // Now copy to an image.
     auto buffer = copy_input(nx, ny, image);
@@ -1517,7 +1668,14 @@ void sample_unstructured_image(const dreal* realx, const dreal* realy, int nx, i
 #else*/
     CPUTimer t;
 
-    auto data = interpolate_to_image(nx, ny, ni, dxy, realx, realy, realdata, v_origin); t.Elapsed("sample_image::copy_input");
+#ifdef GALARIO_TIMING
+    TCREATE(moo); TCLEAR(moo); TSTART(moo);
+#endif
+    auto data = interpolate_to_image(nx, ny, ni, dxy, realx, realy, realdata, v_origin); t.Elapsed("sample_image::interpolate_to_grid");
+#ifdef GALARIO_TIMING
+    TSTOP(moo);
+    printf("Time to interpolate: %f \n", TGIVE(moo));
+#endif
 
     sample_h(nx, ny, data, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int);
 
