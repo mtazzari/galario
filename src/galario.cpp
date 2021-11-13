@@ -1461,17 +1461,17 @@ int find_triangle_directedwalk(delaunator::Delaunator *d, const dreal *x, const 
  * First try to find the triangle index using a directed walk, and if that fails switch to brute force.
  */
 int find_triangle(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double* time) {
-#ifdef GALARIO_TIMING
-    TCREATE(boo); TCLEAR(boo); TSTART(boo);
-#endif
+//#ifdef GALARIO_TIMING
+//    TCREATE(boo); TCLEAR(boo); TSTART(boo);
+//#endif
     int which_triangle = find_triangle_directedwalk(d, x, y, gx, gy, start, last_good, time);
     if (which_triangle == -2) {
         printf("Switching to brute force \n");
         which_triangle = find_triangle_bruteforce(d, x, y, gx, gy);
     }
-#ifdef GALARIO_TIMING
-    TSTOP(boo); *time += TGIVE(boo);
-#endif
+//#ifdef GALARIO_TIMING
+//    TSTOP(boo); *time += TGIVE(boo);
+//#endif
 
     return which_triangle;
 }
@@ -1489,6 +1489,9 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
 
     // Set up the Delauney triangulation.
 
+#ifdef GALARIO_TIMING
+    TCREATE(moo); TCLEAR(moo); TSTART(moo);
+#endif
     std::vector<double> coords;
 
     dreal xmin = std::numeric_limits<dreal>::max(); dreal xmax = -std::numeric_limits<dreal>::max();
@@ -1503,16 +1506,17 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
         if (y[i] < ymin) ymin = y[i];
     }
 
-#ifdef GALARIO_TIMING
-    TCREATE(moo); TCLEAR(moo); TSTART(moo);
-#endif
     delaunator::Delaunator d(coords);
 #ifdef GALARIO_TIMING
     TSTOP(moo);
-    printf("Time to triangulate %f \n", TGIVE(moo));
+    printf("    Time to triangulate %f \n", TGIVE(moo));
 #endif
 
     // For each triangle, calculate the centroid and which grid cell it falls in.
+
+#ifdef GALARIO_TIMING
+    TCLEAR(moo); TSTART(moo);
+#endif
     auto tx = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
     auto ty = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
     auto tf = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
@@ -1540,21 +1544,25 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     auto binned_weights = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
     auto npoints = static_cast<int*>(malloc(sizeof(int)*nx*ny));
 
-    for (int i = 0; i < nx; i++) {
-        for (int j = 0; j < ny; j++) {
-            binned_image[i,j] = 0;
-            binned_weights[i,j] = 0;
-            npoints[i,j] = 0;
+    for (int i = 0; i < ny; i++) {
+        for (int j = 0; j < nx; j++) {
+            binned_image[i*nx+j] = 0;
+            binned_weights[i*nx+j] = 0;
+            npoints[i*nx+j] = 0;
         }
     }
 
     for (int i = 0; i < d.triangles.size()/3; i++) {
         if ((itx[i] >= 0) and (itx[i] < nx) and (ity[i] >= 0) and (ity[i] < ny)) {
-            npoints[itx[i] * nx + ity[i]] += 1;
-            binned_image[itx[i] * nx + ity[i]] += tf[i] * ta[i];
-            binned_weights[itx[i] * nx + ity[i]] += ta[i];
+            npoints[ity[i] * nx + itx[i]] += 1;
+            binned_image[ity[i] * nx + itx[i]] += tf[i] * ta[i];
+            binned_weights[ity[i] * nx + itx[i]] += ta[i];
         }
     }
+#ifdef GALARIO_TIMING
+    TSTOP(moo);
+    printf("    Time to create binned image: %f \n", TGIVE(moo));
+#endif
 
     // Create an image including the appropriate coordinates.
     auto gx = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
@@ -1571,7 +1579,8 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     int col_start_triangle = -1;
     double time = 0.;
 #ifdef GALARIO_TIMING
-    TCLEAR(moo);
+    TCLEAR(moo); TSTART(moo);
+    TCREATE(boo); TCLEAR(boo); TSTART(boo);
 #endif
     // Now loop through the pixels in the image pixels, find the triangle each point is in, and interpolate.
     for (int i = 0; i < ny; i++) {
@@ -1585,11 +1594,11 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
             if ((gx[j] > xmin) and (gx[j] < xmax) and (gy[i] > ymin) and (gy[i] < ymax)) {
                 // Find which triangle this grid point is in.
 #ifdef GALARIO_TIMING
-                TSTART(moo);
+                TSTART(boo);
 #endif
                 which_triangle = find_triangle(&d, x, y, gx[j], gy[i], which_triangle, &last_triangle, &time);
 #ifdef GALARIO_TIMING
-                TSTOP(moo);
+                TSTOP(boo);
 #endif
             }
             else
@@ -1631,12 +1640,37 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
         }
     }
 #ifdef GALARIO_TIMING
-    printf("Time to calculate barycentric coords %f \n", time);
-    printf("Time to find triangles %f \n", TGIVE(moo));
+    TSTOP(moo);
+    TSTOP(boo);
+    //printf("Time to calculate barycentric coords %f \n", time);
+    printf("    Time to interpolate onto the grid. %f \n", TGIVE(moo));
+    printf("        Time to find triangles %f \n", TGIVE(boo));
 #endif
 
     // Now copy to an image.
+#ifdef GALARIO_TIMING
+    TCLEAR(moo); TSTART(moo);
+#endif
     auto buffer = copy_input(nx, ny, image);
+#ifdef GALARIO_TIMING
+    TSTOP(moo);
+    //printf("Time to calculate barycentric coords %f \n", time);
+    printf("    Time to copy to complex. %f \n", TGIVE(moo));
+#endif
+
+    // Clean up.
+
+#ifdef GALARIO_TIMING
+    TCLEAR(moo); TSTART(moo);
+#endif
+    galario_free(y); galario_free(tx); galario_free(ty); galario_free(tf); galario_free(ta); galario_free(itx); galario_free(ity);
+    galario_free(binned_image); galario_free(binned_weights); galario_free(npoints);
+    galario_free(gx); galario_free(gy); galario_free(image);
+#ifdef GALARIO_TIMING
+    TSTOP(moo);
+    //printf("Time to calculate barycentric coords %f \n", time);
+    printf("    Time to clean up. %f \n", TGIVE(moo));
+#endif
 
     return buffer;
 }
@@ -1727,10 +1761,17 @@ void sample_unstructured_image(const dreal* realx, const dreal* realy, int nx, i
     auto data = interpolate_to_image(nx, ny, ni, dxy, realx, realy, realdata, v_origin); t.Elapsed("sample_image::interpolate_to_grid");
 #ifdef GALARIO_TIMING
     TSTOP(moo);
-    printf("Time to interpolate: %f \n", TGIVE(moo));
+    printf("Total time to interpolate: %f \n", TGIVE(moo));
 #endif
 
+#ifdef GALARIO_TIMING
+    TCLEAR(moo); TSTART(moo);
+#endif
     sample_h(nx, ny, data, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int);
+#ifdef GALARIO_TIMING
+    TSTOP(moo);
+    printf("Total time to FFT and sample on (u,v): %f \n", TGIVE(moo));
+#endif
 
     t = CPUTimer(); galario_free(data); t.Elapsed("sample_image::free_data");
 //#endif
