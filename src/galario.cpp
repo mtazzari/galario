@@ -1481,7 +1481,12 @@ namespace galario {
 /**
  * Interpolate from an unstructured image onto a regular grid.
  */
-dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* y, const dreal* realdata, dreal v_origin) {
+dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* realy, const dreal* realdata, dreal v_origin) {
+    // Flip y to get the orientation correct.
+    auto y = static_cast<dreal*>(malloc(sizeof(dreal)*ni));
+    for (int i = 0; i < ni; i++)
+        y[i] = (-1*v_origin)*realy[i];
+
     // Set up the Delauney triangulation.
 
     std::vector<double> coords;
@@ -1569,20 +1574,20 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     TCLEAR(moo);
 #endif
     // Now loop through the pixels in the image pixels, find the triangle each point is in, and interpolate.
-    for (int i = 0; i < nx; i++) {
+    for (int i = 0; i < ny; i++) {
         if ((i > 0) and (col_start_triangle > -1)) {
             which_triangle = col_start_triangle;
             last_triangle = col_start_triangle;
             col_start_triangle = -1;
         }
-        for (int j = 0; j < ny; j++) {
+        for (int j = 0; j < nx; j++) {
             // Check whether the triangle is out of the triangulation.
-            if ((gx[i] > xmin) and (gx[i] < xmax) and (gy[j] > ymin) and (gy[j] < ymax)) {
+            if ((gx[j] > xmin) and (gx[j] < xmax) and (gy[i] > ymin) and (gy[i] < ymax)) {
                 // Find which triangle this grid point is in.
 #ifdef GALARIO_TIMING
                 TSTART(moo);
 #endif
-                which_triangle = find_triangle(&d, x, y, gx[i], gy[j], which_triangle, &last_triangle, &time);
+                which_triangle = find_triangle(&d, x, y, gx[j], gy[i], which_triangle, &last_triangle, &time);
 #ifdef GALARIO_TIMING
                 TSTOP(moo);
 #endif
@@ -1605,9 +1610,9 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
                     double cx = x[ic];
                     double cy = y[ic];
 
-                    double wa = ((by - cy)*(gx[i] - cx) + (cx - bx)*(gy[j] - cy)) / 
+                    double wa = ((by - cy)*(gx[j] - cx) + (cx - bx)*(gy[i] - cy)) / 
                         ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                    double wb = ((cy - ay)*(gx[i] - cx) + (ax - cx)*(gy[j] - cy)) /
+                    double wb = ((cy - ay)*(gx[j] - cx) + (ax - cx)*(gy[i] - cy)) /
                         ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
                     double wc = 1 - wa - wb;
 
