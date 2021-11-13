@@ -21,6 +21,7 @@
 #include "galario_py.h"
 #include <delaunator-header-only.hpp>
 #include "timer.h"
+#include <unordered_map>
 
 // full function makes code hard to read
 #define tpb galario::threads()
@@ -1541,28 +1542,33 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
         ity[i] = trunc((ty[i] - gy_max) / (-dxy*v_origin) + 0.5);
     }
 
-    // Create an image that bins the triangles weighted by their area.
-    auto binned_image = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
-    auto binned_weights = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
-    auto npoints = static_cast<int*>(malloc(sizeof(int)*nx*ny));
-
-    #pragma omp parallel for collapse(2)
-    for (int i = 0; i < ny; i++) {
-        for (int j = 0; j < nx; j++) {
-            binned_image[i*nx+j] = 0;
-            binned_weights[i*nx+j] = 0;
-            npoints[i*nx+j] = 0;
-        }
-    }
+    std::unordered_map<int,dreal> binned_image;
+    std::unordered_map<int,dreal> binned_weights;
+    std::unordered_map<int,int> npoints;
 
     for (int i = 0; i < d.triangles.size()/3; i++) {
         // Note: cant do this in parallel because two threads could access same
         // grid cell at the same time. Locking made this very slow.
         if ((itx[i] >= 0) and (itx[i] < nx) and (ity[i] >= 0) and (ity[i] < ny)) {
-            npoints[ity[i] * nx + itx[i]] += 1;
-            binned_image[ity[i] * nx + itx[i]] += tf[i] * ta[i];
-            binned_weights[ity[i] * nx + itx[i]] += ta[i];
+            if (npoints.find(ity[i] * nx + itx[i]) == npoints.end()) {
+                npoints[ity[i] * nx + itx[i]] = 1;
+                binned_image[ity[i] * nx + itx[i]] = tf[i] * ta[i];
+                binned_weights[ity[i] * nx + itx[i]] = ta[i];
+            } else {
+                npoints[ity[i] * nx + itx[i]] += 1;
+                binned_image[ity[i] * nx + itx[i]] += tf[i] * ta[i];
+                binned_weights[ity[i] * nx + itx[i]] += ta[i];
+            }
         }
+    }
+
+    std::unordered_map<int, int>::iterator it = npoints.begin();
+    while (it != npoints.end()) {
+        // Erase any places where npoints = 1
+        if (it->first <= 1)
+            it = npoints.erase(it);
+        else
+            it++;
     }
 #ifdef GALARIO_TIMING
     TSTOP(moo);
@@ -1616,7 +1622,7 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
 
             // We've found the right triangle, now interpolate.
             if (which_triangle > -1) {
-                if (npoints[i * nx + j] > 1) {
+                if (npoints.find(i * nx + j) != npoints.end()) {
                     image[i * nx + j] = binned_image[i * nx + j] / binned_weights[i * nx + j] * dxy * dxy;
                 } else {
                     int ia = d.triangles[which_triangle];
@@ -1675,7 +1681,6 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     TCLEAR(moo); TSTART(moo);
 #endif
     galario_free(y); galario_free(tx); galario_free(ty); galario_free(tf); galario_free(ta); galario_free(itx); galario_free(ity);
-    galario_free(binned_image); galario_free(binned_weights); galario_free(npoints);
     galario_free(gx); galario_free(gy); galario_free(image);
 #ifdef GALARIO_TIMING
     TSTOP(moo);
