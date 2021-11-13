@@ -1484,6 +1484,7 @@ namespace galario {
 dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* realy, const dreal* realdata, dreal v_origin) {
     // Flip y to get the orientation correct.
     auto y = static_cast<dreal*>(malloc(sizeof(dreal)*ni));
+    #pragma omp parallel for
     for (int i = 0; i < ni; i++)
         y[i] = (-1*v_origin)*realy[i];
 
@@ -1528,6 +1529,7 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     dreal gx_max = 0.5*nx*dxy;
     dreal gy_max = 0.5*ny*dxy*v_origin;
 
+    #pragma omp parallel for
     for (int i = 0; i < d.triangles.size()/3; i++) {
         tx[i] = (x[d.triangles[3*i]] + x[d.triangles[3*i+1]] + x[d.triangles[3*i+2]]) / 3.;
         ty[i] = (y[d.triangles[3*i]] + y[d.triangles[3*i+1]] + y[d.triangles[3*i+2]]) / 3.;
@@ -1544,6 +1546,7 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     auto binned_weights = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
     auto npoints = static_cast<int*>(malloc(sizeof(int)*nx*ny));
 
+    #pragma omp parallel for collapse(2)
     for (int i = 0; i < ny; i++) {
         for (int j = 0; j < nx; j++) {
             binned_image[i*nx+j] = 0;
@@ -1553,6 +1556,8 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     }
 
     for (int i = 0; i < d.triangles.size()/3; i++) {
+        // Note: cant do this in parallel because two threads could access same
+        // grid cell at the same time. Locking made this very slow.
         if ((itx[i] >= 0) and (itx[i] < nx) and (ity[i] >= 0) and (ity[i] < ny)) {
             npoints[ity[i] * nx + itx[i]] += 1;
             binned_image[ity[i] * nx + itx[i]] += tf[i] * ta[i];
@@ -1569,20 +1574,25 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     auto gy = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
     auto image = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
 
+    #pragma omp parallel for
     for (int i = 0; i < nx; i++)
         gx[i] = (0.5 - i * 1./nx) * nx * dxy;
+    #pragma omp parallel for
     for (int i = 0; i < ny; i++)
         gy[i] = (0.5 - i * 1./ny) * ny * dxy * v_origin;
 
-    int which_triangle = 0;
-    int last_triangle = 0;
-    int col_start_triangle = -1;
-    double time = 0.;
 #ifdef GALARIO_TIMING
     TCLEAR(moo); TSTART(moo);
     TCREATE(boo); TCLEAR(boo); TSTART(boo);
 #endif
+    #pragma omp parallel
+    {
+    int which_triangle = 0;
+    int last_triangle = 0;
+    int col_start_triangle = -1;
+    double time = 0.;
     // Now loop through the pixels in the image pixels, find the triangle each point is in, and interpolate.
+    #pragma omp for schedule(static)
     for (int i = 0; i < ny; i++) {
         if ((i > 0) and (col_start_triangle > -1)) {
             which_triangle = col_start_triangle;
@@ -1638,6 +1648,7 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
                 which_triangle = last_triangle;
             }
         }
+    }
     }
 #ifdef GALARIO_TIMING
     TSTOP(moo);
