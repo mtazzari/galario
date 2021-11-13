@@ -591,8 +591,7 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
 
 def sampleUnstructuredImageCPP(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
                 int nxy, dreal dxy, dreal[::1] u, dreal[::1] v,
-                dRA=0., dDec=0., PA=0., check=False, origin='upper', \
-                dreal[::1] vol=None, return_weights=False):
+                dRA=0., dDec=0., PA=0., check=False, origin='upper'):
     """
     Compute the synthetic visibilities of a model image at the specified (u, v) locations.
 
