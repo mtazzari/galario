@@ -1507,6 +1507,50 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
     printf("Time to triangulate %f \n", TGIVE(moo));
 #endif
 
+    // For each triangle, calculate the centroid and which grid cell it falls in.
+    auto tx = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+    auto ty = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+    auto tf = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+    auto ta = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+
+    auto itx = static_cast<int*>(malloc(sizeof(int)*d.triangles.size()/3));
+    auto ity = static_cast<int*>(malloc(sizeof(int)*d.triangles.size()/3));
+
+    dreal gx_max = 0.5*nx*dxy;
+    dreal gy_max = 0.5*ny*dxy*v_origin;
+
+    for (int i = 0; i < d.triangles.size()/3; i++) {
+        tx[i] = (x[d.triangles[3*i]] + x[d.triangles[3*i+1]] + x[d.triangles[3*i+2]]) / 3.;
+        ty[i] = (y[d.triangles[3*i]] + y[d.triangles[3*i+1]] + y[d.triangles[3*i+2]]) / 3.;
+        tf[i] = (realdata[d.triangles[3*i]] + realdata[d.triangles[3*i+1]] + realdata[d.triangles[3*i+2]]) / 3.;
+        ta[i] = std::fabs((y[d.triangles[3*i+1]] - y[d.triangles[3*i]]) * (x[d.triangles[3*i+2]] - x[d.triangles[3*i+1]]) - 
+                (x[d.triangles[3*i+1]] - x[d.triangles[3*i]]) * (y[d.triangles[3*i+2]] - y[d.triangles[3*i+1]]));
+
+        itx[i] = trunc((tx[i] - gx_max) / (-dxy) + 0.5);
+        ity[i] = trunc((ty[i] - gy_max) / (-dxy*v_origin) + 0.5);
+    }
+
+    // Create an image that bins the triangles weighted by their area.
+    auto binned_image = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
+    auto binned_weights = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
+    auto npoints = static_cast<int*>(malloc(sizeof(int)*nx*ny));
+
+    for (int i = 0; i < nx; i++) {
+        for (int j = 0; j < ny; j++) {
+            binned_image[i,j] = 0;
+            binned_weights[i,j] = 0;
+            npoints[i,j] = 0;
+        }
+    }
+
+    for (int i = 0; i < d.triangles.size()/3; i++) {
+        if ((itx[i] >= 0) and (itx[i] < nx) and (ity[i] >= 0) and (ity[i] < ny)) {
+            npoints[itx[i] * nx + ity[i]] += 1;
+            binned_image[itx[i] * nx + ity[i]] += tf[i] * ta[i];
+            binned_weights[itx[i] * nx + ity[i]] += ta[i];
+        }
+    }
+
     // Create an image including the appropriate coordinates.
     auto gx = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
     auto gy = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
@@ -1548,23 +1592,27 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
 
             // We've found the right triangle, now interpolate.
             if (which_triangle > -1) {
-                int ia = d.triangles[which_triangle];
-                double ax = x[ia];
-                double ay = y[ia];
-                int ib = d.triangles[which_triangle+1];
-                double bx = x[ib];
-                double by = y[ib];
-                int ic = d.triangles[which_triangle+2];
-                double cx = x[ic];
-                double cy = y[ic];
+                if (npoints[i * nx + j] > 1) {
+                    image[i * nx + j] = binned_image[i * nx + j] / binned_weights[i * nx + j] * dxy * dxy;
+                } else {
+                    int ia = d.triangles[which_triangle];
+                    double ax = x[ia];
+                    double ay = y[ia];
+                    int ib = d.triangles[which_triangle+1];
+                    double bx = x[ib];
+                    double by = y[ib];
+                    int ic = d.triangles[which_triangle+2];
+                    double cx = x[ic];
+                    double cy = y[ic];
 
-                double wa = ((by - cy)*(gx[i] - cx) + (cx - bx)*(gy[j] - cy)) / 
-                    ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                double wb = ((cy - ay)*(gx[i] - cx) + (ax - cx)*(gy[j] - cy)) /
-                    ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                double wc = 1 - wa - wb;
+                    double wa = ((by - cy)*(gx[i] - cx) + (cx - bx)*(gy[j] - cy)) / 
+                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+                    double wb = ((cy - ay)*(gx[i] - cx) + (ax - cx)*(gy[j] - cy)) /
+                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+                    double wc = 1 - wa - wb;
 
-                image[i * nx + j] = (wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic])*dxy*dxy;
+                    image[i * nx + j] = (wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic])*dxy*dxy;
+                }
 
                 if (col_start_triangle == -1) {
                     col_start_triangle = last_triangle;
