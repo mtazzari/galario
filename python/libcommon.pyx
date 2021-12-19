@@ -22,6 +22,7 @@ from cpython cimport PyObject, Py_INCREF
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
+import time
 import numpy as np
 np.import_array()
 
@@ -523,12 +524,17 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
             y[n] *= -1
 
     # Use scipy to inerpolate onto a regular grid.
+    t1 = time. time()
     interp = LinearNDInterpolator(list(zip(x, y)), image, fill_value=0)
+    t2 = time. time()
+    print("    Time to triangulate "+str(t2-t1))
 
     cdef dreal[:,::1] grid_x, grid_y
     grid_x_1D, grid_y_1D, grid_x, grid_y, _ = get_coords_meshgrid(nxy, nxy, \
             dxy, origin=origin)
     cdef dreal[:,::1] new_image = interp(grid_x, grid_y) * dxy**2
+    t3 = time.time()
+    print("    Time to do scipy interpolation "+str(t3-t2))
 
     # In pixels where we oversample, average instead of interpolate in case the
     # intensity is varying quickly over the pixel. And use the volume of the 
@@ -539,6 +545,8 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
     cdef dreal[:,::1] binned_weights = np.zeros((nxy, nxy))
     cdef int k, l, m
     cdef int nx = x.shape[0]
+    t4 = time.time()
+    print("    Time to create binned images "+str(t4 - t3))
 
     i = ((x - grid_x_1D.max()) / -dxy + 0.5).astype(np.dtype('i'))
     if origin == "upper":
@@ -569,6 +577,10 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
                     new_image[l,m] = binned_image[l,m] / binned_weights[l,m] * \
                             dxy**2
 
+    t5 = time.time()
+    print("    Time to incorporate binned image "+str(t5 - t4))
+    print("Total time to interpolate "+str(t5 - t1))
+
     if origin == "upper":
         for n in range(y.size):
             y[n] *= -1
@@ -582,11 +594,14 @@ def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image,
     vis = np.zeros(len(u), dtype=complex_dtype)
     v_origin = set_v_origin(origin)
     cpp._sample_image(nxy, nxy, <void*>&new_image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+    t6 = time.time()
+    print("Total time to FFT and sample on (u,v): "+str(t6 - t5))
 
-    if return_weights:
-        return vis, vol
-    else:
-        return vis
+    #if return_weights:
+    #    return vis, vol
+    #else:
+    #    return vis
+    return vis
 
 
 def sampleUnstructuredImageCPP(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
