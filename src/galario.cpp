@@ -19,6 +19,7 @@
 
 #include "galario.h"
 #include "galario_py.h"
+#include <cassert>
 #include <delaunator-header-only.hpp>
 #include "timer.h"
 #include <unordered_map>
