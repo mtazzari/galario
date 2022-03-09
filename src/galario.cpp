@@ -21,7 +21,6 @@
 #include "galario_py.h"
 #include <cassert>
 #include <delaunator-header-only.hpp>
-#include "timer.h"
 #include <unordered_map>
 
 // full function makes code hard to read
@@ -1410,8 +1409,6 @@ int find_triangle_directedwalk(delaunator::Delaunator *d, const dreal *x, const 
     int count = 0;
     dreal eps = 1.0e-3;
     bool found_triangle = false;
-    //TCREATE(moo); TCLEAR(moo);
-    //TSTART(moo);
     while (count < d->triangles.size() / (3*4)) {
         int ia = d->triangles[start];
         double ax = x[ia];
@@ -1452,9 +1449,6 @@ int find_triangle_directedwalk(delaunator::Delaunator *d, const dreal *x, const 
 
         count++;
     }
-    //    TSTOP(moo);
-    //if (count > 0) printf("gx = %f, gy = %f, count = %d \n", gx, gy, count);
-    //*time += TGIVE(moo);
 
     return which_triangle;
 }
@@ -1463,17 +1457,11 @@ int find_triangle_directedwalk(delaunator::Delaunator *d, const dreal *x, const 
  * First try to find the triangle index using a directed walk, and if that fails switch to brute force.
  */
 int find_triangle(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double* time) {
-//#ifdef GALARIO_TIMING
-//    TCREATE(boo); TCLEAR(boo); TSTART(boo);
-//#endif
     int which_triangle = find_triangle_directedwalk(d, x, y, gx, gy, start, last_good, time);
     if (which_triangle == -2) {
         printf("Switching to brute force \n");
         which_triangle = find_triangle_bruteforce(d, x, y, gx, gy);
     }
-//#ifdef GALARIO_TIMING
-//    TSTOP(boo); *time += TGIVE(boo);
-//#endif
 
     return which_triangle;
 }
@@ -1485,9 +1473,6 @@ int find_triangle(delaunator::Delaunator *d, const dreal *x, const dreal *y, dre
 delaunator::Delaunator triangulate_h(int ni, const dreal* x, const dreal* y, dreal v_origin) {
     // Set up the Delauney triangulation.
 
-#ifdef GALARIO_TIMING
-    TCREATE(moo); TCLEAR(moo); TSTART(moo);
-#endif
     std::vector<double> coords;
 
     dreal xmin = std::numeric_limits<dreal>::max(); dreal xmax = -std::numeric_limits<dreal>::max();
@@ -1503,10 +1488,6 @@ delaunator::Delaunator triangulate_h(int ni, const dreal* x, const dreal* y, dre
     }
 
     delaunator::Delaunator d(coords);
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    printf("    Time to triangulate %f \n", TGIVE(moo));
-#endif
 
     return d;
 }
@@ -1516,9 +1497,6 @@ delaunator::Delaunator triangulate_h(int ni, const dreal* x, const dreal* y, dre
  */
 void bin_triangles_h(int nx, int ny, dreal dxy, const dreal *x, const dreal *y, const dreal *realdata, delaunator::Delaunator &d, std::unordered_map<int,dreal> &binned_image, 
         std::unordered_map<int,dreal> &binned_weights, std::unordered_map<int,int> &npoints, dreal v_origin) {
-#ifdef GALARIO_TIMING
-    TCREATE(moo); TCLEAR(moo); TSTART(moo);
-#endif
     auto tx = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
     auto ty = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
     auto tf = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
@@ -1568,11 +1546,6 @@ void bin_triangles_h(int nx, int ny, dreal dxy, const dreal *x, const dreal *y, 
     }
 
     free(tx); free(ty); free(tf); free(ta); free(itx); free(ity);
-
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    printf("    Time to create binned image: %f \n", TGIVE(moo));
-#endif
 }
 
 /**
@@ -1627,10 +1600,6 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
     for (int i = 0; i < ny; i++)
         gy[i] = (0.5 - i * 1./ny) * ny * dxy * v_origin;
 
-#ifdef GALARIO_TIMING
-    TCREATE(moo); TCLEAR(moo); TSTART(moo);
-    TCREATE(boo); TCLEAR(boo); TSTART(boo);
-#endif
     #pragma omp parallel
     {
     int which_triangle = 0;
@@ -1648,30 +1617,21 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
         }
         for (int j = 0; j < nx; j++) {
             // Check whether the triangle is out of the triangulation.
-            if ((gx[j] > xmin) and (gx[j] < xmax) and (gy[i] > ymin) and (gy[i] < ymax)) {
+            if ((gx[j] > xmin) and (gx[j] < xmax) and (gy[i] > ymin) and (gy[i] < ymax))
                 // Find which triangle this grid point is in.
-#ifdef GALARIO_TIMING
-                TSTART(boo);
-#endif
                 which_triangle = find_triangle(&d, x, y, gx[j], gy[i], which_triangle, &last_triangle, &time);
-#ifdef GALARIO_TIMING
-                TSTOP(boo);
-#endif
-            }
             else
                 which_triangle = -1;
 
             // We've found the right triangle, now interpolate.
             if (which_triangle > -1) {
-                if (npoints.find(i * nx + j) != npoints.end()) {
+                if (npoints.find(i * nx + j) != npoints.end())
                     image[i * nx + j] = binned_image[i * nx + j] / binned_weights[i * nx + j] * dxy * dxy;
-                } else {
+                else
                     image[i * nx + j] = interpolate_on_triangle_h(d, which_triangle, x, y, realdata, gx[i], gy[i])*dxy*dxy;
-                }
 
-                if (col_start_triangle == -1) {
+                if (col_start_triangle == -1)
                     col_start_triangle = last_triangle;
-                }
             }
             // If no triangle was found, the point is outside the area with data so set to 0.
             else {
@@ -1684,14 +1644,6 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
 
     // Clean up
     free(gx); free(gy);
-
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    TSTOP(boo);
-    //printf("Time to calculate barycentric coords %f \n", time);
-    printf("    Time to interpolate onto the grid. %f \n", TGIVE(moo));
-    printf("        Time to find triangles %f \n", TGIVE(boo));
-#endif
 
     return image;
 }
@@ -1707,17 +1659,17 @@ dreal* unstructured_to_grid_h(int nx, int ny, int ni, dreal dxy, const dreal* x,
         y[i] = (-1*v_origin)*realy[i];
 
     // Set up the Delauney triangulation.
-    delaunator::Delaunator d = triangulate_h(ni, x, y, v_origin);
+    OPENMPTIME(delaunator::Delaunator d = triangulate_h(ni, x, y, v_origin), "unstructured_to_grid::triangulation");
 
     // For each triangle, calculate the centroid and which grid cell it falls in.
     std::unordered_map<int,dreal> binned_image;
     std::unordered_map<int,dreal> binned_weights;
     std::unordered_map<int,int> npoints;
 
-    bin_triangles_h(nx, ny, dxy, x, y, realdata, d, binned_image, binned_weights, npoints, v_origin);
+    OPENMPTIME(bin_triangles_h(nx, ny, dxy, x, y, realdata, d, binned_image, binned_weights, npoints, v_origin), "unstructured_to_grid::bin_trixels");
 
     // Interpolate or bin, as appropriate to get to an image.
-    auto image = interpolate_or_bin_to_image_h(nx, ny, ni, dxy, x, y, realdata, v_origin, d, binned_image, binned_weights, npoints);
+    OPENMPTIME(auto image = interpolate_or_bin_to_image_h(nx, ny, ni, dxy, x, y, realdata, v_origin, d, binned_image, binned_weights, npoints), "unstructured_to_grid::generate_gridded_image");
 
     // Clean up.
     free(y);
@@ -1798,35 +1750,13 @@ void sample_unstructured_image(const dreal* realx, const dreal* realy, int nx, i
 
     t_total.Elapsed("sample_image_tot");
 #else*/
-    CPUTimer t;
 
-#ifdef GALARIO_TIMING
-    TCREATE(moo); TCLEAR(moo); TSTART(moo);
-#endif
-    auto data = unstructured_to_grid_h(nx, ny, ni, dxy, realx, realy, realdata, v_origin); t.Elapsed("sample_image::interpolate_to_grid");
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    printf("Total time to interpolate: %f \n", TGIVE(moo));
-#endif
+    auto data = unstructured_to_grid_h(nx, ny, ni, dxy, realx, realy, realdata, v_origin);
 
-#ifdef GALARIO_TIMING
-    TCLEAR(moo); TSTART(moo);
-#endif
-    auto image = copy_input(nx, ny, data);
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    //printf("Time to calculate barycentric coords %f \n", time);
-    printf("Time to copy to complex. %f \n", TGIVE(moo));
-#endif
+    CPUTimer t; 
+    auto image = copy_input(nx, ny, data); t.Elapsed("sample_image::copy_input");
 
-#ifdef GALARIO_TIMING
-    TCLEAR(moo); TSTART(moo);
-#endif
     sample_h(nx, ny, image, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int);
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    printf("Total time to FFT and sample on (u,v): %f \n", TGIVE(moo));
-#endif
 
     t = CPUTimer(); galario_free(data); galario_free(image); t.Elapsed("sample_image::free_data");
 //#endif
