@@ -1357,7 +1357,7 @@ void sample_h(int nx, int ny, dcomplex* data, const dreal v_origin, dreal dRA, d
 /**
  * Find the index of the triangle that a point is in using brute force.
  */
-int find_triangle_bruteforce(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy) {
+int find_triangle_bruteforce_h(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy) {
 
     bool found_triangle = false;
     int which_triangle = -1;
@@ -1404,7 +1404,7 @@ int find_triangle_bruteforce(delaunator::Delaunator *d, const dreal *x, const dr
 /**
  * Find which triangle a point is in using a directed walk.
  */
-int find_triangle_directedwalk(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double *time) {
+int find_triangle_directedwalk_h(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double *time) {
     int which_triangle = -2;
     int count = 0;
     dreal eps = 1.0e-3;
@@ -1456,11 +1456,11 @@ int find_triangle_directedwalk(delaunator::Delaunator *d, const dreal *x, const 
 /**
  * First try to find the triangle index using a directed walk, and if that fails switch to brute force.
  */
-int find_triangle(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double* time) {
-    int which_triangle = find_triangle_directedwalk(d, x, y, gx, gy, start, last_good, time);
+int find_triangle_h(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double* time) {
+    int which_triangle = find_triangle_directedwalk_h(d, x, y, gx, gy, start, last_good, time);
     if (which_triangle == -2) {
         printf("Switching to brute force \n");
-        which_triangle = find_triangle_bruteforce(d, x, y, gx, gy);
+        which_triangle = find_triangle_bruteforce_h(d, x, y, gx, gy);
     }
 
     return which_triangle;
@@ -1619,7 +1619,7 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
             // Check whether the triangle is out of the triangulation.
             if ((gx[j] > xmin) and (gx[j] < xmax) and (gy[i] > ymin) and (gy[i] < ymax))
                 // Find which triangle this grid point is in.
-                which_triangle = find_triangle(&d, x, y, gx[j], gy[i], which_triangle, &last_triangle, &time);
+                which_triangle = find_triangle_h(&d, x, y, gx[j], gy[i], which_triangle, &last_triangle, &time);
             else
                 which_triangle = -1;
 
