@@ -37,7 +37,6 @@ void uv_rotate(dreal PA, dreal dRA, dreal dDec, dreal* dRArot, dreal* dDecrot, i
 
 /* Interface for the experts */
 dcomplex* copy_input(int nx, int ny, const dreal* image);
-dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* y, const dreal* data, dreal v_origin);
 void galario_free(void*);
 void fft2d(int nx, int ny, dcomplex* image);
 void fftshift(int nx, int ny, dcomplex* image);

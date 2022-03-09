@@ -1617,7 +1617,7 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
 
     // Create an image including the appropriate coordinates.
     auto gx = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
-    auto gy = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
+    auto gy = static_cast<dreal*>(malloc(sizeof(dreal)*ny));
     auto image = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
 
     #pragma omp parallel for
@@ -1666,23 +1666,6 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
                 if (npoints.find(i * nx + j) != npoints.end()) {
                     image[i * nx + j] = binned_image[i * nx + j] / binned_weights[i * nx + j] * dxy * dxy;
                 } else {
-                    /*int ia = d.triangles[which_triangle];
-                    double ax = x[ia];
-                    double ay = y[ia];
-                    int ib = d.triangles[which_triangle+1];
-                    double bx = x[ib];
-                    double by = y[ib];
-                    int ic = d.triangles[which_triangle+2];
-                    double cx = x[ic];
-                    double cy = y[ic];
-
-                    double wa = ((by - cy)*(gx[j] - cx) + (cx - bx)*(gy[i] - cy)) / 
-                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                    double wb = ((cy - ay)*(gx[j] - cx) + (ax - cx)*(gy[i] - cy)) /
-                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                    double wc = 1 - wa - wb;
-
-                    image[i * nx + j] = (wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic])*dxy*dxy;*/
                     image[i * nx + j] = interpolate_on_triangle_h(d, which_triangle, x, y, realdata, gx[i], gy[i])*dxy*dxy;
                 }
 
@@ -1713,11 +1696,10 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
     return image;
 }
 
-namespace galario {
 /**
  * Interpolate from an unstructured image onto a regular grid.
  */
-dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* realy, const dreal* realdata, dreal v_origin) {
+dreal* unstructured_to_grid_h(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* realy, const dreal* realdata, dreal v_origin) {
     // Flip y to get the orientation correct.
     auto y = static_cast<dreal*>(malloc(sizeof(dreal)*ni));
     #pragma omp parallel for
@@ -1725,236 +1707,22 @@ dcomplex* interpolate_to_image(int nx, int ny, int ni, dreal dxy, const dreal* x
         y[i] = (-1*v_origin)*realy[i];
 
     // Set up the Delauney triangulation.
-
-    /*
-#ifdef GALARIO_TIMING
-    TCREATE(moo); TCLEAR(moo); TSTART(moo);
-#endif
-    std::vector<double> coords;
-
-    dreal xmin = std::numeric_limits<dreal>::max(); dreal xmax = -std::numeric_limits<dreal>::max();
-    dreal ymin = std::numeric_limits<dreal>::max(); dreal ymax = -std::numeric_limits<dreal>::max();
-    for (int i=0; i < ni; i++) {
-        coords.push_back(x[i]);
-        coords.push_back(y[i]);
-
-        if (x[i] > xmax) xmax = x[i];
-        if (x[i] < xmin) xmin = x[i];
-        if (y[i] > ymax) ymax = y[i];
-        if (y[i] < ymin) ymin = y[i];
-    }
-
-    delaunator::Delaunator d(coords);
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    printf("    Time to triangulate %f \n", TGIVE(moo));
-#endif
-    */
-
     delaunator::Delaunator d = triangulate_h(ni, x, y, v_origin);
 
     // For each triangle, calculate the centroid and which grid cell it falls in.
-
-    /*
-#ifdef GALARIO_TIMING
-    TCLEAR(moo); TSTART(moo);
-#endif
-    auto tx = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
-    auto ty = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
-    auto tf = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
-    auto ta = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
-
-    auto itx = static_cast<int*>(malloc(sizeof(int)*d.triangles.size()/3));
-    auto ity = static_cast<int*>(malloc(sizeof(int)*d.triangles.size()/3));
-
-    dreal gx_max = 0.5*nx*dxy;
-    dreal gy_max = 0.5*ny*dxy*v_origin;
-
-    #pragma omp parallel for
-    for (int i = 0; i < d.triangles.size()/3; i++) {
-        tx[i] = (x[d.triangles[3*i]] + x[d.triangles[3*i+1]] + x[d.triangles[3*i+2]]) / 3.;
-        ty[i] = (y[d.triangles[3*i]] + y[d.triangles[3*i+1]] + y[d.triangles[3*i+2]]) / 3.;
-        tf[i] = (realdata[d.triangles[3*i]] + realdata[d.triangles[3*i+1]] + realdata[d.triangles[3*i+2]]) / 3.;
-        ta[i] = std::fabs((y[d.triangles[3*i+1]] - y[d.triangles[3*i]]) * (x[d.triangles[3*i+2]] - x[d.triangles[3*i+1]]) - 
-                (x[d.triangles[3*i+1]] - x[d.triangles[3*i]]) * (y[d.triangles[3*i+2]] - y[d.triangles[3*i+1]]));
-
-        itx[i] = trunc((tx[i] - gx_max) / (-dxy) + 0.5);
-        ity[i] = trunc((ty[i] - gy_max) / (-dxy*v_origin) + 0.5);
-    }*/
-
     std::unordered_map<int,dreal> binned_image;
     std::unordered_map<int,dreal> binned_weights;
     std::unordered_map<int,int> npoints;
 
     bin_triangles_h(nx, ny, dxy, x, y, realdata, d, binned_image, binned_weights, npoints, v_origin);
 
-    /*
-    for (int i = 0; i < d.triangles.size()/3; i++) {
-        // Note: cant do this in parallel because two threads could access same
-        // grid cell at the same time. Locking made this very slow.
-        if ((itx[i] >= 0) and (itx[i] < nx) and (ity[i] >= 0) and (ity[i] < ny)) {
-            if (npoints.find(ity[i] * nx + itx[i]) == npoints.end()) {
-                npoints[ity[i] * nx + itx[i]] = 1;
-                binned_image[ity[i] * nx + itx[i]] = tf[i] * ta[i];
-                binned_weights[ity[i] * nx + itx[i]] = ta[i];
-            } else {
-                npoints[ity[i] * nx + itx[i]] += 1;
-                binned_image[ity[i] * nx + itx[i]] += tf[i] * ta[i];
-                binned_weights[ity[i] * nx + itx[i]] += ta[i];
-            }
-        }
-    }
-
-    std::unordered_map<int, int>::iterator it = npoints.begin();
-    while (it != npoints.end()) {
-        // Erase any places where npoints = 1
-        if (it->first <= 1)
-            it = npoints.erase(it);
-        else
-            it++;
-    }
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    printf("    Time to create binned image: %f \n", TGIVE(moo));
-#endif
-    */
-
-    /*
-    // Get the max and min x and y values from the triangulation.
-    dreal xmin = std::numeric_limits<dreal>::max(); dreal xmax = -std::numeric_limits<dreal>::max();
-    dreal ymin = std::numeric_limits<dreal>::max(); dreal ymax = -std::numeric_limits<dreal>::max();
-    for (int i=0; i < ni; i++) {
-        if (x[i] > xmax) xmax = x[i];
-        if (x[i] < xmin) xmin = x[i];
-        if (y[i] > ymax) ymax = y[i];
-        if (y[i] < ymin) ymin = y[i];
-    }
-
-    // Create an image including the appropriate coordinates.
-    auto gx = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
-    auto gy = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
-    auto image = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
-    */
-
+    // Interpolate or bin, as appropriate to get to an image.
     auto image = interpolate_or_bin_to_image_h(nx, ny, ni, dxy, x, y, realdata, v_origin, d, binned_image, binned_weights, npoints);
 
-    /*
-    #pragma omp parallel for
-    for (int i = 0; i < nx; i++)
-        gx[i] = (0.5 - i * 1./nx) * nx * dxy;
-    #pragma omp parallel for
-    for (int i = 0; i < ny; i++)
-        gy[i] = (0.5 - i * 1./ny) * ny * dxy * v_origin;
-
-#ifdef GALARIO_TIMING
-    TCLEAR(moo); TSTART(moo);
-    TCREATE(boo); TCLEAR(boo); TSTART(boo);
-#endif
-    #pragma omp parallel
-    {
-    int which_triangle = 0;
-    int last_triangle = 0;
-    int col_start_triangle = -1;
-    double time = 0.;
-
-    // Now loop through the pixels in the image pixels, find the triangle each point is in, and interpolate.
-    #pragma omp for schedule(static)
-    for (int i = 0; i < ny; i++) {
-        if ((i > 0) and (col_start_triangle > -1)) {
-            which_triangle = col_start_triangle;
-            last_triangle = col_start_triangle;
-            col_start_triangle = -1;
-        }
-        for (int j = 0; j < nx; j++) {
-            // Check whether the triangle is out of the triangulation.
-            if ((gx[j] > xmin) and (gx[j] < xmax) and (gy[i] > ymin) and (gy[i] < ymax)) {
-                // Find which triangle this grid point is in.
-#ifdef GALARIO_TIMING
-                TSTART(boo);
-#endif
-                which_triangle = find_triangle(&d, x, y, gx[j], gy[i], which_triangle, &last_triangle, &time);
-#ifdef GALARIO_TIMING
-                TSTOP(boo);
-#endif
-            }
-            else
-                which_triangle = -1;
-
-            // We've found the right triangle, now interpolate.
-            if (which_triangle > -1) {
-                if (npoints.find(i * nx + j) != npoints.end()) {
-                    image[i * nx + j] = binned_image[i * nx + j] / binned_weights[i * nx + j] * dxy * dxy;
-                } else {
-                    int ia = d.triangles[which_triangle];
-                    double ax = x[ia];
-                    double ay = y[ia];
-                    int ib = d.triangles[which_triangle+1];
-                    double bx = x[ib];
-                    double by = y[ib];
-                    int ic = d.triangles[which_triangle+2];
-                    double cx = x[ic];
-                    double cy = y[ic];
-
-                    double wa = ((by - cy)*(gx[j] - cx) + (cx - bx)*(gy[i] - cy)) / 
-                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                    double wb = ((cy - ay)*(gx[j] - cx) + (ax - cx)*(gy[i] - cy)) /
-                        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
-                    double wc = 1 - wa - wb;
-
-                    image[i * nx + j] = (wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic])*dxy*dxy;
-                }
-
-                if (col_start_triangle == -1) {
-                    col_start_triangle = last_triangle;
-                }
-            }
-            // If no triangle was found, the point is outside the area with data so set to 0.
-            else {
-                image[i * nx + j] = 0.;
-                which_triangle = last_triangle;
-            }
-        }
-    }
-    }
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    TSTOP(boo);
-    //printf("Time to calculate barycentric coords %f \n", time);
-    printf("    Time to interpolate onto the grid. %f \n", TGIVE(moo));
-    printf("        Time to find triangles %f \n", TGIVE(boo));
-#endif
-    */
-
-    // Now copy to an image.
-#ifdef GALARIO_TIMING
-    TCREATE(moo); TCLEAR(moo); TSTART(moo);
-#endif
-    auto buffer = copy_input(nx, ny, image);
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    //printf("Time to calculate barycentric coords %f \n", time);
-    printf("    Time to copy to complex. %f \n", TGIVE(moo));
-#endif
-
     // Clean up.
+    free(y);
 
-#ifdef GALARIO_TIMING
-    TCLEAR(moo); TSTART(moo);
-#endif
-    galario_free(y); //galario_free(tx); galario_free(ty); galario_free(tf); galario_free(ta); galario_free(itx); galario_free(ity);
-    /*galario_free(gx); galario_free(gy);*/ galario_free(image);
-#ifdef GALARIO_TIMING
-    TSTOP(moo);
-    //printf("Time to calculate barycentric coords %f \n", time);
-    printf("    Time to clean up. %f \n", TGIVE(moo));
-#endif
-
-    return buffer;
-}
-
-void* _interpolate_to_image(int nx, int ny, int ni, dreal dxy, void* x, void *y, void* realdata, dreal v_origin) {
-    return interpolate_to_image(nx, ny, ni, dxy, static_cast<dreal*>(x), static_cast<dreal*>(y), static_cast<dreal*>(realdata), v_origin);
-}
+    return image;
 }
 
 
@@ -2035,7 +1803,7 @@ void sample_unstructured_image(const dreal* realx, const dreal* realy, int nx, i
 #ifdef GALARIO_TIMING
     TCREATE(moo); TCLEAR(moo); TSTART(moo);
 #endif
-    auto data = interpolate_to_image(nx, ny, ni, dxy, realx, realy, realdata, v_origin); t.Elapsed("sample_image::interpolate_to_grid");
+    auto data = unstructured_to_grid_h(nx, ny, ni, dxy, realx, realy, realdata, v_origin); t.Elapsed("sample_image::interpolate_to_grid");
 #ifdef GALARIO_TIMING
     TSTOP(moo);
     printf("Total time to interpolate: %f \n", TGIVE(moo));
@@ -2044,13 +1812,23 @@ void sample_unstructured_image(const dreal* realx, const dreal* realy, int nx, i
 #ifdef GALARIO_TIMING
     TCLEAR(moo); TSTART(moo);
 #endif
-    sample_h(nx, ny, data, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int);
+    auto image = copy_input(nx, ny, data);
+#ifdef GALARIO_TIMING
+    TSTOP(moo);
+    //printf("Time to calculate barycentric coords %f \n", time);
+    printf("Time to copy to complex. %f \n", TGIVE(moo));
+#endif
+
+#ifdef GALARIO_TIMING
+    TCLEAR(moo); TSTART(moo);
+#endif
+    sample_h(nx, ny, image, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int);
 #ifdef GALARIO_TIMING
     TSTOP(moo);
     printf("Total time to FFT and sample on (u,v): %f \n", TGIVE(moo));
 #endif
 
-    t = CPUTimer(); galario_free(data); t.Elapsed("sample_image::free_data");
+    t = CPUTimer(); galario_free(data); galario_free(image); t.Elapsed("sample_image::free_data");
 //#endif
     t_start.Elapsed("sample_image_tot");
 }

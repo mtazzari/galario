@@ -39,7 +39,6 @@ void _uv_rotate(dreal PA, dreal dRA, dreal dDec, void* dRArot, void* dDecrot, in
 
 /* Interface for the experts */
 void* _copy_input(int nx, int ny, void* realdata);
-void* interpolate_to_image(int nx, int ny, int ni, dreal dxy, void* x, void* y, void* data, dreal v_origin);
 void _fft2d(int nx, int ny, void* data);
 void _fftshift(int nx, int ny, void* data);
 void _fftshift_axis0(int nx, int ncol, void* data);
