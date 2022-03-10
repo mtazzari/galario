@@ -1628,7 +1628,7 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
                 if (npoints.find(i * nx + j) != npoints.end())
                     image[i * nx + j] = binned_image[i * nx + j] / binned_weights[i * nx + j] * dxy * dxy;
                 else
-                    image[i * nx + j] = interpolate_on_triangle_h(d, which_triangle, x, y, realdata, gx[i], gy[i])*dxy*dxy;
+                    image[i * nx + j] = interpolate_on_triangle_h(d, which_triangle, x, y, realdata, gx[j], gy[i])*dxy*dxy;
 
                 if (col_start_triangle == -1)
                     col_start_triangle = last_triangle;
@@ -1651,13 +1651,7 @@ dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dr
 /**
  * Interpolate from an unstructured image onto a regular grid.
  */
-dreal* unstructured_to_grid_h(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* realy, const dreal* realdata, dreal v_origin) {
-    // Flip y to get the orientation correct.
-    auto y = static_cast<dreal*>(malloc(sizeof(dreal)*ni));
-    #pragma omp parallel for
-    for (int i = 0; i < ni; i++)
-        y[i] = (-1*v_origin)*realy[i];
-
+dreal* unstructured_to_grid_h(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* y, const dreal* realdata, dreal v_origin) {
     // Set up the Delauney triangulation.
     OPENMPTIME(delaunator::Delaunator d = triangulate_h(ni, x, y, v_origin), "unstructured_to_grid::triangulation");
 
@@ -1670,9 +1664,6 @@ dreal* unstructured_to_grid_h(int nx, int ny, int ni, dreal dxy, const dreal* x,
 
     // Interpolate or bin, as appropriate to get to an image.
     OPENMPTIME(auto image = interpolate_or_bin_to_image_h(nx, ny, ni, dxy, x, y, realdata, v_origin, d, binned_image, binned_weights, npoints), "unstructured_to_grid::generate_gridded_image");
-
-    // Clean up.
-    free(y);
 
     return image;
 }
