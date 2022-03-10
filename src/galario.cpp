@@ -1975,6 +1975,65 @@ dreal _chi2_image(int nx, int ny, void* realdata, const dreal v_origin, dreal dR
                  static_cast<dreal*>(weights));
 }
 
+dreal chi2_unstructured_image(const dreal* realx, const dreal* realy, int nx, int ny, dreal dxy, int ni, const dreal* realdata, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* vis_obs_re, const dreal* vis_obs_im, const dreal* weights) {
+    CPUTimer t_start;
+
+    CHECK_INPUTXY(nx, ny);
+    dreal chi2 = 0;
+#ifdef __CUDACC__
+    GPUTimer t;
+     // ################################
+     // ### ALLOCATION, INITIALIZATION ###
+     // ################################
+
+     /* async memory copy:
+      TODO copy memory asynchronously or create streams to define dependencies
+      use nonzero cudaStream_t
+      kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
+
+      all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
+      same for cublas
+      draw dependcies on paper: first thing is to do fft while other data is transferred
+
+      While the FFT etc. are calculated, we can copy over the weights and observed values.
+     */
+    // reserve memory for the interpolated values
+    //CudaMemory<dcomplex> vis_int_d(nd);
+    //t.Elapsed("chi2_image::malloc_vis_int");
+
+    // Initialization for comparison and chi square computation
+    /* allocate and copy observational data */
+    /*CudaMemory<dreal> vis_obs_re_d(nd, vis_obs_re);
+    CudaMemory<dreal> vis_obs_im_d(nd, vis_obs_im);
+    CudaMemory<dreal> weights_d(nd, weights);
+    t.Elapsed("chi2_image::copy_observations");
+
+    auto data_d = copy_input_d(nx, ny, realdata);
+
+    sample_d(nx, ny, data_d.ptr, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int_d.ptr);
+    chi2 = reduce_chi2_d(nd, vis_obs_re_d.ptr, vis_obs_im_d.ptr, vis_int_d.ptr, weights_d.ptr);*/
+#else
+    CPUTimer t;
+
+    auto vis_int = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd)); t.Elapsed("chi2_imag::fftw_alloc");
+    sample_unstructured_image(realx, realy, nx, ny, dxy, ni, realdata, v_origin, dRA, dDec, duv, PA, nd, u, v, vis_int);
+
+    chi2 = reduce_chi2(nd, vis_obs_re, vis_obs_im, vis_int, weights);
+
+    t = CPUTimer(); galario_free(vis_int); t.Elapsed("chi2_imag::free_vis_int");
+#endif
+    t_start.Elapsed("chi2_image_tot");
+    flush_timing();
+
+    return chi2;
+}
+
+dreal _chi2_unstructured_image(void* realx, void* realy, int nx, int ny, dreal dxy, int ni, void* realdata, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* weights) {
+    return chi2_unstructured_image(static_cast<dreal*>(realx), static_cast<dreal*>(realy), nx, ny, dxy, ni, static_cast<dreal*>(realdata), v_origin, dRA, dDec, duv, PA, nd, 
+                 static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(vis_obs_re), static_cast<dreal*>(vis_obs_im),
+                 static_cast<dreal*>(weights));
+}
+
 dreal chi2_profile(int nr, dreal *const intensity, dreal Rmin, dreal dR, dreal dxy, int nxy, dreal inc, dreal dRA,
                           dreal dDec, dreal duv, dreal PA, int nd, const dreal *u, const dreal *v, const dreal *vis_obs_re,
                           const dreal *vis_obs_im, const dreal *weights) {
