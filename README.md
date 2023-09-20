@@ -6,7 +6,7 @@ galario
 [![Build Status](https://github.com/mtazzari/galario/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/mtazzari/galario/actions/workflows/unit-tests.yml)
 [![Conda (channel only)](https://img.shields.io/conda/vn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/galario.svg)](https://anaconda.org/conda-forge/galario)
-![Python versions](https://img.shields.io/badge/python-%203.6%20|%203.7%20%20|%203.8%20%20|%203.9-%20%230078BC.svg)
+![Python versions](https://img.shields.io/badge/python-%203.7%20%20|%203.8%20%20|%203.9-%20%230078BC.svg)
 [![codecov](https://codecov.io/gh/mtazzari/galario/branch/master/graph/badge.svg)](https://codecov.io/gh/mtazzari/galario)
 
 
