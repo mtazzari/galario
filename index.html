@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
     <title>galario 1.2.2 &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -61,11 +64,11 @@
           <div class="body" role="main">
             
   <a class="reference internal image-reference" href="_images/galario.jpg"><img alt="Galario logo. Credit: Tazzari, Beaujean, Testi." class="align-left" src="_images/galario.jpg" style="width: 216.4px; height: 101.60000000000001px;" /></a>
-<div class="section" id="galario-version">
-<h1><strong>galario</strong> 1.2.2<a class="headerlink" href="#galario-version" title="Permalink to this headline">¶</a></h1>
+<section id="galario-version">
+<h1><strong>galario</strong> 1.2.2<a class="headerlink" href="#galario-version" title="Permalink to this heading">¶</a></h1>
 <hr class="docutils" />
-<div class="section" id="gpu-accelerated-library-for-analysing-radio-interferometer-observations">
-<h2><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong><a class="headerlink" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations" title="Permalink to this headline">¶</a></h2>
+<section id="gpu-accelerated-library-for-analysing-radio-interferometer-observations">
+<h2><strong>GPU Accelerated Library for Analysing Radio Interferometer Observations</strong><a class="headerlink" href="#gpu-accelerated-library-for-analysing-radio-interferometer-observations" title="Permalink to this heading">¶</a></h2>
 <p><strong>galario</strong> is a library that exploits the computing power of modern graphic cards (GPUs) to accelerate the comparison of model
 predictions to radio interferometer observations. Namely, it speeds up the computation of the synthetic visibilities
 given a model image (or an axisymmetric brightness profile) and their comparison to the observations.</p>
@@ -99,12 +102,12 @@ moment. If you want to use a GPU, you have to build <strong>galario</strong> by 
 <p>Useful recipes for the CPU/GPU management and the model image creation: see the <a class="reference internal" href="cookbook.html"><span class="doc">Cookbook</span></a> with many code snippets.</p>
 <p>Detailed documentation of each Python and C++ function: see the <a class="reference internal" href="py-api.html"><span class="doc">Python-API</span></a> and <a class="reference internal" href="C%2B%2B-api.html"><span class="doc">C++ API</span></a> pages.</p>
 <p>Stuck on an issue? Check the <a class="reference internal" href="FAQ.html"><span class="doc">Frequently Asked Questions</span></a> page, or send me an <a class="reference external" href="mailto:mtazzari&#37;&#52;&#48;ast&#46;cam&#46;ac&#46;uk">email</a>.</p>
-</div>
-<div class="section" id="license-and-attribution">
-<h2>License and Attribution<a class="headerlink" href="#license-and-attribution" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="license-and-attribution">
+<h2>License and Attribution<a class="headerlink" href="#license-and-attribution" title="Permalink to this heading">¶</a></h2>
 <p>If you use <strong>galario</strong> for your research please cite Tazzari, Beaujean and Testi (2018) MNRAS <strong>476</strong> 4527 <a class="reference external" href="https://doi.org/10.1093/mnras/sty409">[MNRAS]</a> <a class="reference external" href="https://arxiv.org/abs/1709.06999">[arXiv]</a> <a class="reference external" href="http://adsabs.harvard.edu/abs/2018MNRAS.476.4527T">[ADS]</a>.</p>
 <p>The BibTeX entry for the paper is:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ARTICLE</span><span class="p">{</span><span class="mi">2018</span><span class="n">MNRAS</span><span class="o">.</span><span class="mf">476.4527</span><span class="n">T</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@ARTICLE</span><span class="p">{</span><span class="mi">2018</span><span class="n">MNRAS</span><span class="mf">.476.4527</span><span class="n">T</span><span class="p">,</span>
    <span class="n">author</span> <span class="o">=</span> <span class="p">{{</span><span class="n">Tazzari</span><span class="p">},</span> <span class="n">M</span><span class="o">.</span> <span class="ow">and</span> <span class="p">{</span><span class="n">Beaujean</span><span class="p">},</span> <span class="n">F</span><span class="o">.</span> <span class="ow">and</span> <span class="p">{</span><span class="n">Testi</span><span class="p">},</span> <span class="n">L</span><span class="o">.</span><span class="p">},</span>
     <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;{GALARIO: a GPU accelerated library for analysing radio interferometer observations}&quot;</span><span class="p">,</span>
   <span class="n">journal</span> <span class="o">=</span> <span class="p">{</span>\<span class="n">mnras</span><span class="p">},</span>
@@ -117,7 +120,7 @@ moment. If you want to use a GPU, you have to build <strong>galario</strong> by 
    <span class="n">volume</span> <span class="o">=</span> <span class="mi">476</span><span class="p">,</span>
     <span class="n">pages</span> <span class="o">=</span> <span class="p">{</span><span class="mi">4527</span><span class="o">-</span><span class="mi">4542</span><span class="p">},</span>
       <span class="n">doi</span> <span class="o">=</span> <span class="p">{</span><span class="mf">10.1093</span><span class="o">/</span><span class="n">mnras</span><span class="o">/</span><span class="n">sty409</span><span class="p">},</span>
-   <span class="n">adsurl</span> <span class="o">=</span> <span class="p">{</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">adsabs</span><span class="o">.</span><span class="n">harvard</span><span class="o">.</span><span class="n">edu</span><span class="o">/</span><span class="nb">abs</span><span class="o">/</span><span class="mi">2018</span><span class="n">MNRAS</span><span class="o">.</span><span class="mf">476.4527</span><span class="n">T</span><span class="p">},</span>
+   <span class="n">adsurl</span> <span class="o">=</span> <span class="p">{</span><span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">adsabs</span><span class="o">.</span><span class="n">harvard</span><span class="o">.</span><span class="n">edu</span><span class="o">/</span><span class="nb">abs</span><span class="o">/</span><span class="mi">2018</span><span class="n">MNRAS</span><span class="mf">.476.4527</span><span class="n">T</span><span class="p">},</span>
   <span class="n">adsnote</span> <span class="o">=</span> <span class="p">{</span><span class="n">Provided</span> <span class="n">by</span> <span class="n">the</span> <span class="n">SAO</span><span class="o">/</span><span class="n">NASA</span> <span class="n">Astrophysics</span> <span class="n">Data</span> <span class="n">System</span><span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -126,9 +129,9 @@ moment. If you want to use a GPU, you have to build <strong>galario</strong> by 
 version of <strong>galario</strong> used in a paper.</p>
 <p><strong>galario</strong> is free software licensed under the LGPLv3 License. For more details see the <a class="reference internal" href="license.html"><span class="doc">LICENSE</span></a>.</p>
 <p>© Copyright 2017-2020 Marco Tazzari, Frederik Beaujean, Leonardo Testi and contributors.</p>
-</div>
-<div class="section" id="contributors">
-<h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="contributors">
+<h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading">¶</a></h2>
 <dl class="simple">
 <dt>Authors:</dt><dd><ul class="simple">
 <li><p><a class="reference external" href="https://github.com/mtazzari">Marco Tazzari (University of Cambridge)</a></p></li>
@@ -149,68 +152,68 @@ version of <strong>galario</strong> used in a paper.</p>
 </dl>
 <p>The initial development of <strong>galario</strong> was boosted by the GPU Hackathon at the TU Dresden in February 2016 thanks to two
 supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge Leadership Computing Facility.</p>
-</div>
-<div class="section" id="changelog">
-<h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="id1">
-<h3>1.2.2 (2020-02-28)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="changelog">
+<h2>Changelog<a class="headerlink" href="#changelog" title="Permalink to this heading">¶</a></h2>
+<section id="id1">
+<h3>1.2.2 (2020-02-28)<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>[core] Add support for Python 3.8</p></li>
 <li><p>[docs] Improved and expanded explanations in quickstart example.</p></li>
 </ul>
-</div>
-<div class="section" id="id2">
-<h3>1.2.1 (2018-11-01)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="id2">
+<h3>1.2.1 (2018-11-01)<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>[core] Add support for Python 3.7</p></li>
 <li><p>[docs] New FAQ page with Frequently Asked Questions.</p></li>
 <li><p>[docs] Better documentation of <code class="code docutils literal notranslate"><span class="pre">get_coords_meshgrid</span></code> function.</p></li>
 <li><p>[cmake] By default, install <strong>galario</strong> in the active conda environment directory unless <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DCMAKE_INSTALL_PREFIX=/path/...</span></code> is specified.</p></li>
 </ul>
-</div>
-<div class="section" id="id3">
-<h3>1.2 (2018-06-20)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="id3">
+<h3>1.2 (2018-06-20)<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] New <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option to specify direction of Dec axis for input image in <code class="code docutils literal notranslate"><span class="pre">*Image()</span></code> functions.</p></li>
 <li><p>[core/bugfix] More robust DFT interpolation for sources that are large or hugely offset from phase center.</p></li>
 <li><p>[docs] New <code class="code docutils literal notranslate"><span class="pre">Tech</span> <span class="pre">specs</span></code> page on specifications of the input image with new <code class="code docutils literal notranslate"><span class="pre">origin</span></code> option.</p></li>
 <li><p>[docs] New <code class="code docutils literal notranslate"><span class="pre">Cookbook</span></code> recipe on how to create the correct coordinate mesh grid.</p></li>
 </ul>
-</div>
-<div class="section" id="id4">
-<h3>1.1 (2018-05-14)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="id4">
+<h3>1.1 (2018-05-14)<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] Python and C++ code now throw detailed exceptions allowing fine-grained control, e.g. for executions on GPU.</p></li>
 <li><p>[core/bugfix] More robust interpolation of brightness profile in the central pixel for steep <code class="code docutils literal notranslate"><span class="pre">f(R)</span></code> profiles.</p></li>
 <li><p>[core] Drop support for C. Only C++ and Python are now supported.</p></li>
 <li><p>[core] Memory handling on GPU: memory is now automatically freed in case of an error (allows catching errors with Exceptions).</p></li>
 </ul>
-</div>
-<div class="section" id="id5">
-<h3>1.0.2 (2017-12-19)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="id5">
+<h3>1.0.2 (2017-12-19)<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] CPU version can now be installed with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">|galario|</span></code>.</p></li>
 <li><p>[core/bugfix] Fix memory leak in GPU version.</p></li>
 <li><p>[core] Allow multiple processes to use the GPU concurrently by default.</p></li>
 <li><p>[docs] Improve installation notes and quickstart example.</p></li>
 </ul>
-</div>
-<div class="section" id="id6">
-<h3>1.0.1 (2017-10-05)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="id6">
+<h3>1.0.1 (2017-10-05)<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>[interface] Allow uninstalling <strong>galario</strong> with <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">uninstall</span></code>.</p></li>
 <li><p>[interface] Allow enabling/disabling check for CUDA on Mac OS with <code class="code docutils literal notranslate"><span class="pre">cmake</span> <span class="pre">-DGALARIO_CHECK_CUDA=1</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="id7">
-<h3>1.0 (2017-09-19)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="id7">
+<h3>1.0 (2017-09-19)<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h3>
 <ul class="simple">
 <li><p>First release.</p></li>
 </ul>
-</div>
-</div>
-<div class="section" id="contents">
-<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
@@ -267,8 +270,8 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
 <li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
 </ul>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -280,8 +283,9 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
     <a id="sidebar-anchor"></a>
     
 
-  <h3><a href="#">Table of Contents</a></h3>
-  <ul class="current">
+  <div>
+    <h3><a href="#">Table of Contents</a></h3>
+    <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
@@ -296,9 +300,12 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
 <li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
 </ul>
 
-  <h4>Next topic</h4>
-  <p class="topless"><a href="install.html"
-                        title="next chapter"><span class="section-number">1. </span>How to build and install <strong>galario</strong></a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="install.html"
+                          title="next chapter"><span class="section-number">1. </span>How to build and install <strong>galario</strong></a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -310,13 +317,17 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
+<div id="sidebarbutton" title="Collapse sidebar">
+<span>«</span>
+</div>
+
       </div>
       <div class="clearer"></div>
     </div>
@@ -333,8 +344,8 @@ supportive mentors and the organizers TU Dresden, FZ Jülich, and the Oak Ridge 
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2021, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+        &#169; Copyright 2017-2023, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>

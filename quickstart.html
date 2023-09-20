@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
     <title>3. A quickstart example &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
     <script src="_static/sidebar.js"></script>
@@ -62,8 +65,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="a-quickstart-example">
-<h1><span class="section-number">3. </span>A quickstart example<a class="headerlink" href="#a-quickstart-example" title="Permalink to this headline">¶</a></h1>
+  <section id="a-quickstart-example">
+<h1><span class="section-number">3. </span>A quickstart example<a class="headerlink" href="#a-quickstart-example" title="Permalink to this heading">¶</a></h1>
 <p>In this page we show how to use <strong>galario</strong> in some typical use cases, e.g. the fit of some interferometric data sets.</p>
 <p><strong>galario</strong> has been designed to simplify and accelerate the task of computing the synthetic visibilities given a model
 image, leaving to the user the freedom to choose the most appropriate statistical tool for the parameter space exploration.</p>
@@ -73,10 +76,10 @@ implementation in the <a class="reference external" href="http://dfm.io/emcee/cu
 <p>In this page we will show how to fit the mock observations of a protoplanetary disk. In particular, in the example we will
 analyse mock visibilities of the disk continuum emission at <span class="math notranslate nohighlight">\(\lambda=\)</span> 1 mm whose synthetized map is shown in this figure:</p>
 <a class="reference internal image-reference" href="_images/disk_example.jpg"><img alt="Protoplanetary disk continuum map" class="align-center" src="_images/disk_example.jpg" style="width: 605.7px; height: 590.4px;" /></a>
-<p>You can download <a class="reference external" href="https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
+<p>You can download <a class="reference external" href="uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
 <hr class="docutils" />
-<div class="section" id="fit-a-single-wavelength-data-set">
-<h2><span class="section-number">3.1. </span>Fit a single-wavelength data set<a class="headerlink" href="#fit-a-single-wavelength-data-set" title="Permalink to this headline">¶</a></h2>
+<section id="fit-a-single-wavelength-data-set">
+<h2><span class="section-number">3.1. </span>Fit a single-wavelength data set<a class="headerlink" href="#fit-a-single-wavelength-data-set" title="Permalink to this heading">¶</a></h2>
 <p><strong>1) Import the uv table</strong></p>
 <blockquote>
 <div><p>First, let’s import the table containing the interferometric observations. Typically, an interferometric data set
@@ -100,7 +103,7 @@ can be exported to a table containing the <span class="math notranslate nohighli
 <span class="o">...</span>             <span class="o">...</span>             <span class="o">...</span>             <span class="o">...</span>             <span class="o">...</span>
 </pre></div>
 </div>
-<p>You can download <a class="reference external" href="https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
+<p>You can download <a class="reference external" href="uvtable.txt">here</a> an ASCII version of the uv-table used in this example.</p>
 <p>A table like this one can be read with:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">require</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="s2">&quot;uvtable.txt&quot;</span><span class="p">,</span> <span class="n">unpack</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">requirements</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
 <span class="n">wle</span> <span class="o">=</span> <span class="mf">1e-3</span>  <span class="c1"># [m]</span>
@@ -119,7 +122,7 @@ can be exported to a table containing the <span class="math notranslate nohighli
 </div>
 <p>where the returned values are the number of pixels (<code class="code docutils literal notranslate"><span class="pre">nxy</span></code>) and the pixel size (<code class="code docutils literal notranslate"><span class="pre">dxy</span></code>) in radians.
 <code class="code docutils literal notranslate"><span class="pre">nxy</span></code> and <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> are chosen to fulfil criteria that ensure a correct computation of the synthetic visibilities.
-For more details, refer to Sect. 3.2 in <a class="reference external" href="LINK">Tazzari, Beaujean and Testi (2017)</a>.</p>
+For more details, refer to Sect. 3.2 in <a class="reference external" href="https://doi.org/10.1093/mnras/sty409">Tazzari, Beaujean and Testi (2018) MNRAS 476 4527</a>.</p>
 </dd>
 <dt><strong>3) Define the brightness model</strong></dt><dd><p>Let us define the model: for this example, we will use a very simple Gaussian profile:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">arcsec</span>
@@ -299,10 +302,6 @@ is the prior probability function defined as a uniform prior:</p>
 </pre></div>
 </div>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 54%" />
-<col style="width: 46%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><a class="reference internal image-reference" href="_images/quickstart_triangle_whole_chain.png"><img alt="Chains" src="_images/quickstart_triangle_whole_chain.png" style="width: 80%;" /></a>
 </td>
@@ -324,8 +323,8 @@ is the prior probability function defined as a uniform prior:</p>
 <p>For more details on the GPU vs CPU execution, see the <a class="reference internal" href="cookbook.html#cookbook"><span class="std std-ref">Cookbook</span></a>.</p>
 </dd>
 </dl>
-</div>
-</div>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -337,8 +336,9 @@ is the prior probability function defined as a uniform prior:</p>
     <a id="sidebar-anchor"></a>
     
 
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul class="current">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
@@ -356,12 +356,17 @@ is the prior probability function defined as a uniform prior:</p>
 <li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="basic_usage.html"
-                        title="previous chapter"><span class="section-number">2. </span>Basic Usage</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="tech-specs.html"
-                        title="next chapter"><span class="section-number">4. </span>Technical specifications</a></p>
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="basic_usage.html"
+                          title="previous chapter"><span class="section-number">2. </span>Basic Usage</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="tech-specs.html"
+                          title="next chapter"><span class="section-number">4. </span>Technical specifications</a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -373,13 +378,17 @@ is the prior probability function defined as a uniform prior:</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
+<div id="sidebarbutton" title="Collapse sidebar">
+<span>«</span>
+</div>
+
       </div>
       <div class="clearer"></div>
     </div>
@@ -399,8 +408,8 @@ is the prior probability function defined as a uniform prior:</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2021, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+        &#169; Copyright 2017-2023, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>

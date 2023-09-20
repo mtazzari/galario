@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
     <title>8. Using galario from C++ &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -61,11 +64,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="using-galario-from-c">
-<h1><span class="section-number">8. </span>Using galario from C++<a class="headerlink" href="#using-galario-from-c" title="Permalink to this headline">¶</a></h1>
+  <section id="using-galario-from-c">
+<h1><span class="section-number">8. </span>Using galario from C++<a class="headerlink" href="#using-galario-from-c" title="Permalink to this heading">¶</a></h1>
 <p>The core of <strong>galario</strong> is written in C++/Cuda, all functions are in the header <code class="code docutils literal notranslate"><span class="pre">galario.h</span></code>.</p>
-<div class="section" id="a-small-example">
-<h2><span class="section-number">8.1. </span>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this headline">¶</a></h2>
+<section id="a-small-example">
+<h2><span class="section-number">8.1. </span>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this heading">¶</a></h2>
 <p>Here is a small test program that performs the FFT in 2D on an image with random values. It is part of the <strong>galario</strong> test suite.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cm">/******************************************************************************</span>
 <span class="cm">* This file is part of GALARIO:                                               *</span>
@@ -84,61 +87,61 @@
 <span class="cm">*                                                                             *</span>
 <span class="cm">* For more details see the LICENSE file.                                      *</span>
 <span class="cm">* For documentation see https://mtazzari.github.io/galario/                   *</span>
-<span class="cm">******************************************************************************/</span>
+<span class="cm">******************************************************************************/</span><span class="w"></span>
 
 <span class="cm">/*</span>
 <span class="cm"> * A simple test to make sure we can include, link, and run galario from pure C++.</span>
-<span class="cm"> */</span>
-<span class="cp">#include</span> <span class="cpf">&quot;galario.h&quot;</span><span class="cp"></span>
+<span class="cm"> */</span><span class="w"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;galario.h&quot;</span><span class="cp"></span>
 
-<span class="cp">#include</span> <span class="cpf">&lt;cassert&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;complex&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;vector&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cassert&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;complex&gt;</span><span class="cp"></span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;vector&gt;</span><span class="cp"></span>
 
-<span class="k">using</span> <span class="k">namespace</span> <span class="n">galario</span><span class="p">;</span>
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">galario</span><span class="p">;</span><span class="w"></span>
 
-<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
-<span class="p">{</span>
-    <span class="n">init</span><span class="p">();</span>
-    <span class="k">constexpr</span> <span class="kt">int</span> <span class="n">nx</span> <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>
-    <span class="k">constexpr</span> <span class="kt">int</span> <span class="n">ny</span> <span class="o">=</span> <span class="n">nx</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">init</span><span class="p">();</span><span class="w"></span>
+<span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">128</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="k">constexpr</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ny</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nx</span><span class="p">;</span><span class="w"></span>
 
-    <span class="c1">// vector initializes to 0</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">dreal</span><span class="o">&gt;</span> <span class="n">realdata</span><span class="p">(</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">);</span>
-    <span class="n">dcomplex</span><span class="o">*</span> <span class="n">res</span> <span class="o">=</span> <span class="n">copy_input</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="c1">// vector initializes to 0</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">dreal</span><span class="o">&gt;</span><span class="w"> </span><span class="n">realdata</span><span class="p">(</span><span class="n">nx</span><span class="o">*</span><span class="n">ny</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">dcomplex</span><span class="o">*</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">copy_input</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">ny</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"></span>
 
-    <span class="c1">// These checks compute garbage but we want to check if they compile and link.</span>
-    <span class="c1">// Link errors could come from incompatible const modifiers.</span>
-    <span class="kt">int</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
-    <span class="n">dreal</span><span class="o">*</span> <span class="n">rp</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
-    <span class="n">dcomplex</span><span class="o">*</span> <span class="n">cp</span> <span class="o">=</span> <span class="n">res</span><span class="p">;</span>
-    <span class="n">dreal</span> <span class="n">r</span> <span class="o">=</span> <span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="c1">// These checks compute garbage but we want to check if they compile and link.</span>
+<span class="w">    </span><span class="c1">// Link errors could come from incompatible const modifiers.</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">dreal</span><span class="o">*</span><span class="w"> </span><span class="n">rp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
+<span class="w">    </span><span class="n">dcomplex</span><span class="o">*</span><span class="w"> </span><span class="n">cp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">res</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">dreal</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span><span class="w"></span>
 
-    <span class="n">dreal</span> <span class="n">dxy</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">;</span>
-    <span class="n">sweep</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">dxy</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span> <span class="n">dxy</span><span class="o">/</span><span class="mf">10.5</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">cp</span><span class="p">);</span>
-    <span class="n">uv_rotate</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">rp</span> <span class="p">,</span><span class="n">rp</span><span class="p">,</span> <span class="n">rp</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dreal</span><span class="w"> </span><span class="n">dxy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.2</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="n">sweep</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">dxy</span><span class="o">/</span><span class="mf">100.</span><span class="p">,</span><span class="w"> </span><span class="n">dxy</span><span class="o">/</span><span class="mf">10.5</span><span class="p">,</span><span class="w"> </span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">dxy</span><span class="p">,</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">uv_rotate</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="w"> </span><span class="p">,</span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="p">);</span><span class="w"></span>
 
-    <span class="n">fft2d</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">res</span><span class="p">);</span>
-    <span class="n">fftshift</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">cp</span><span class="p">);</span>
-    <span class="n">fftshift_axis0</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">cp</span><span class="p">);</span>
-    <span class="c1">// interpolate(n, n, cp, n, rp, rp, r, cp);</span>
-    <span class="n">apply_phase_sampled</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">cp</span><span class="p">);</span>
+<span class="w">    </span><span class="n">fft2d</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">ny</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">fftshift</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">fftshift_axis0</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// interpolate(n, n, cp, n, rp, rp, r, cp);</span>
+<span class="w">    </span><span class="n">apply_phase_sampled</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">rp</span><span class="p">,</span><span class="w"> </span><span class="n">cp</span><span class="p">);</span><span class="w"></span>
 
-    <span class="k">auto</span> <span class="n">ncomplex</span> <span class="o">=</span> <span class="n">nx</span><span class="o">*</span><span class="p">(</span><span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
-    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">dcomplex</span><span class="o">&gt;</span> <span class="n">vis_int</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">res</span> <span class="o">+</span> <span class="n">ncomplex</span><span class="p">);</span>
-    <span class="k">auto</span> <span class="n">chi2</span> <span class="o">=</span> <span class="n">reduce_chi2</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">res</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
-    <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">chi2</span><span class="p">;</span> <span class="c1">// avoid unused variable warning</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">ncomplex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nx</span><span class="o">*</span><span class="p">(</span><span class="n">ny</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">dcomplex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">vis_int</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="w"> </span><span class="n">res</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">ncomplex</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">chi2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reduce_chi2</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">res</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">realdata</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">chi2</span><span class="p">;</span><span class="w"> </span><span class="c1">// avoid unused variable warning</span>
 
-    <span class="c1">// copy input before reduce_chi2 to see if it is modified inadvertently</span>
-    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">ncomplex</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">assert</span><span class="p">(</span><span class="n">vis_int</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
-    <span class="p">}</span>
+<span class="w">    </span><span class="c1">// copy input before reduce_chi2 to see if it is modified inadvertently</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ncomplex</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="n">assert</span><span class="p">(</span><span class="n">vis_int</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
 
-    <span class="n">galario_free</span><span class="p">(</span><span class="n">res</span><span class="p">);</span>
-    <span class="n">cleanup</span><span class="p">();</span>
+<span class="w">    </span><span class="n">galario_free</span><span class="p">(</span><span class="n">res</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">cleanup</span><span class="p">();</span><span class="w"></span>
 
-    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </pre></div>
 </div>
 <p>After successfully installing <strong>galario</strong> to <code class="code docutils literal notranslate"><span class="pre">/path/to/galario</span></code>, a simple
@@ -149,9 +152,9 @@ precision can be built with:</p>
 </div>
 <p>To use single precision, simply do not define the preprocessor symbol <code class="code docutils literal notranslate"><span class="pre">-DDOUBLE_PRECISION</span></code> and link in the appropriate library with <code class="code docutils literal notranslate"><span class="pre">-lgalario_single</span></code>. A mismatch between the library and the preprocessor symbol causes undefined behavior but usually a segmentation fault causes the program to abort at runtime.</p>
 <p>If <strong>galario</strong> was installed with <code class="code docutils literal notranslate"><span class="pre">cuda</span></code> support, you can link in <code class="code docutils literal notranslate"><span class="pre">-lgalario_cuda</span></code> or <code class="code docutils literal notranslate"><span class="pre">-lgalario_single_cuda</span></code> instead.</p>
-</div>
-<div class="section" id="example-walk-through">
-<h2><span class="section-number">8.2. </span>Example walk-through<a class="headerlink" href="#example-walk-through" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="example-walk-through">
+<h2><span class="section-number">8.2. </span>Example walk-through<a class="headerlink" href="#example-walk-through" title="Permalink to this heading">¶</a></h2>
 <p>A small walk through the example’s <code class="code docutils literal notranslate"><span class="pre">main</span></code> function line by line:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;galario.h&quot;</span>
 <span class="o">...</span>
@@ -182,8 +185,8 @@ precision can be built with:</p>
 </pre></div>
 </div>
 <p>In general, any array created by <strong>galario</strong> and handed back to the user must be deallocated using <code class="code docutils literal notranslate"><span class="pre">galario_free</span></code>. The reason is that in the CPU version, we use the FFTW to allocate memory that is aligned to allow FFTW to be most efficient (think SIMD vectorization). Correspondingly, we should not use the standard C library’s <code class="code docutils literal notranslate"><span class="pre">free</span></code> function.</p>
-</div>
-</div>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -195,8 +198,9 @@ precision can be built with:</p>
     <a id="sidebar-anchor"></a>
     
 
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul class="current">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">1. Setup</a></li>
 <li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
@@ -215,12 +219,17 @@ precision can be built with:</p>
 <li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="C%2B%2B-api.html"
-                        title="previous chapter"><span class="section-number">7. </span>C++ API reference</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="publications.html"
-                        title="next chapter"><span class="section-number">9. </span>Publications that used <strong>galario</strong></a></p>
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="C%2B%2B-api.html"
+                          title="previous chapter"><span class="section-number">7. </span>C++ API reference</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="publications.html"
+                          title="next chapter"><span class="section-number">9. </span>Publications that used <strong>galario</strong></a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -232,13 +241,17 @@ precision can be built with:</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
+<div id="sidebarbutton" title="Collapse sidebar">
+<span>«</span>
+</div>
+
       </div>
       <div class="clearer"></div>
     </div>
@@ -258,8 +271,8 @@ precision can be built with:</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2021, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+        &#169; Copyright 2017-2023, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>

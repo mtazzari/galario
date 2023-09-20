@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
     <title>1. How to build and install galario &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pydoctheme.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
     
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -61,14 +64,14 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="how-to-build-and-install-galario">
-<h1><span class="section-number">1. </span>How to build and install <strong>galario</strong><a class="headerlink" href="#how-to-build-and-install-galario" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="operating-system">
-<h2><span class="section-number">1.1. </span>Operating system<a class="headerlink" href="#operating-system" title="Permalink to this headline">¶</a></h2>
+  <section id="how-to-build-and-install-galario">
+<h1><span class="section-number">1. </span>How to build and install <strong>galario</strong><a class="headerlink" href="#how-to-build-and-install-galario" title="Permalink to this heading">¶</a></h1>
+<section id="operating-system">
+<h2><span class="section-number">1.1. </span>Operating system<a class="headerlink" href="#operating-system" title="Permalink to this heading">¶</a></h2>
 <p><strong>galario</strong> runs on Linux and Mac OS X. Windows is not supported.</p>
-</div>
-<div class="section" id="quickest-installation-using-conda">
-<h2><span class="section-number">1.2. </span>Quickest installation: using conda<a class="headerlink" href="#quickest-installation-using-conda" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="quickest-installation-using-conda">
+<h2><span class="section-number">1.2. </span>Quickest installation: using conda<a class="headerlink" href="#quickest-installation-using-conda" title="Permalink to this heading">¶</a></h2>
 <p>By far the easiest way to install <strong>galario</strong> is via <a class="reference external" href="https://conda.io">conda</a>.
 If you are new to <code class="code docutils literal notranslate"><span class="pre">conda</span></code>, you may want to start with the minimal <a class="reference external" href="https://repo.continuum.io/miniconda/">miniconda</a>. With <code class="code docutils literal notranslate"><span class="pre">conda</span></code> all dependencies are
 installed automatically and you get access to <strong>galario</strong>’s C++ core and python
@@ -80,9 +83,9 @@ To install <strong>galario</strong>:</p>
 <p>To create a conda environment for <strong>galario</strong>, see Section 1.4, step 2.</p>
 <p>Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build <strong>galario</strong> by hand.</p>
-</div>
-<div class="section" id="build-requirements">
-<h2><span class="section-number">1.3. </span>Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="build-requirements">
+<h2><span class="section-number">1.3. </span>Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this heading">¶</a></h2>
 <p>To compile <strong>galario</strong> you will need:</p>
 <ul class="simple">
 <li><p>a working internet connection (to download 1.5 MB of an external library)</p></li>
@@ -98,9 +101,9 @@ moment. If you want to use a GPU, read on as you have to build <strong>galario</
 <p>If you want to use the GNU compilers on Mac OS, you need to manually download and install them, e.g. following <a class="reference external" href="http://hpc.sourceforge.net">these instructions</a>.
 The default <code class="code docutils literal notranslate"><span class="pre">gcc</span></code>/<code class="code docutils literal notranslate"><span class="pre">g++</span></code> commands shipped with the OS are aliases for the <code class="code docutils literal notranslate"><span class="pre">clang</span></code> compiler that supports openMP only as of version 3.7 but unfortunately Apple usually ships an older version of <code class="code docutils literal notranslate"><span class="pre">clang</span></code>.</p>
 </div>
-</div>
-<div class="section" id="quick-steps-to-build-and-install">
-<h2><span class="section-number">1.4. </span>Quick steps to build and install<a class="headerlink" href="#quick-steps-to-build-and-install" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="quick-steps-to-build-and-install">
+<h2><span class="section-number">1.4. </span>Quick steps to build and install<a class="headerlink" href="#quick-steps-to-build-and-install" title="Permalink to this heading">¶</a></h2>
 <p>Here a quick summary to compile and install <strong>galario</strong> with default options, <a class="reference internal" href="#detailed-build-instructions"><span class="std std-ref">below</span></a> are
 more detailed instructions to fine-tune the build process.</p>
 <p>The following procedure will always compile and install the CPU version of <strong>galario</strong>.
@@ -149,9 +152,9 @@ compile also the GPU version, check in the <a href="http://docs.nvidia.com/cuda/
 versions are compatible with the <code class="code docutils literal notranslate"><span class="pre">nvcc</span></code> compiler shipped with your CUDA
 Toolkit.</p>
 </div>
-</div>
-<div class="section" id="detailed-build-instructions">
-<span id="id1"></span><h2><span class="section-number">1.5. </span>Detailed build instructions<a class="headerlink" href="#detailed-build-instructions" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="detailed-build-instructions">
+<span id="id1"></span><h2><span class="section-number">1.5. </span>Detailed build instructions<a class="headerlink" href="#detailed-build-instructions" title="Permalink to this heading">¶</a></h2>
 <p>The default configuration to build <strong>galario</strong> is</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/mtazzari/galario.git
 <span class="nb">cd</span> galario
@@ -167,8 +170,8 @@ cmake .. <span class="o">&amp;&amp;</span> make
 </pre></div>
 </div>
 <p>In the following, we assume <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> is invoked from the <code class="code docutils literal notranslate"><span class="pre">build</span></code> directory.</p>
-<div class="section" id="compiler">
-<h3><span class="section-number">1.5.1. </span>Compiler<a class="headerlink" href="#compiler" title="Permalink to this headline">¶</a></h3>
+<section id="compiler">
+<h3><span class="section-number">1.5.1. </span>Compiler<a class="headerlink" href="#compiler" title="Permalink to this heading">¶</a></h3>
 <p>Set the C and C++ compiler</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/gcc&quot;</span>
 <span class="nb">export</span> <span class="nv">CXX</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/g++&quot;</span>
@@ -179,9 +182,9 @@ cmake -DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc -DCMAKE_CXX_COMPILE
 </pre></div>
 </div>
 <p>When changing the compiler, it is best to start with a fresh empty build directory.</p>
-</div>
-<div class="section" id="optimization-level">
-<h3><span class="section-number">1.5.2. </span>Optimization level<a class="headerlink" href="#optimization-level" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="optimization-level">
+<h3><span class="section-number">1.5.2. </span>Optimization level<a class="headerlink" href="#optimization-level" title="Permalink to this heading">¶</a></h3>
 <p>By default <strong>galario</strong> is built with all the optimizations ON. You can check this with:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake --help-variable CMAKE_BUILD_TYPE
 </pre></div>
@@ -196,9 +199,9 @@ cmake -DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc -DCMAKE_CXX_COMPILE
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_BUILD_TYPE<span class="o">=</span>Debug ..
 </pre></div>
 </div>
-</div>
-<div class="section" id="python">
-<span id="python-requirement"></span><h3><span class="section-number">1.5.3. </span>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="python">
+<span id="python-requirement"></span><h3><span class="section-number">1.5.3. </span>Python<a class="headerlink" href="#python" title="Permalink to this heading">¶</a></h3>
 <p>To build the python bindings, we require python 2.7 or 3.x, <code class="code docutils literal notranslate"><span class="pre">numpy</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">cython</span></code>, and <code class="code docutils literal notranslate"><span class="pre">pytest</span></code>. To run the tests, we additionally need
 <code class="code docutils literal notranslate"><span class="pre">scipy&gt;0.14</span></code>.</p>
@@ -234,9 +237,9 @@ currently loaded conda environment is</p>
 libraries with openMP flags are found and whether the path to Python is
 correctly set to the path of the conda environment in use, e.g.
 <code class="code docutils literal notranslate"><span class="pre">/home/user/anaconda/envs/galario3</span></code>.</p>
-</div>
-<div class="section" id="fftw">
-<span id="fftw-requirement"></span><h3><span class="section-number">1.5.4. </span>FFTW<a class="headerlink" href="#fftw" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="fftw">
+<span id="fftw-requirement"></span><h3><span class="section-number">1.5.4. </span>FFTW<a class="headerlink" href="#fftw" title="Permalink to this heading">¶</a></h3>
 <p>The FFTW libraries are required for the CPU version of galario.
 You can check if they are installed on your system by checking if <strong>all</strong> libraries listed below are
 present, for example in <code class="code docutils literal notranslate"><span class="pre">/usr/lib</span></code> or <code class="code docutils literal notranslate"><span class="pre">/usr/local/lib/</span></code>.</p>
@@ -255,8 +258,8 @@ on Debian/Ubuntu or <code class="code docutils literal notranslate"><span class=
 </div>
 <p>If you really want to build FFTW from
 source, for example because you don’t have admin rights, read on.</p>
-<div class="section" id="manual-compilation">
-<h4><span class="section-number">1.5.4.1. </span>Manual compilation<a class="headerlink" href="#manual-compilation" title="Permalink to this headline">¶</a></h4>
+<section id="manual-compilation">
+<h4><span class="section-number">1.5.4.1. </span>Manual compilation<a class="headerlink" href="#manual-compilation" title="Permalink to this heading">¶</a></h4>
 <p>To compile FFTW, download the .tar.gz from FFTW website. On Mac OS, you have to explicitly
 enable the build of dynamic (shared) library with the <code class="code docutils literal notranslate"><span class="pre">--enable-shared</span></code> option, while on Linux this <code class="code docutils literal notranslate"><span class="pre">should</span></code> be the default.
 You can create the libraries listed above with the following lines:</p>
@@ -290,9 +293,9 @@ create an alias with:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span> <span class="nv">make</span><span class="o">=</span><span class="s2">&quot;make -j4&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="setting-paths">
-<h4><span class="section-number">1.5.4.2. </span>Setting paths<a class="headerlink" href="#setting-paths" title="Permalink to this headline">¶</a></h4>
+</section>
+<section id="setting-paths">
+<h4><span class="section-number">1.5.4.2. </span>Setting paths<a class="headerlink" href="#setting-paths" title="Permalink to this heading">¶</a></h4>
 <p>To find FFTW3 in a nonstandard directory, say <code class="code docutils literal notranslate"><span class="pre">$FFTW_HOME</span></code>, tell <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> about it:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span> ..
 </pre></div>
@@ -309,10 +312,10 @@ create an alias with:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_LIBRARY_PATH<span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">FFTW_OPENMP_LIBDIR</span><span class="si">}</span><span class="s2">&quot;</span> ..
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="cuda">
-<span id="build-details-cuda"></span><h3><span class="section-number">1.5.5. </span>CUDA<a class="headerlink" href="#cuda" title="Permalink to this headline">¶</a></h3>
+</section>
+</section>
+<section id="cuda">
+<span id="build-details-cuda"></span><h3><span class="section-number">1.5.5. </span>CUDA<a class="headerlink" href="#cuda" title="Permalink to this heading">¶</a></h3>
 <p><code class="code docutils literal notranslate"><span class="pre">cmake</span></code> tests for compilation on the GPU with cuda by default <strong>except on Mac
 OS</strong>, where version conflicts between the NVIDIA compiler and the C++ compiler
 often lead to problems; see for example <a class="reference external" href="https://github.com/mtazzari/galario/issues/30">this issue</a>.</p>
@@ -326,17 +329,17 @@ exact version, you can point cmake</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCUDA_TOOLKIT_ROOT_DIR<span class="o">=</span>/usr/local/cuda-9.1 ..
 </pre></div>
 </div>
-</div>
-<div class="section" id="timing">
-<h3><span class="section-number">1.5.6. </span>Timing<a class="headerlink" href="#timing" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="timing">
+<h3><span class="section-number">1.5.6. </span>Timing<a class="headerlink" href="#timing" title="Permalink to this heading">¶</a></h3>
 <p>For testing purposes, you can activate the timing features embedded in the code that produce detailed printouts to <code class="code docutils literal notranslate"><span class="pre">stdout</span></code> of various
 portions of the functions. The times are measured in milliseconds. This feature is OFF by default and can be activated during the configuration stage with</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DGALARIO_TIMING<span class="o">=</span><span class="m">1</span> ..
 </pre></div>
 </div>
-</div>
-<div class="section" id="documentation">
-<h3><span class="section-number">1.5.7. </span>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="documentation">
+<h3><span class="section-number">1.5.7. </span>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">¶</a></h3>
 <p>This documentation should be available online <a class="reference external" href="https://mtazzari.github.io/galario/">here</a>. If you want to build the documentation
 locally, from within the <code class="code docutils literal notranslate"><span class="pre">build/</span></code> directory run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make docs
@@ -363,10 +366,10 @@ import would fail otherwise) to extract docstrings.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -rf docs/_doctrees/
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="install">
-<span id="install-details"></span><h2><span class="section-number">1.6. </span>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="install">
+<span id="install-details"></span><h2><span class="section-number">1.6. </span>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <p>To specify a path where to install the C libraries of <strong>galario</strong> (e.g., if you do not have <code class="code docutils literal notranslate"><span class="pre">sudo</span></code> rights to install it in <code class="code docutils literal notranslate"><span class="pre">usr/local/lib</span></code>),
 do the conventional:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/path/to/galario/lib ..
@@ -397,16 +400,16 @@ make <span class="o">&amp;&amp;</span> make install
 </pre></div>
 </div>
 <p>From the environment <code class="code docutils literal notranslate"><span class="pre">myenv</span></code> it is now possible to import <strong>galario</strong>.</p>
-<div class="section" id="uninstall">
-<h3><span class="section-number">1.6.1. </span>Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this headline">¶</a></h3>
+<section id="uninstall">
+<h3><span class="section-number">1.6.1. </span>Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this heading">¶</a></h3>
 <p>After installation, remove all installed files with</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make uninstall
 </pre></div>
 </div>
-</div>
-</div>
-<div class="section" id="tests">
-<h2><span class="section-number">1.7. </span>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="tests">
+<h2><span class="section-number">1.7. </span>Tests<a class="headerlink" href="#tests" title="Permalink to this heading">¶</a></h2>
 <p>After building, just run <code class="code docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-V</span> <span class="pre">--output-on-failure</span></code> from within the <code class="code docutils literal notranslate"><span class="pre">build/</span></code> directory.</p>
 <p>Every time <code class="code docutils literal notranslate"><span class="pre">python/test_galario.py</span></code> is modified, it has to be copied over to the build directory: only when run there,
 <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">pygalario</span></code> works. The copy is performed in the configure step, <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> detects changes so always run <code class="code docutils literal notranslate"><span class="pre">make</span></code> first.</p>
@@ -433,8 +436,8 @@ Check if <code class="code docutils literal notranslate"><span class="pre">nvidi
 Failed to initialize NVML: Driver/library version mismatch
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
             <div class="clearer"></div>
@@ -446,8 +449,9 @@ Failed to initialize NVML: Driver/library version mismatch
     <a id="sidebar-anchor"></a>
     
 
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul class="current">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Home</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. Setup</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#operating-system">1.1. Operating system</a></li>
@@ -487,12 +491,17 @@ Failed to initialize NVML: Driver/library version mismatch
 <li class="toctree-l1"><a class="reference internal" href="license.html">11. License</a></li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter"><strong>galario</strong> 1.2.2</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="basic_usage.html"
-                        title="next chapter"><span class="section-number">2. </span>Basic Usage</a></p>
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="index.html"
+                          title="previous chapter"><strong>galario</strong> 1.2.2</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="basic_usage.html"
+                          title="next chapter"><span class="section-number">2. </span>Basic Usage</a></p>
+  </div>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -504,13 +513,17 @@ Failed to initialize NVML: Driver/library version mismatch
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
+<div id="sidebarbutton" title="Collapse sidebar">
+<span>«</span>
+</div>
+
       </div>
       <div class="clearer"></div>
     </div>
@@ -530,8 +543,8 @@ Failed to initialize NVML: Driver/library version mismatch
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2021, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+        &#169; Copyright 2017-2023, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
 </html>
