@@ -19,7 +19,7 @@ analyse mock visibilities of the disk continuum emission at :math:`\lambda=` 1 m
     :alt: Protoplanetary disk continuum map
     :align: center
 
-You can download `here <https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt>`_ an ASCII version of the uv-table used in this example.
+You can download `here <uvtable.txt>`_ an ASCII version of the uv-table used in this example.
 
 --------------
 
@@ -51,7 +51,7 @@ Fit a single-wavelength data set
         35.56591	111.28235	 0.03777	-0.11856	194.83899
         ...     	...     	...     	...      	...
 
-    You can download `here <https://www.ast.cam.ac.uk/~mtazzari/galario/uvtable.txt>`_ an ASCII version of the uv-table used in this example.
+    You can download `here <uvtable.txt>`_ an ASCII version of the uv-table used in this example.
 
     A table like this one can be read with:
 
@@ -75,7 +75,7 @@ Fit a single-wavelength data set
 
     where the returned values are the number of pixels (`nxy`) and the pixel size (`dxy`) in radians.
     `nxy` and `dxy` are chosen to fulfil criteria that ensure a correct computation of the synthetic visibilities.
-    For more details, refer to Sect. 3.2 in `Tazzari, Beaujean and Testi (2017) <LINK>`_.
+    For more details, refer to Sect. 3.2 in `Tazzari, Beaujean and Testi (2018) MNRAS 476 4527 <https://doi.org/10.1093/mnras/sty409>`_.
 
 **3) Define the brightness model**
     Let us define the model: for this example, we will use a very simple Gaussian profile:
