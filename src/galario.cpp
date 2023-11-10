@@ -19,6 +19,9 @@
 
 #include "galario.h"
 #include "galario_py.h"
+#include <cassert>
+#include <delaunator-header-only.hpp>
+#include <unordered_map>
 
 // full function makes code hard to read
 #define tpb galario::threads()
@@ -1351,6 +1354,320 @@ void sample_h(int nx, int ny, dcomplex* data, const dreal v_origin, dreal dRA, d
 
 #endif
 
+/**
+ * Find the index of the triangle that a point is in using brute force.
+ */
+int find_triangle_bruteforce_h(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy) {
+
+    bool found_triangle = false;
+    int which_triangle = -1;
+
+    // Loop through all the triangles to brute force-find which one a point is in.
+    for (int k = 0; k < d->triangles.size(); k+=3) {
+        int ia = d->triangles[k];
+        double ax = x[ia];
+        double ay = y[ia];
+
+        int ib = d->triangles[k+1];
+        double bx = x[ib];
+        double by = y[ib];
+
+        int ic = d->triangles[k+2];
+        double cx = x[ic];
+        double cy = y[ic];
+
+        double vbx = bx - ax;
+        double vby = by - ay;
+        double vcx = cx - ax;
+        double vcy = cy - ay;
+
+        double det_vv2 = gx*vcy - gy*vcx;
+        double det_v0v2 = ax*vcy - ay*vcx;
+        double det_v1v2 = vbx*vcy - vby*vcx;
+        double det_vv1 = gx*vby - gy*vbx;
+        double det_v0v1 = ax*vby - ay*vbx;
+
+        double a = (det_vv2 - det_v0v2) / det_v1v2;
+        double b = -(det_vv1 - det_v0v1) / det_v1v2;
+
+        // We've found the right triangle, now interpolate.
+        if ((a > 0) & (b > 0) & (a + b < 1)) {
+            which_triangle = k;
+            found_triangle = true;
+            break;
+        }
+    }
+
+    return which_triangle;
+}
+
+/**
+ * Find which triangle a point is in using a directed walk.
+ */
+int find_triangle_directedwalk_h(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double *time) {
+    int which_triangle = -2;
+    int count = 0;
+    dreal eps = 1.0e-3;
+    bool found_triangle = false;
+    while (count < d->triangles.size() / (3*4)) {
+        int ia = d->triangles[start];
+        double ax = x[ia];
+        double ay = y[ia];
+        int ib = d->triangles[start+1];
+        double bx = x[ib];
+        double by = y[ib];
+        int ic = d->triangles[start+2];
+        double cx = x[ic];
+        double cy = y[ic];
+
+        double wa = ((by - cy)*(gx - cx) + (cx - bx)*(gy - cy)) / 
+            ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+        double wb = ((cy - ay)*(gx - cx) + (ax - cx)*(gy - cy)) /
+            ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+        double wc = 1 - wa - wb;
+
+        if (wa < -eps) {
+            start = d->halfedges[start+1];
+        } else if (wb < -eps) {
+            start = d->halfedges[start+2];
+        } else if (wc < -eps) {
+            start = d->halfedges[start+0];
+        } else {
+            which_triangle = start;
+            found_triangle = true;
+        }
+
+        if (start >= 0) {
+            start = start - start%3;
+            *last_good = start;
+        }
+        else
+            which_triangle = start;
+
+        if ((found_triangle) or (which_triangle == -1))
+            break;
+
+        count++;
+    }
+
+    return which_triangle;
+}
+
+/**
+ * First try to find the triangle index using a directed walk, and if that fails switch to brute force.
+ */
+int find_triangle_h(delaunator::Delaunator *d, const dreal *x, const dreal *y, dreal gx, dreal gy, int start, int* last_good, double* time) {
+    int which_triangle = find_triangle_directedwalk_h(d, x, y, gx, gy, start, last_good, time);
+    if (which_triangle == -2) {
+        printf("Switching to brute force \n");
+        which_triangle = find_triangle_bruteforce_h(d, x, y, gx, gy);
+    }
+
+    return which_triangle;
+}
+
+
+/**
+ * Run the Delauney triangulation.
+ */
+delaunator::Delaunator triangulate_h(int ni, const dreal* x, const dreal* y, dreal v_origin) {
+    // Set up the Delauney triangulation.
+
+    std::vector<double> coords;
+
+    dreal xmin = std::numeric_limits<dreal>::max(); dreal xmax = -std::numeric_limits<dreal>::max();
+    dreal ymin = std::numeric_limits<dreal>::max(); dreal ymax = -std::numeric_limits<dreal>::max();
+    for (int i=0; i < ni; i++) {
+        coords.push_back(x[i]);
+        coords.push_back(y[i]);
+
+        if (x[i] > xmax) xmax = x[i];
+        if (x[i] < xmin) xmin = x[i];
+        if (y[i] > ymax) ymax = y[i];
+        if (y[i] < ymin) ymin = y[i];
+    }
+
+    delaunator::Delaunator d(coords);
+
+    return d;
+}
+
+/**
+ * For each triangle, calculate the centroid and which grid cell it falls in.
+ */
+void bin_triangles_h(int nx, int ny, dreal dxy, const dreal *x, const dreal *y, const dreal *realdata, delaunator::Delaunator &d, std::unordered_map<int,dreal> &binned_image, 
+        std::unordered_map<int,dreal> &binned_weights, std::unordered_map<int,int> &npoints, dreal v_origin) {
+    auto tx = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+    auto ty = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+    auto tf = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+    auto ta = static_cast<dreal*>(malloc(sizeof(dreal)*d.triangles.size()/3));
+
+    auto itx = static_cast<int*>(malloc(sizeof(int)*d.triangles.size()/3));
+    auto ity = static_cast<int*>(malloc(sizeof(int)*d.triangles.size()/3));
+
+    dreal gx_max = 0.5*nx*dxy;
+    dreal gy_max = 0.5*ny*dxy*v_origin;
+
+    #pragma omp parallel for
+    for (int i = 0; i < d.triangles.size()/3; i++) {
+        tx[i] = (x[d.triangles[3*i]] + x[d.triangles[3*i+1]] + x[d.triangles[3*i+2]]) / 3.;
+        ty[i] = (y[d.triangles[3*i]] + y[d.triangles[3*i+1]] + y[d.triangles[3*i+2]]) / 3.;
+        tf[i] = (realdata[d.triangles[3*i]] + realdata[d.triangles[3*i+1]] + realdata[d.triangles[3*i+2]]) / 3.;
+        ta[i] = std::fabs((y[d.triangles[3*i+1]] - y[d.triangles[3*i]]) * (x[d.triangles[3*i+2]] - x[d.triangles[3*i+1]]) - 
+                (x[d.triangles[3*i+1]] - x[d.triangles[3*i]]) * (y[d.triangles[3*i+2]] - y[d.triangles[3*i+1]]));
+
+        itx[i] = trunc((tx[i] - gx_max) / (-dxy) + 0.5);
+        ity[i] = trunc((ty[i] - gy_max) / (-dxy*v_origin) + 0.5);
+    }
+
+    for (int i = 0; i < d.triangles.size()/3; i++) {
+        // Note: cant do this in parallel because two threads could access same
+        // grid cell at the same time. Locking made this very slow.
+        if ((itx[i] >= 0) and (itx[i] < nx) and (ity[i] >= 0) and (ity[i] < ny)) {
+            if (npoints.find(ity[i] * nx + itx[i]) == npoints.end()) {
+                npoints[ity[i] * nx + itx[i]] = 1;
+                binned_image[ity[i] * nx + itx[i]] = tf[i] * ta[i];
+                binned_weights[ity[i] * nx + itx[i]] = ta[i];
+            } else {
+                npoints[ity[i] * nx + itx[i]] += 1;
+                binned_image[ity[i] * nx + itx[i]] += tf[i] * ta[i];
+                binned_weights[ity[i] * nx + itx[i]] += ta[i];
+            }
+        }
+    }
+
+    std::unordered_map<int, int>::iterator it = npoints.begin();
+    while (it != npoints.end()) {
+        // Erase any places where npoints = 1
+        if (it->first <= 1)
+            it = npoints.erase(it);
+        else
+            it++;
+    }
+
+    free(tx); free(ty); free(tf); free(ta); free(itx); free(ity);
+}
+
+/**
+ * Do the interpolation onto a single point in a single triangle.
+ */
+double interpolate_on_triangle_h(delaunator::Delaunator &d, int which_triangle, const dreal *x, const dreal *y, const dreal *realdata, dreal gx, dreal gy) {
+    int ia = d.triangles[which_triangle];
+    double ax = x[ia];
+    double ay = y[ia];
+    int ib = d.triangles[which_triangle+1];
+    double bx = x[ib];
+    double by = y[ib];
+    int ic = d.triangles[which_triangle+2];
+    double cx = x[ic];
+    double cy = y[ic];
+
+    double wa = ((by - cy)*(gx - cx) + (cx - bx)*(gy - cy)) / 
+        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+    double wb = ((cy - ay)*(gx - cx) + (ax - cx)*(gy - cy)) /
+        ((by - cy)*(ax - cx) + (cx - bx)*(ay - cy));
+    double wc = 1 - wa - wb;
+
+    return wa*realdata[ia] + wb*realdata[ib] + wc*realdata[ic];
+}
+
+/**
+ * Interpolate when the triangles are bigger than the grid cells, and use the binned image when triangles are smaller.
+ */
+dreal* interpolate_or_bin_to_image_h(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* y, const dreal* realdata, dreal v_origin, 
+        delaunator::Delaunator &d, std::unordered_map<int,dreal> &binned_image, std::unordered_map<int,dreal> &binned_weights, 
+        std::unordered_map<int,int> &npoints) {
+
+    // Get the max and min x and y values from the triangulation.
+    dreal xmin = std::numeric_limits<dreal>::max(); dreal xmax = -std::numeric_limits<dreal>::max();
+    dreal ymin = std::numeric_limits<dreal>::max(); dreal ymax = -std::numeric_limits<dreal>::max();
+    for (int i=0; i < ni; i++) {
+        if (x[i] > xmax) xmax = x[i];
+        if (x[i] < xmin) xmin = x[i];
+        if (y[i] > ymax) ymax = y[i];
+        if (y[i] < ymin) ymin = y[i];
+    }
+
+    // Create an image including the appropriate coordinates.
+    auto gx = static_cast<dreal*>(malloc(sizeof(dreal)*nx));
+    auto gy = static_cast<dreal*>(malloc(sizeof(dreal)*ny));
+    auto image = static_cast<dreal*>(malloc(sizeof(dreal)*nx*ny));
+
+    #pragma omp parallel for
+    for (int i = 0; i < nx; i++)
+        gx[i] = (0.5 - i * 1./nx) * nx * dxy;
+    #pragma omp parallel for
+    for (int i = 0; i < ny; i++)
+        gy[i] = (0.5 - i * 1./ny) * ny * dxy * v_origin;
+
+    #pragma omp parallel
+    {
+    int which_triangle = 0;
+    int last_triangle = 0;
+    int col_start_triangle = -1;
+    double time = 0.;
+
+    // Now loop through the pixels in the image pixels, find the triangle each point is in, and interpolate.
+    #pragma omp for schedule(static)
+    for (int i = 0; i < ny; i++) {
+        if ((i > 0) and (col_start_triangle > -1)) {
+            which_triangle = col_start_triangle;
+            last_triangle = col_start_triangle;
+            col_start_triangle = -1;
+        }
+        for (int j = 0; j < nx; j++) {
+            // Check whether the triangle is out of the triangulation.
+            if ((gx[j] > xmin) and (gx[j] < xmax) and (gy[i] > ymin) and (gy[i] < ymax))
+                // Find which triangle this grid point is in.
+                which_triangle = find_triangle_h(&d, x, y, gx[j], gy[i], which_triangle, &last_triangle, &time);
+            else
+                which_triangle = -1;
+
+            // We've found the right triangle, now interpolate.
+            if (which_triangle > -1) {
+                if (npoints.find(i * nx + j) != npoints.end())
+                    image[i * nx + j] = binned_image[i * nx + j] / binned_weights[i * nx + j] * dxy * dxy;
+                else
+                    image[i * nx + j] = interpolate_on_triangle_h(d, which_triangle, x, y, realdata, gx[j], gy[i])*dxy*dxy;
+
+                if (col_start_triangle == -1)
+                    col_start_triangle = last_triangle;
+            }
+            // If no triangle was found, the point is outside the area with data so set to 0.
+            else {
+                image[i * nx + j] = 0.;
+                which_triangle = last_triangle;
+            }
+        }
+    }
+    }
+
+    // Clean up
+    free(gx); free(gy);
+
+    return image;
+}
+
+/**
+ * Interpolate from an unstructured image onto a regular grid.
+ */
+dreal* unstructured_to_grid_h(int nx, int ny, int ni, dreal dxy, const dreal* x, const dreal* y, const dreal* realdata, dreal v_origin) {
+    // Set up the Delauney triangulation.
+    OPENMPTIME(delaunator::Delaunator d = triangulate_h(ni, x, y, v_origin), "unstructured_to_grid::triangulation");
+
+    // For each triangle, calculate the centroid and which grid cell it falls in.
+    std::unordered_map<int,dreal> binned_image;
+    std::unordered_map<int,dreal> binned_weights;
+    std::unordered_map<int,int> npoints;
+
+    OPENMPTIME(bin_triangles_h(nx, ny, dxy, x, y, realdata, d, binned_image, binned_weights, npoints, v_origin), "unstructured_to_grid::bin_trixels");
+
+    // Interpolate or bin, as appropriate to get to an image.
+    OPENMPTIME(auto image = interpolate_or_bin_to_image_h(nx, ny, ni, dxy, x, y, realdata, v_origin, d, binned_image, binned_weights, npoints), "unstructured_to_grid::generate_gridded_image");
+
+    return image;
+}
+
 
 namespace galario {
 /**
@@ -1395,6 +1712,52 @@ void sample_image(int nx, int ny, const dreal* realdata, dreal v_origin, dreal d
 void _sample_image(int nx, int ny, void* data, dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_int) {
     sample_image(nx, ny, static_cast<dreal*>(data), v_origin, dRA, dDec, duv, PA, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(vis_int));
 }
+
+/**
+ * return result in `vis_int`
+ */
+void sample_unstructured_image(const dreal* realx, const dreal* realy, int nx, int ny, dreal dxy, int ni, const dreal* realdata, dreal v_origin, dreal dRA, dreal dDec, dreal duv,
+                          const dreal PA, int nd, const dreal* u, const dreal* v, dcomplex* vis_int) {
+    CPUTimer t_start;
+
+    // Initialization for uv_idx and interpolate
+    CHECK_INPUT(nx);
+
+/*#ifdef __CUDACC__
+    GPUTimer t_total;
+    CudaMemory<dcomplex> vis_int_d(nd);
+
+    auto data_d = copy_input_d(nx, ny, realdata);
+
+    // do the actual computation
+    sample_d(nx, ny, data_d.ptr, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int_d.ptr);
+
+    // retrieve interpolated values
+    CCheck(cudaDeviceSynchronize());
+
+    GPUTimer t;
+    vis_int_d.Retrieve(vis_int);
+    t.Elapsed("sample_image::vis_int_ D->H");
+
+    t_total.Elapsed("sample_image_tot");
+#else*/
+
+    auto data = unstructured_to_grid_h(nx, ny, ni, dxy, realx, realy, realdata, v_origin);
+
+    CPUTimer t; 
+    auto image = copy_input(nx, ny, data); t.Elapsed("sample_image::copy_input");
+
+    sample_h(nx, ny, image, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int);
+
+    t = CPUTimer(); galario_free(data); galario_free(image); t.Elapsed("sample_image::free_data");
+//#endif
+    t_start.Elapsed("sample_image_tot");
+}
+
+void _sample_unstructured_image(void* x, void* y, int nx, int ny, dreal dxy, int ni, void* data, dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_int) {
+    sample_unstructured_image(static_cast<dreal*>(x), static_cast<dreal*>(y), nx, ny, dxy, ni, static_cast<dreal*>(data), v_origin, dRA, dDec, duv, PA, nd, static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dcomplex*>(vis_int));
+}
+
 
 
 /**
@@ -1609,6 +1972,65 @@ dreal chi2_image(int nx, int ny, const dreal* realdata, const dreal v_origin, dr
 dreal _chi2_image(int nx, int ny, void* realdata, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* weights) {
     return chi2_image(nx, ny, static_cast<dreal*>(realdata), v_origin, dRA, dDec, duv, PA, nd, static_cast<dreal*>(u),
                  static_cast<dreal*>(v), static_cast<dreal*>(vis_obs_re), static_cast<dreal*>(vis_obs_im),
+                 static_cast<dreal*>(weights));
+}
+
+dreal chi2_unstructured_image(const dreal* realx, const dreal* realy, int nx, int ny, dreal dxy, int ni, const dreal* realdata, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, const dreal* u, const dreal* v, const dreal* vis_obs_re, const dreal* vis_obs_im, const dreal* weights) {
+    CPUTimer t_start;
+
+    CHECK_INPUTXY(nx, ny);
+    dreal chi2 = 0;
+#ifdef __CUDACC__
+    GPUTimer t;
+     // ################################
+     // ### ALLOCATION, INITIALIZATION ###
+     // ################################
+
+     /* async memory copy:
+      TODO copy memory asynchronously or create streams to define dependencies
+      use nonzero cudaStream_t
+      kernel<<< blocks, threads, bytes=0, stream =! 0>>>();
+
+      all cufft calls are asynchronous, can specify the stream explicitly (cf. doc)
+      same for cublas
+      draw dependcies on paper: first thing is to do fft while other data is transferred
+
+      While the FFT etc. are calculated, we can copy over the weights and observed values.
+     */
+    // reserve memory for the interpolated values
+    //CudaMemory<dcomplex> vis_int_d(nd);
+    //t.Elapsed("chi2_image::malloc_vis_int");
+
+    // Initialization for comparison and chi square computation
+    /* allocate and copy observational data */
+    /*CudaMemory<dreal> vis_obs_re_d(nd, vis_obs_re);
+    CudaMemory<dreal> vis_obs_im_d(nd, vis_obs_im);
+    CudaMemory<dreal> weights_d(nd, weights);
+    t.Elapsed("chi2_image::copy_observations");
+
+    auto data_d = copy_input_d(nx, ny, realdata);
+
+    sample_d(nx, ny, data_d.ptr, v_origin, dRA, dDec, nd, duv, PA, u, v, vis_int_d.ptr);
+    chi2 = reduce_chi2_d(nd, vis_obs_re_d.ptr, vis_obs_im_d.ptr, vis_int_d.ptr, weights_d.ptr);*/
+#else
+    CPUTimer t;
+
+    auto vis_int = reinterpret_cast<dcomplex*>(FFTW(alloc_complex)(nd)); t.Elapsed("chi2_imag::fftw_alloc");
+    sample_unstructured_image(realx, realy, nx, ny, dxy, ni, realdata, v_origin, dRA, dDec, duv, PA, nd, u, v, vis_int);
+
+    chi2 = reduce_chi2(nd, vis_obs_re, vis_obs_im, vis_int, weights);
+
+    t = CPUTimer(); galario_free(vis_int); t.Elapsed("chi2_imag::free_vis_int");
+#endif
+    t_start.Elapsed("chi2_image_tot");
+    flush_timing();
+
+    return chi2;
+}
+
+dreal _chi2_unstructured_image(void* realx, void* realy, int nx, int ny, dreal dxy, int ni, void* realdata, const dreal v_origin, dreal dRA, dreal dDec, dreal duv, dreal PA, int nd, void* u, void* v, void* vis_obs_re, void* vis_obs_im, void* weights) {
+    return chi2_unstructured_image(static_cast<dreal*>(realx), static_cast<dreal*>(realy), nx, ny, dxy, ni, static_cast<dreal*>(realdata), v_origin, dRA, dDec, duv, PA, nd, 
+                 static_cast<dreal*>(u), static_cast<dreal*>(v), static_cast<dreal*>(vis_obs_re), static_cast<dreal*>(vis_obs_im),
                  static_cast<dreal*>(weights));
 }
 

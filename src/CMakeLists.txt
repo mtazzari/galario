@@ -71,7 +71,7 @@ OPTION(GALARIO_TIMING "Output timing of selected functions. For testing only. De
 
 foreach(t IN ITEMS galario_single galario)
   target_link_libraries(${t} ${FFTW3_LIBRARIES})
-  target_include_directories(${t} PUBLIC ${FFTW3_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIR_PARALLEL})
+  target_include_directories(${t} PUBLIC ${FFTW3_INCLUDE_DIRS} ${FFTW3_INCLUDE_DIR_PARALLEL} ../delaunator-cpp/include)
   if(GALARIO_TIMING)
     target_compile_definitions(${t} PRIVATE GALARIO_TIMING=1)
   endif()

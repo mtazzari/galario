@@ -22,8 +22,12 @@ from cpython cimport PyObject, Py_INCREF
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
+import time
 import numpy as np
 np.import_array()
+
+from scipy.interpolate import LinearNDInterpolator
+from scipy.spatial import Voronoi, ConvexHull
 
 include "galario_config.pxi"
 
@@ -33,7 +37,7 @@ __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup', 'set_v_origin',
            'ngpus', 'use_gpu', 'threads',
            'check_obs', 'check_image_size', 'get_image_size',
-           'sampleImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
+           'sampleImage', 'sampleUnstructuredImage', 'sampleProfile', 'chi2Image', 'chi2Profile',
            'get_coords_meshgrid',
            'sweep', 'uv_rotate', 'interpolate', 'apply_phase_vis', 'reduce_chi2',
            '_fft2d', '_fftshift', '_fftshift_axis0']
@@ -443,6 +447,93 @@ def sampleImage(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     return vis
 
 
+def sampleUnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
+                int nxy, dreal dxy, dreal[::1] u, dreal[::1] v,
+                dRA=0., dDec=0., PA=0., check=False, origin='upper'):
+    """
+    Compute the synthetic visibilities of a model image at the specified (u, v) locations.
+
+    The 2D surface brightness in `image` is Fourier transformed and sampled in the
+    (u, v) locations given in the `u` and `v` arrays.
+
+    Typical call signature::
+
+        vis = sampleImage(image, dxy, u, v, dRA=0, dDec=0, PA=0, check=False, origin='upper')
+
+    Parameters
+    ----------
+    x : 1D array_like, float
+        List of x coordinates at which intensities are known.
+        **units**: rad
+    y : 1D array_like, float
+        List of y coordinates at which intensities are known.
+        **units**: rad
+    image : 1D array_like, float
+        Array containing the surface brightness of the model.
+        Assume the x-axis (R.A.) increases from right (West) to left (East)
+        and the y-axis (Dec.) increases from bottom (South) to top (North).
+        `nxy` must be even.
+        **units**: Jy/st
+    nxy : int
+        Number of pixels to use for the interpolated gridded image.
+    dxy : float
+        Size of the image cell in the interpolated image, assumed equal in both x and y direction.
+        **units**: rad
+    u : array_like, float
+        u coordinate of the visibility points where the FT has to be sampled.
+        **units**: wavelength
+    v : array_like, float
+        v coordinate of the visibility points where the FT has to be sampled.
+        The length of v must be equal to the length of u.
+        **units**: wavelength
+    dRA : float, optional
+        R.A. offset w.r.t. the phase center by which the image is translated.
+        If dRA > 0 translate the image towards the left (East). Default is 0.
+        **units**: rad
+    dDec : float, optional
+        Dec. offset w.r.t. the phase center by which the image is translated.
+        If dDec > 0 translate the image towards the top (North). Default is 0.
+        **units**: rad
+    PA : float, optional
+        Position Angle, defined East of North. Default is 0.
+        **units**: rad
+    check : bool, optional
+        If True, check whether `image` and `dxy` satisfy Nyquist criterion for
+        computing the synthetic visibilities in the (u, v) locations provided.
+        Additionally check that the (u, v) points fall in the image to avoid
+        segmentation violations. Default is False since the check might take
+        time. For executions where speed is important, set to False.
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the Technical Requirements page in the online docs.
+
+    Returns
+    -------
+    vis : array_like, complex
+        Synthetic visibilities sampled in the (u, v) locations given in `u` and `v`.
+        **units**: Jy
+
+    """
+
+    # Now pick back up with what is typically done for regular grids.
+    duv = 1 / (dxy*nxy)
+
+    if check:
+        check_image_size(u, v, nxy, dxy, duv)
+
+    vis = np.zeros(len(u), dtype=complex_dtype)
+    v_origin = set_v_origin(origin)
+    cpp._sample_unstructured_image(<void*>&x[0], <void*>&y[0], nxy, nxy, dxy, len(x), <void*>&image[0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>np.PyArray_DATA(vis))
+
+    return vis
+
+
+
+
+
 def sampleProfile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,
                   dRA=0., dDec=0., PA=0., inc=0., check=False):
     """
@@ -624,6 +715,110 @@ def chi2Image(dreal[:,::1] image, dxy, dreal[::1] u, dreal[::1] v,
     v_origin = set_v_origin(origin)
 
     return cpp._chi2_image(image.shape[0], image.shape[1], <void*>&image[0,0], v_origin, dRA, dDec, duv, PA, len(u), <void*> &u[0],  <void*> &v[0],  <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
+
+
+def chi2UnstructuredImage(dreal[::1] x, dreal[::1] y, dreal[::1] image, 
+              int nxy, dreal dxy, dreal[::1] u, dreal[::1] v,
+              dreal[::1] vis_obs_re, dreal[::1] vis_obs_im, dreal[::1] vis_obs_w,
+              dRA=0., dDec=0., PA=0., check=False, origin='upper'):
+    """
+    Compute the chi square of a model unstructured image given the observed visibilities.
+
+    The chi square is computed from the observed and synthetic visibilities as:
+
+    .. math::
+
+        \chi^2 = \sum_{j=1}^N w_j * [(Re V_{obs\ j}-Re V_{mod\ j})^2 + (Im V_{obs\ j}-Im V_{mod\ j})^2]
+
+    where :math:`V_{mod}` are the synthetic visibilities, which are computed internally
+    as in :func:`.sampleUnstructuredImage`.
+
+    Typical call signature::
+
+        chi2 = chi2UnstructuredImage(x, y, image, nxy, dxy, u, v, vis_obs_re, vis_obs_im, vis_obs_w,
+                         dRA=0, dDec=0, PA=0, check=False, origin='upper')
+
+    Parameters
+    ----------
+    x : 1D array_like, float
+        List of x coordinates at which intensities are known.
+        **units**: rad
+    y : 1D array_like, float
+        List of y coordinates at which intensities are known.
+        **units**: rad
+    image : 1D array_like, float
+        Array containing the surface brightness of the model.
+        Assume the x-axis (R.A.) increases from right (West) to left (East)
+        and the y-axis (Dec.) increases from bottom (South) to top (North).
+        `nxy` must be even.
+        **units**: Jy/st
+    nxy : int
+        Number of pixels to use for the interpolated gridded image.
+    dxy : float
+        Size of the image cell in the interpolated image, assumed equal in both x and y direction.
+        **units**: rad
+    u : array_like, float
+        u coordinate of the visibility points where the FT has to be sampled.
+        **units**: wavelength
+    v : array_like, float
+        v coordinate of the visibility points where the FT has to be sampled.
+        The length of `v` must be equal to the length of `u`.
+        **units**: wavelength
+    vis_obs_re : array_like, float
+        Real part of the observed visibilities.
+        **units**: Jy
+    vis_obs_im: array_like, float
+        Imaginary part of the observed visibilities.
+        The length of `vis_obs_im` must be equal to the length of `vis_obs_re`.
+        **units**: Jy
+    vis_obs_w: array_like, float
+        Weight associated to the observed visibilities.
+        The length of `vis_obs_w` must be equal to the length of `vis_obs_re`.
+        **units**:
+    dRA : float, optional
+        R.A. offset w.r.t. the phase center by which the image is translated.
+        If dRA > 0 translate the image towards the left (East). Default is 0.
+        **units**: rad
+    dDec : float, optional
+        Dec. offset w.r.t. the phase center by which the image is translated.
+        If dDec > 0 translate the image towards the top (North). Default is 0.
+        **units**: rad
+    PA : float, optional
+        Position Angle, defined East of North. Default is 0.
+        **units**: rad
+    check : bool, optional
+        If True, check whether `image` and `dxy` satisfy Nyquist criterion for
+        computing the synthetic visibilities in the (u, v) locations provided.
+        Additionally check that the (u, v) points fall in the image to avoid
+        segmentation violations. Default is False since the check might take
+        time. For executions where speed is important, set to False.
+    origin : ['upper' | 'lower'], optional
+        Set the [0,0] pixel index of the matrix in the upper left or lower left corner of the axes.
+        It follows the same convention as in matplotlib `matshow` and `imshow` commands.
+        Declination axis and the matrix y axis are parallel for `origin='lower'`, anti-parallel for `origin='upper'`.
+        The central pixel corresponding to the (RA, Dec) = (0, 0) is always [Nxy/2, Nxy/2].
+        For more details see the Technical Requirements page in the online docs.
+
+    Returns
+    -------
+    chi2: float
+        The chi square, not normalized.
+
+    See also
+    --------
+    :func:`.sampleImage`
+
+    """
+    check_obs(vis_obs_re, vis_obs_im, vis_obs_w, u=u, v=v)
+
+    duv = 1 / (dxy*nxy)
+
+    if check:
+        check_image_size(u, v, nxy, dxy, duv)
+
+    v_origin = set_v_origin(origin)
+
+    return cpp._chi2_unstructured_image(<void*>&x[0], <void*>&y[0], nxy, nxy, dxy, len(x), <void*>&image[0], v_origin, dRA, dDec, duv, PA, len(u), <void*>&u[0], <void*>&v[0], <void*>&vis_obs_re[0], <void*>&vis_obs_im[0], <void*>&vis_obs_w[0])
 
 
 def chi2Profile(dreal[::1] intensity, Rmin, dR, nxy, dxy, dreal[::1] u, dreal[::1] v,

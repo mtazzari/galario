@@ -1,0 +1,3 @@
+[submodule "delaunator-cpp"]
+	path = delaunator-cpp
+	url = https://github.com/abellgithub/delaunator-cpp.git
