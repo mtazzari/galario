@@ -6,7 +6,9 @@ name: tests and docs
 # workflows running on Linux and MacOS have passwordless sudo rights:
 # https://stackoverflow.com/questions/57982945/how-to-apt-get-install-in-a-github-actions-workflow
 
-on: push
+on:
+  push
+  pull_request_target
 
 jobs:
   test:
