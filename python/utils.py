@@ -25,7 +25,7 @@ from __future__ import (division, print_function, absolute_import, unicode_liter
 import numpy as np
 
 from scipy.interpolate import interp1d, RectBivariateSpline
-from scipy.integrate import trapz, quadrature
+from scipy.integrate import trapezoid, quadrature
 
 __all__ = ["py_sampleImage", "py_sampleProfile", "py_chi2Profile", "py_chi2Image",
            "radial_profile", "g_sweep_prototype", "sweep_ref",
@@ -217,7 +217,7 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
     inc_cos = np.cos(inc)
 
     # radial extent in number of image pixels covered by the profile
-    rmax = min(np.int(np.ceil((Rmin+nrad*dR)/dxy)), irow_center)
+    rmax = min(int(np.ceil((Rmin+nrad*dR)/dxy)), irow_center)
     row_offset = irow_center-rmax
     col_offset = icol_center-rmax
     for irow in range(rmax*2):
@@ -227,7 +227,7 @@ def g_sweep_prototype(I, Rmin, dR, nrow, ncol, dxy, inc, dtype_image='float64'):
             rr = np.sqrt((x/inc_cos)**2. + (y)**2.)
 
             # interpolate 1D
-            iR = np.int(np.floor((rr-Rmin) / dR))
+            iR = int(np.floor((rr-Rmin) / dR))
             if iR >= nrad-1:
                 image[irow+row_offset, jcol+col_offset] = 0.
             else:
@@ -394,10 +394,10 @@ def int_bilin_MT(f, x, y):
     for i in range(len(x)):
         t = y[i] - np.floor(y[i])
         u = x[i] - np.floor(x[i])
-        y0 = f[np.int(np.floor(y[i])), np.int(np.floor(x[i]))]
-        y1 = f[np.int(np.floor(y[i])) + 1, np.int(np.floor(x[i]))]
-        y2 = f[np.int(np.floor(y[i])) + 1, np.int(np.floor(x[i])) + 1]
-        y3 = f[np.int(np.floor(y[i])), np.int(np.floor(x[i])) + 1]
+        y0 = f[int(np.floor(y[i])), int(np.floor(x[i]))]
+        y1 = f[int(np.floor(y[i])) + 1, int(np.floor(x[i]))]
+        y2 = f[int(np.floor(y[i])) + 1, int(np.floor(x[i])) + 1]
+        y3 = f[int(np.floor(y[i])), int(np.floor(x[i])) + 1]
 
         vis_int[i] = t * u * (y0 - y1 + y2 - y3)
         vis_int[i] += t * (y1 - y0)

@@ -29,6 +29,9 @@ include "galario_config.pxi"
 
 cimport galario_defs as cpp
 
+cdef extern from "numpy/arrayobject.h":
+    int PyArray_SetBaseObject(np.ndarray arr, PyObject* obj)
+
 __all__ = ['arcsec', 'deg', 'cgs_to_Jy', 'pc', 'au',
            '_init', '_cleanup', 'set_v_origin',
            'ngpus', 'use_gpu', 'threads',
@@ -82,7 +85,8 @@ cdef class ArrayWrapper:
 
         # Create a 2D array, of length `nx*ny/2+1`
         ndarray = np.PyArray_SimpleNewFromData(2, shape, complex_typenum, self.data_ptr)
-        ndarray.base = <PyObject*> self
+        #ndarray.base = <PyObject*> self
+        PyArray_SetBaseObject(ndarray, <PyObject*> self)
 
         # without this, data would be cleaned up right away
         Py_INCREF(self)

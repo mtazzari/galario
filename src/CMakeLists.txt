@@ -127,11 +127,11 @@ endif() # cuda
 # it would be nice if directory would let me access all libraries but there is no such property
 # https://cmake.org/cmake/help/v3.0/manual/cmake-properties.7.html
 install (TARGETS ${install_libs}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
+  ARCHIVE DESTINATION ${SKBUILD_DATA_DIR}/lib
+  LIBRARY DESTINATION ${SKBUILD_DATA_DIR}/lib
+  RUNTIME DESTINATION ${SKBUILD_DATA_DIR}/bin
   )
-install(FILES galario.h galario_py.h galario_defs.h DESTINATION include)
+install(FILES galario.h galario_py.h galario_defs.h DESTINATION ${SKBUILD_DATA_DIR}/include)
 
 ###
 # testing
