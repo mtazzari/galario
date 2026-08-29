@@ -27,6 +27,24 @@ To create a conda environment for |galario|, see Section 1.4, step 2.
 Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build |galario| by hand.
 
+Linux installation test container
+---------------------------------
+
+The repository includes a Linux CPU test container that follows the manual
+build path below with system FFTW, Python, Cython, and CMake.  From the
+repository root, build and test it with:
+
+.. code-block:: bash
+
+   ./scripts/build-linux-container.sh
+
+It builds an ``linux/amd64`` image by default, matching the usual Linux
+research-server target.  Set ``DOCKER_PLATFORM`` to build another platform.
+The image deliberately configures ``-DGALARIO_CHECK_CUDA=OFF`` because Docker
+Desktop on a non-NVIDIA host cannot compile or run CUDA.  The production CUDA
+configuration remains available by enabling ``GALARIO_CHECK_CUDA`` on a host
+with a compatible NVIDIA toolkit.
+
 Build requirements
 ------------------
 
