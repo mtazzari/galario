@@ -18,7 +18,7 @@
 ###############################################################################
 
 cimport numpy as np
-from cpython cimport PyObject, Py_INCREF
+from cpython cimport Py_INCREF
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
@@ -82,10 +82,12 @@ cdef class ArrayWrapper:
 
         # Create a 2D array, of length `nx*ny/2+1`
         ndarray = np.PyArray_SimpleNewFromData(2, shape, complex_typenum, self.data_ptr)
-        ndarray.base = <PyObject*> self
 
-        # without this, data would be cleaned up right away
+        # NumPy owns a reference to its base object.  Assigning ``.base`` was
+        # accepted by older Cython releases, but is a read-only property in
+        # Cython 3.  PyArray_SetBaseObject steals the reference passed to it.
         Py_INCREF(self)
+        np.PyArray_SetBaseObject(ndarray, self)
         return ndarray
 
     def __dealloc__(self):

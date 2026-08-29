@@ -17,7 +17,9 @@
 # For documentation see https://mtazzari.github.io/galario/                   #
 ###############################################################################
 
-cmake_minimum_required(VERSION 3.0)
+# CMake 4 no longer provides compatibility for projects declaring a version
+# older than 3.5.  3.10 still supports the legacy FindCUDA-based GPU build.
+cmake_minimum_required(VERSION 3.10)
 project(galario)
 set(PACKAGE_VERSION "'1.2.2'")
 
