@@ -27,12 +27,18 @@ To create a conda environment for |galario|, see Section 1.4, step 2.
 Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build |galario| by hand.
 
-Linux installation test container
----------------------------------
+Linux installation test containers
+----------------------------------
 
-The repository includes a Linux CPU test container that follows the manual
-build path below with system FFTW, Python, Cython, and CMake.  From the
-repository root, build and test it with:
+The repository includes two Linux CPU test containers.  The Conda container
+mirrors the manual and GitHub Actions installation path, using system FFTW and
+a Conda environment for Python and its build dependencies:
+
+.. code-block:: bash
+
+   ./scripts/build-linux-conda-container.sh
+
+The pip container provides complementary coverage for a future PyPI release:
 
 .. code-block:: bash
 
