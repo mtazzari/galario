@@ -18,7 +18,7 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        python-version: [ 3.7, 3.8, 3.9]
+        python-version: [ 3.7, 3.8, 3.9, '3.12', '3.13', '3.14' ]
     env:
       OMP_NUM_THREADS: 2
     steps:
@@ -45,7 +45,7 @@ jobs:
       - name: Build and install galario, build docs
         run: |
           conda activate test
-          conda install astropy cython nomkl numpy pytest scipy sphinx
+          conda install cython nomkl numpy pytest scipy sphinx
           pip install coverage codecov pytest-cov
           mkdir build && cd build
           cmake -DCMAKE_INSTALL_PREFIX=/tmp -DCMAKE_PREFIX_PATH=${CONDA_PREFIX} ..

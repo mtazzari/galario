@@ -48,8 +48,19 @@ endif()
 ###
 # installation
 ###
-# to set ${PYTHON_PKG_DIR}. It is prepended by ${CMAKE_INSTALL_PREFIX} if set
-include(PythonInstall)
+# PythonInstall from GreatCMakeCookOff imports distutils, which was removed in
+# Python 3.12.  Use the conventional installation layout relative to
+# CMAKE_INSTALL_PREFIX instead.
+execute_process(
+  COMMAND "${PYTHON_EXECUTABLE}" -c
+    "import sys; print('lib/python{}.{}{}'.format(sys.version_info[0], sys.version_info[1], '/site-packages'))"
+  OUTPUT_VARIABLE PYTHON_PKG_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(PYTHON_PKG_DIR MATCHES "^\\.\\.")
+  message(FATAL_ERROR "Could not determine a Python package directory relative to ${PYTHON_EXECUTABLE}")
+endif()
+message(STATUS "Python install path (PYTHON_PKG_DIR): ${PYTHON_PKG_DIR}")
 
 # I guess variable has to be in cache to survive reinvocations of cmake that happen during building
 set(GALARIO_PYTHON_PKG_DIR "${PYTHON_PKG_DIR}" CACHE PATH "Current python install path")
@@ -77,13 +88,14 @@ configure_file("${galario_test}" "${CMAKE_CURRENT_BINARY_DIR}" COPYONLY)
 add_test(NAME CanImport COMMAND ${PYTHON_EXECUTABLE} -c "import ${PROJECT_NAME}")
 
 # https://github.com/UCL/GreatCMakeCookOff/wiki/Adding-py.test-to-ctest
-include(AddPyTest)
+# Keep a small compatibility wrapper for documented/manual test commands.
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/py.test.sh.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/py.test.sh" @ONLY)
+if(UNIX)
+  execute_process(COMMAND chmod +x "${CMAKE_CURRENT_BINARY_DIR}/py.test.sh")
+endif()
 
-# I don't understand the first arg but it seems to work if py.test already installed
-setup_pytest("${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/py.test.sh")
-
-# the source name has to match test_*.py
-# https://github.com/UCL/GreatCMakeCookOff/issues/56
-#
-# need to run in binary_dir so import of pygalario works
-add_pytest("${CMAKE_CURRENT_BINARY_DIR}/${galario_test}" NOINSTALL CMDLINE --cov=./)
+# Run in the binary directory so the generated galario package is importable.
+add_test(NAME galario
+  COMMAND "${PYTHON_EXECUTABLE}" -m pytest "${CMAKE_CURRENT_BINARY_DIR}/${galario_test}" --cov=./)
+set_tests_properties(galario PROPERTIES WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
