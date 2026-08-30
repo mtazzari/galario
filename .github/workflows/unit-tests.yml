@@ -33,7 +33,6 @@ jobs:
           allow-softlinks: true
           channel-priority: flexible
           show-channel-urls: true
-          use-only-tar-bz2: true
       - name: Print conda config
         run: |
           conda info
