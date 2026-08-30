@@ -1,4 +1,4 @@
-# Reproduce the documented Linux CPU installation in an isolated environment.
+# Reproduce the Linux CPU installation with pip-managed Python dependencies.
 # CUDA is intentionally disabled here: a CUDA build requires an NVIDIA toolkit
 # and is covered by the same CMake path when GALARIO_CHECK_CUDA is enabled.
 FROM ubuntu:22.04

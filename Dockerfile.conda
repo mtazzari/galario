@@ -1,0 +1,37 @@
+# Reproduce the documented and GitHub Actions Linux CPU build in a Conda
+# environment.  CUDA is intentionally disabled because this image has neither
+# an NVIDIA toolkit nor GPU access.
+FROM continuumio/miniconda3:latest
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    OMP_NUM_THREADS=2 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        cmake \
+        git \
+        libfftw3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN conda create -y --name galario --channel conda-forge \
+        python=3.12 \
+        cython \
+        numpy \
+        pytest \
+        pytest-cov \
+        scipy \
+    && conda clean --all --yes
+
+WORKDIR /src
+COPY . .
+
+RUN conda run --no-capture-output --name galario \
+        cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DGALARIO_CHECK_CUDA=OFF \
+    && conda run --no-capture-output --name galario cmake --build build --parallel \
+    && conda run --no-capture-output --name galario cmake --install build \
+    && conda run --no-capture-output --name galario \
+        python -c 'import galario; print(galario.__file__)' \
+    && conda run --no-capture-output --name galario \
+        ctest --test-dir build --output-on-failure
