@@ -77,15 +77,34 @@ If you are new to <code class="code docutils literal notranslate"><span class="p
 installed automatically and you get access to <strong>galario</strong>’s C++ core and python
 bindings, both with support for multithreading.
 To install <strong>galario</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c conda-forge galario
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>galario
 </pre></div>
 </div>
 <p>To create a conda environment for <strong>galario</strong>, see Section 1.4, step 2.</p>
 <p>Due to technical limitations, the conda package does not support GPUs at the
 moment. If you want to use a GPU, read on as you have to build <strong>galario</strong> by hand.</p>
 </section>
+<section id="linux-installation-test-containers">
+<h2><span class="section-number">1.3. </span>Linux installation test containers<a class="headerlink" href="#linux-installation-test-containers" title="Permalink to this heading">¶</a></h2>
+<p>The repository includes two Linux CPU test containers.  The Conda container
+mirrors the manual and GitHub Actions installation path, using system FFTW and
+a Conda environment for Python and its build dependencies:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./scripts/build-linux-conda-container.sh
+</pre></div>
+</div>
+<p>The pip container provides complementary coverage for a future PyPI release:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./scripts/build-linux-container.sh
+</pre></div>
+</div>
+<p>It builds an <code class="docutils literal notranslate"><span class="pre">linux/amd64</span></code> image by default, matching the usual Linux
+research-server target.  Set <code class="docutils literal notranslate"><span class="pre">DOCKER_PLATFORM</span></code> to build another platform.
+The image deliberately configures <code class="docutils literal notranslate"><span class="pre">-DGALARIO_CHECK_CUDA=OFF</span></code> because Docker
+Desktop on a non-NVIDIA host cannot compile or run CUDA.  The production CUDA
+configuration remains available by enabling <code class="docutils literal notranslate"><span class="pre">GALARIO_CHECK_CUDA</span></code> on a host
+with a compatible NVIDIA toolkit.</p>
+</section>
 <section id="build-requirements">
-<h2><span class="section-number">1.3. </span>Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">1.4. </span>Build requirements<a class="headerlink" href="#build-requirements" title="Permalink to this heading">¶</a></h2>
 <p>To compile <strong>galario</strong> you will need:</p>
 <ul class="simple">
 <li><p>a working internet connection (to download 1.5 MB of an external library)</p></li>
@@ -103,7 +122,7 @@ The default <code class="code docutils literal notranslate"><span class="pre">gc
 </div>
 </section>
 <section id="quick-steps-to-build-and-install">
-<h2><span class="section-number">1.4. </span>Quick steps to build and install<a class="headerlink" href="#quick-steps-to-build-and-install" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">1.5. </span>Quick steps to build and install<a class="headerlink" href="#quick-steps-to-build-and-install" title="Permalink to this heading">¶</a></h2>
 <p>Here a quick summary to compile and install <strong>galario</strong> with default options, <a class="reference internal" href="#detailed-build-instructions"><span class="std std-ref">below</span></a> are
 more detailed instructions to fine-tune the build process.</p>
 <p>The following procedure will always compile and install the CPU version of <strong>galario</strong>.
@@ -112,29 +131,29 @@ To manually turn ON/OFF the GPU CUDA compilation, see <a class="reference intern
 <blockquote>
 <div><ol class="arabic">
 <li><p>Clone the repository and create a directory where to build <strong>galario</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/mtazzari/galario.git
-<span class="nb">cd</span> galario
-mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mtazzari/galario.git
+<span class="nb">cd</span><span class="w"> </span>galario
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
 </pre></div>
 </div>
 </li>
 <li><p>to make the compilation easier, let’s work in a Python environment. <strong>galario</strong> works in Python 2.7, 3.5, 3.6, 3.7, and 3.8</p>
 <p>For example, if you are using the <a class="reference external" href="https://www.continuum.io/downloads">Anaconda</a> distribution, you can create and
 activate a Python 3.7 environment with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda create --name galario3 <span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7 numpy cython pytest scipy
-<span class="nb">source</span> activate galario3
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario3<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7<span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest<span class="w"> </span>scipy
+<span class="nb">source</span><span class="w"> </span>activate<span class="w"> </span>galario3
 </pre></div>
 </div>
 </li>
 <li><p>Use <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> to prepare the compilation from within <code class="code docutils literal notranslate"><span class="pre">galario/build/</span></code>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>..
 </pre></div>
 </div>
 <p>This command will produce configuration and compilation logs listing all the libraries and the compilers that are being used.
 It will use the internet connection to automatically download <a class="reference external" href="https://github.com/UCL/GreatCMakeCookOff">this</a> additional library (1.5 MB).</p>
 </li>
 <li><p>Use <code class="code docutils literal notranslate"><span class="pre">make</span></code> to build <strong>galario</strong> and <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code> to install it inside the active environment:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> make install
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>install
 </pre></div>
 </div>
 <p>If the installation fails due to permission problems, you either have to use <code class="code docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">make</span> <span class="pre">install</span></code>, or see the <a class="reference internal" href="#install-details"><span class="std std-ref">instructions below</span></a> to specify an alternate installation path. Permission problems may arise when you are using, e.g., a <em>shared</em> conda environment: in that case, it is preferable to create your own environment in a directory where you have write permissions.</p>
@@ -154,75 +173,75 @@ Toolkit.</p>
 </div>
 </section>
 <section id="detailed-build-instructions">
-<span id="id1"></span><h2><span class="section-number">1.5. </span>Detailed build instructions<a class="headerlink" href="#detailed-build-instructions" title="Permalink to this heading">¶</a></h2>
+<span id="id1"></span><h2><span class="section-number">1.6. </span>Detailed build instructions<a class="headerlink" href="#detailed-build-instructions" title="Permalink to this heading">¶</a></h2>
 <p>The default configuration to build <strong>galario</strong> is</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/mtazzari/galario.git
-<span class="nb">cd</span> galario
-mkdir build <span class="o">&amp;&amp;</span> <span class="nb">cd</span> build
-cmake .. <span class="o">&amp;&amp;</span> make
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mtazzari/galario.git
+<span class="nb">cd</span><span class="w"> </span>galario
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make
 </pre></div>
 </div>
 <dl class="simple">
 <dt>There are many options to affect the build when <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> is invoked. When playing</dt><dd><p>with options, it’s best to remove the <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> cache first</p>
 </dd>
 </dl>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm build/CMakeCache.txt
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm<span class="w"> </span>build/CMakeCache.txt
 </pre></div>
 </div>
 <p>In the following, we assume <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> is invoked from the <code class="code docutils literal notranslate"><span class="pre">build</span></code> directory.</p>
 <section id="compiler">
-<h3><span class="section-number">1.5.1. </span>Compiler<a class="headerlink" href="#compiler" title="Permalink to this heading">¶</a></h3>
+<h3><span class="section-number">1.6.1. </span>Compiler<a class="headerlink" href="#compiler" title="Permalink to this heading">¶</a></h3>
 <p>Set the C and C++ compiler</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/gcc&quot;</span>
-<span class="nb">export</span> <span class="nv">CXX</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/g++&quot;</span>
-cmake ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">CC</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/gcc&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CXX</span><span class="o">=</span><span class="s2">&quot;/path/to/bin/g++&quot;</span>
+cmake<span class="w"> </span>..
 
 <span class="c1"># alternative</span>
-cmake -DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc -DCMAKE_CXX_COMPILER<span class="o">=</span>/path/to/g++ ..
+cmake<span class="w"> </span>-DCMAKE_C_COMPILER<span class="o">=</span>/path/to/gcc<span class="w"> </span>-DCMAKE_CXX_COMPILER<span class="o">=</span>/path/to/g++<span class="w"> </span>..
 </pre></div>
 </div>
 <p>When changing the compiler, it is best to start with a fresh empty build directory.</p>
 </section>
 <section id="optimization-level">
-<h3><span class="section-number">1.5.2. </span>Optimization level<a class="headerlink" href="#optimization-level" title="Permalink to this heading">¶</a></h3>
+<h3><span class="section-number">1.6.2. </span>Optimization level<a class="headerlink" href="#optimization-level" title="Permalink to this heading">¶</a></h3>
 <p>By default <strong>galario</strong> is built with all the optimizations ON. You can check this with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake --help-variable CMAKE_BUILD_TYPE
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--help-variable<span class="w"> </span>CMAKE_BUILD_TYPE
 </pre></div>
 </div>
 <p>The default built type is <code class="code docutils literal notranslate"><span class="pre">Release</span></code>, which is the fastest. If you want debug symbols as well, use <code class="code docutils literal notranslate"><span class="pre">RelWithDebInfo</span></code>.</p>
 <p>To turn on even more aggressive optimization, pass the flags directly. For example for g++:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_CXX_FLAGS<span class="o">=</span><span class="s1">&#39;-march=native -ffast-math&#39;</span> ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_CXX_FLAGS<span class="o">=</span><span class="s1">&#39;-march=native -ffast-math&#39;</span><span class="w"> </span>..
 </pre></div>
 </div>
 <p>Note that these further optimization might not work on any system.</p>
 <p>To turn off optimizations:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_BUILD_TYPE<span class="o">=</span>Debug ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug<span class="w"> </span>..
 </pre></div>
 </div>
 </section>
 <section id="python">
-<span id="python-requirement"></span><h3><span class="section-number">1.5.3. </span>Python<a class="headerlink" href="#python" title="Permalink to this heading">¶</a></h3>
+<span id="python-requirement"></span><h3><span class="section-number">1.6.3. </span>Python<a class="headerlink" href="#python" title="Permalink to this heading">¶</a></h3>
 <p>To build the python bindings, we require python 2.7 or 3.x, <code class="code docutils literal notranslate"><span class="pre">numpy</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">cython</span></code>, and <code class="code docutils literal notranslate"><span class="pre">pytest</span></code>. To run the tests, we additionally need
 <code class="code docutils literal notranslate"><span class="pre">scipy&gt;0.14</span></code>.</p>
 <p>Specify a Python version if Python 2.7 and 3.x are in the system and
 conflicting versions of the interpreter and the libraries are found
 and reported by <code class="code docutils literal notranslate"><span class="pre">cmake</span></code>. In <code class="code docutils literal notranslate"><span class="pre">build/</span></code>, do</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DPython_ADDITIONAL_VERSIONS<span class="o">=</span><span class="m">3</span>.5 ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DPython_ADDITIONAL_VERSIONS<span class="o">=</span><span class="m">3</span>.5<span class="w"> </span>..
 </pre></div>
 </div>
 <p>galario should work with both python 2 and 3. For example, if you are using the <a class="reference external" href="https://www.continuum.io/downloads">Anaconda</a> distribution, you can create conda environments with</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># python 2</span>
-conda create --name galario2 <span class="nv">python</span><span class="o">=</span><span class="m">2</span> numpy cython pytest
-<span class="nb">source</span> activate galario2
+conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario2<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest
+<span class="nb">source</span><span class="w"> </span>activate<span class="w"> </span>galario2
 
 <span class="c1"># or python3</span>
-conda create --name galario3 <span class="nv">python</span><span class="o">=</span><span class="m">3</span> numpy cython pytest
-<span class="nb">source</span> activate galario3
+conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario3<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span><span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest
+<span class="nb">source</span><span class="w"> </span>activate<span class="w"> </span>galario3
 </pre></div>
 </div>
 <p>To run the tests, install some more dependencies within the environment</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install scipy
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>scipy
 </pre></div>
 </div>
 <p>cmake may get confused with the conda python and the system
@@ -230,7 +249,7 @@ python. This is a general problem
 <a class="reference external" href="https://cmake.org/Bug/view.php?id=14809">https://cmake.org/Bug/view.php?id=14809</a></p>
 <p>A workaround to help cmake find the interpreter and the libs from the
 currently loaded conda environment is</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">CONDA_PREFIX</span><span class="si">}</span> ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">CONDA_PREFIX</span><span class="si">}</span><span class="w"> </span>..
 </pre></div>
 </div>
 <p>If you still have problems, after the <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> command, check whether the FFTW
@@ -239,7 +258,7 @@ correctly set to the path of the conda environment in use, e.g.
 <code class="code docutils literal notranslate"><span class="pre">/home/user/anaconda/envs/galario3</span></code>.</p>
 </section>
 <section id="fftw">
-<span id="fftw-requirement"></span><h3><span class="section-number">1.5.4. </span>FFTW<a class="headerlink" href="#fftw" title="Permalink to this heading">¶</a></h3>
+<span id="fftw-requirement"></span><h3><span class="section-number">1.6.4. </span>FFTW<a class="headerlink" href="#fftw" title="Permalink to this heading">¶</a></h3>
 <p>The FFTW libraries are required for the CPU version of galario.
 You can check if they are installed on your system by checking if <strong>all</strong> libraries listed below are
 present, for example in <code class="code docutils literal notranslate"><span class="pre">/usr/lib</span></code> or <code class="code docutils literal notranslate"><span class="pre">/usr/local/lib/</span></code>.</p>
@@ -253,102 +272,102 @@ present, for example in <code class="code docutils literal notranslate"><span cl
 <p>galario has been tested with FFTW 3.3.6.</p>
 <p>The easiest way to install FFTW is to use a package manager, for example <code class="code docutils literal notranslate"><span class="pre">apt</span></code>
 on Debian/Ubuntu or <code class="code docutils literal notranslate"><span class="pre">homebrew</span></code> on the Mac. For example,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo apt-get install libfftw3-3 libfftw3-dev
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>libfftw3-3<span class="w"> </span>libfftw3-dev
 </pre></div>
 </div>
 <p>If you really want to build FFTW from
 source, for example because you don’t have admin rights, read on.</p>
 <section id="manual-compilation">
-<h4><span class="section-number">1.5.4.1. </span>Manual compilation<a class="headerlink" href="#manual-compilation" title="Permalink to this heading">¶</a></h4>
+<h4><span class="section-number">1.6.4.1. </span>Manual compilation<a class="headerlink" href="#manual-compilation" title="Permalink to this heading">¶</a></h4>
 <p>To compile FFTW, download the .tar.gz from FFTW website. On Mac OS, you have to explicitly
 enable the build of dynamic (shared) library with the <code class="code docutils literal notranslate"><span class="pre">--enable-shared</span></code> option, while on Linux this <code class="code docutils literal notranslate"><span class="pre">should</span></code> be the default.
 You can create the libraries listed above with the following lines:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> fftw-&lt;version&gt;/
-mkdir d_p <span class="o">&amp;&amp;</span> <span class="nb">cd</span> d_p <span class="o">&amp;&amp;</span> <span class="se">\</span>
-  <span class="nv">CC</span><span class="o">=</span>/path/to/gcc ../configure --enable-shared <span class="o">&amp;&amp;</span> make <span class="o">&amp;&amp;</span> sudo make install <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-mkdir s_p <span class="o">&amp;&amp;</span> <span class="nb">cd</span> s_p <span class="o">&amp;&amp;</span> <span class="se">\</span>
-  <span class="nv">CC</span><span class="o">=</span>/path/to/gcc ../configure --enable-shared --enable-single <span class="o">&amp;&amp;</span> make <span class="o">&amp;&amp;</span> sudo make install <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-mkdir d_p_omp <span class="o">&amp;&amp;</span> <span class="nb">cd</span> d_p_omp <span class="o">&amp;&amp;</span> <span class="se">\</span>
-  <span class="nv">CC</span><span class="o">=</span>/path/to/gcc ../configure --enable-shared --enable-openmp <span class="o">&amp;&amp;</span> make <span class="o">&amp;&amp;</span> sudo make install <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
-mkdir s_p_omp <span class="o">&amp;&amp;</span> <span class="nb">cd</span> s_p_omp <span class="o">&amp;&amp;</span> <span class="se">\</span>
-  <span class="nv">CC</span><span class="o">=</span>/path/to/gcc ../configure --enable-shared --enable-single --enable-openmp <span class="o">&amp;&amp;</span> make <span class="o">&amp;&amp;</span> sudo make install <span class="o">&amp;&amp;</span> <span class="nb">cd</span> ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>fftw-&lt;version&gt;/
+mkdir<span class="w"> </span>d_p<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>d_p<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">CC</span><span class="o">=</span>/path/to/gcc<span class="w"> </span>../configure<span class="w"> </span>--enable-shared<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>make<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+mkdir<span class="w"> </span>s_p<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>s_p<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">CC</span><span class="o">=</span>/path/to/gcc<span class="w"> </span>../configure<span class="w"> </span>--enable-shared<span class="w"> </span>--enable-single<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>make<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+mkdir<span class="w"> </span>d_p_omp<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>d_p_omp<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">CC</span><span class="o">=</span>/path/to/gcc<span class="w"> </span>../configure<span class="w"> </span>--enable-shared<span class="w"> </span>--enable-openmp<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>make<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
+mkdir<span class="w"> </span>s_p_omp<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>s_p_omp<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nv">CC</span><span class="o">=</span>/path/to/gcc<span class="w"> </span>../configure<span class="w"> </span>--enable-shared<span class="w"> </span>--enable-single<span class="w"> </span>--enable-openmp<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>make<span class="w"> </span>install<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>..
 </pre></div>
 </div>
 <p>If you have no <code class="code docutils literal notranslate"><span class="pre">sudo</span></code> rights to install FFTW libraries, then provide an installation directory via <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span> <span class="pre">--prefix=&quot;/path/to/fftw&quot;</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Before building galario, <code class="code docutils literal notranslate"><span class="pre">FFTW_HOME</span></code> has to be set equal to the installation directory of FFTW, e.g. with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">FFTW_HOME</span><span class="o">=</span><span class="s2">&quot;/usr/local/lib/&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">FFTW_HOME</span><span class="o">=</span><span class="s2">&quot;/usr/local/lib/&quot;</span>
 </pre></div>
 </div>
 <p>in the default case, or to the prefix specified during the FFTW installation.
 Also, you need to update the <code class="code docutils literal notranslate"><span class="pre">LD_LIBRARY_PATH</span></code> to pick the FFTW libraries:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$FFTW_HOME</span>/lib:<span class="nv">$LD_LIBRARY_PATH</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="nv">$FFTW_HOME</span>/lib:<span class="nv">$LD_LIBRARY_PATH</span>
 </pre></div>
 </div>
 </div>
 <p>To speedup building FFTW, you may add the -jN flag to the make commands above, e.g. <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">-jN</span></code>, where N is an integer
 equal to the number of cores you want to use. E.g., on a 4-cores machine, you can do <code class="code docutils literal notranslate"><span class="pre">make</span> <span class="pre">-j4</span></code>. To use -j4 as default, you can
 create an alias with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span> <span class="nv">make</span><span class="o">=</span><span class="s2">&quot;make -j4&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">alias</span><span class="w"> </span><span class="nv">make</span><span class="o">=</span><span class="s2">&quot;make -j4&quot;</span>
 </pre></div>
 </div>
 </section>
 <section id="setting-paths">
-<h4><span class="section-number">1.5.4.2. </span>Setting paths<a class="headerlink" href="#setting-paths" title="Permalink to this heading">¶</a></h4>
+<h4><span class="section-number">1.6.4.2. </span>Setting paths<a class="headerlink" href="#setting-paths" title="Permalink to this heading">¶</a></h4>
 <p>To find FFTW3 in a nonstandard directory, say <code class="code docutils literal notranslate"><span class="pre">$FFTW_HOME</span></code>, tell <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> about it:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span> ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span><span class="w"> </span>..
 </pre></div>
 </div>
 <p>For multiple directories, use a <code class="code docutils literal notranslate"><span class="pre">;</span></code> between directories:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span><span class="p">;</span>/opt/something/else ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span><span class="p">;</span>/opt/something/else<span class="w"> </span>..
 </pre></div>
 </div>
 <p>In case the directory with the header files is not inferred correctly:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_CXX_FLAGS<span class="o">=</span><span class="s2">&quot;-I</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span><span class="s2">/include&quot;</span> ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_CXX_FLAGS<span class="o">=</span><span class="s2">&quot;-I</span><span class="si">${</span><span class="nv">FFTW_HOME</span><span class="si">}</span><span class="s2">/include&quot;</span><span class="w"> </span>..
 </pre></div>
 </div>
 <p>In case the openmp libraries are not in <code class="code docutils literal notranslate"><span class="pre">${FFTW_HOME}/lib</span></code></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_LIBRARY_PATH<span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">FFTW_OPENMP_LIBDIR</span><span class="si">}</span><span class="s2">&quot;</span> ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_LIBRARY_PATH<span class="o">=</span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">FFTW_OPENMP_LIBDIR</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>..
 </pre></div>
 </div>
 </section>
 </section>
 <section id="cuda">
-<span id="build-details-cuda"></span><h3><span class="section-number">1.5.5. </span>CUDA<a class="headerlink" href="#cuda" title="Permalink to this heading">¶</a></h3>
+<span id="build-details-cuda"></span><h3><span class="section-number">1.6.5. </span>CUDA<a class="headerlink" href="#cuda" title="Permalink to this heading">¶</a></h3>
 <p><code class="code docutils literal notranslate"><span class="pre">cmake</span></code> tests for compilation on the GPU with cuda by default <strong>except on Mac
 OS</strong>, where version conflicts between the NVIDIA compiler and the C++ compiler
 often lead to problems; see for example <a class="reference external" href="https://github.com/mtazzari/galario/issues/30">this issue</a>.</p>
 <p>To manually enable or disable checking for cuda, do</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">0</span> .. <span class="c1"># don&#39;t check</span>
-cmake -DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">1</span> .. <span class="c1"># check</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">0</span><span class="w"> </span>..<span class="w"> </span><span class="c1"># don&#39;t check</span>
+cmake<span class="w"> </span>-DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">1</span><span class="w"> </span>..<span class="w"> </span><span class="c1"># check</span>
 </pre></div>
 </div>
 <p>If cuda is installed in a non-standard directory or you want to specify the
 exact version, you can point cmake</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCUDA_TOOLKIT_ROOT_DIR<span class="o">=</span>/usr/local/cuda-9.1 ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCUDA_TOOLKIT_ROOT_DIR<span class="o">=</span>/usr/local/cuda-9.1<span class="w"> </span>..
 </pre></div>
 </div>
 </section>
 <section id="timing">
-<h3><span class="section-number">1.5.6. </span>Timing<a class="headerlink" href="#timing" title="Permalink to this heading">¶</a></h3>
+<h3><span class="section-number">1.6.6. </span>Timing<a class="headerlink" href="#timing" title="Permalink to this heading">¶</a></h3>
 <p>For testing purposes, you can activate the timing features embedded in the code that produce detailed printouts to <code class="code docutils literal notranslate"><span class="pre">stdout</span></code> of various
 portions of the functions. The times are measured in milliseconds. This feature is OFF by default and can be activated during the configuration stage with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DGALARIO_TIMING<span class="o">=</span><span class="m">1</span> ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DGALARIO_TIMING<span class="o">=</span><span class="m">1</span><span class="w"> </span>..
 </pre></div>
 </div>
 </section>
 <section id="documentation">
-<h3><span class="section-number">1.5.7. </span>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">¶</a></h3>
+<h3><span class="section-number">1.6.7. </span>Documentation<a class="headerlink" href="#documentation" title="Permalink to this heading">¶</a></h3>
 <p>This documentation should be available online <a class="reference external" href="https://mtazzari.github.io/galario/">here</a>. If you want to build the documentation
 locally, from within the <code class="code docutils literal notranslate"><span class="pre">build/</span></code> directory run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make docs
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>docs
 </pre></div>
 </div>
 <p>which creates output in <code class="code docutils literal notranslate"><span class="pre">build/docs/html</span></code>. The <code class="code docutils literal notranslate"><span class="pre">docs</span></code> are not built by default, only upon request.</p>
 <p>First install the build requirements with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install sphinx
-pip install sphinx_py3doc_enhanced_theme sphinxcontrib-fulltoc
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>sphinx
+pip<span class="w"> </span>install<span class="w"> </span>sphinx_py3doc_enhanced_theme<span class="w"> </span>sphinxcontrib-fulltoc
 </pre></div>
 </div>
 <p>within the conda environment in use. This ensures that the
@@ -357,26 +376,26 @@ pip install sphinx_py3doc_enhanced_theme sphinxcontrib-fulltoc
 If you still have problems, remove the <code class="code docutils literal notranslate"><span class="pre">CMakeCache.txt</span></code>, rerun
 <code class="code docutils literal notranslate"><span class="pre">cmake</span></code>, and observe which location of <code class="code docutils literal notranslate"><span class="pre">sphinx</span></code> is reported in
 <code class="code docutils literal notranslate"><span class="pre">CMakeCache.txt</span></code>, for example:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-- Found Sphinx: /home/myuser/.local/miniconda3/envs/galario3/bin/sphinx-build
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--<span class="w"> </span>Found<span class="w"> </span>Sphinx:<span class="w"> </span>/home/myuser/.local/miniconda3/envs/galario3/bin/sphinx-build
 </pre></div>
 </div>
 <p>The <strong>galario</strong> library needs to be imported when building the documentation (the
 import would fail otherwise) to extract docstrings.</p>
 <p>To delete the sphinx cache in case the docs don’t update as expected</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm -rf docs/_doctrees/
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>rm<span class="w"> </span>-rf<span class="w"> </span>docs/_doctrees/
 </pre></div>
 </div>
 </section>
 </section>
 <section id="install">
-<span id="install-details"></span><h2><span class="section-number">1.6. </span>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
+<span id="install-details"></span><h2><span class="section-number">1.7. </span>Install<a class="headerlink" href="#install" title="Permalink to this heading">¶</a></h2>
 <p>To specify a path where to install the C libraries of <strong>galario</strong> (e.g., if you do not have <code class="code docutils literal notranslate"><span class="pre">sudo</span></code> rights to install it in <code class="code docutils literal notranslate"><span class="pre">usr/local/lib</span></code>),
 do the conventional:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/path/to/galario/lib ..
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span>/path/to/galario/lib<span class="w"> </span>..
 </pre></div>
 </div>
 <p>and, after building, run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make install
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>install
 </pre></div>
 </div>
 <p>This will install the C libraries of <strong>galario</strong> in <code class="code docutils literal notranslate"><span class="pre">/path/to/galario/</span></code>.</p>
@@ -387,53 +406,53 @@ If you want to install the Python bindings elsewhere, there is an extra cache va
 <code class="code docutils literal notranslate"><span class="pre">ccmake</span> <span class="pre">.</span></code> after running <code class="code docutils literal notranslate"><span class="pre">cmake</span></code>.</p>
 </div>
 <p>If you are working inside an active conda environment, both the libraries and the python wrapper are installed inside the environment defined by <code class="code docutils literal notranslate"><span class="pre">$CONDA_PREFIX</span></code>, e.g.:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate myenv
-cmake ..
-make <span class="o">&amp;&amp;</span> make install
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>myenv
+cmake<span class="w"> </span>..
+make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>install
 </pre></div>
 </div>
 <p>Example output during the <code class="code docutils literal notranslate"><span class="pre">install</span></code> step</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-- Installing: /path/to/conda/envs/myenv/lib/libgalario.so
--- Installing: /path/to/conda/envs/myenv/include/galario.h
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>--<span class="w"> </span>Installing:<span class="w"> </span>/path/to/conda/envs/myenv/lib/libgalario.so
+--<span class="w"> </span>Installing:<span class="w"> </span>/path/to/conda/envs/myenv/include/galario.h
 ...
--- Installing: /path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py
+--<span class="w"> </span>Installing:<span class="w"> </span>/path/to/conda/envs/myenv/lib/python2.7/site-packages/galario/single/__init__.py
 </pre></div>
 </div>
 <p>From the environment <code class="code docutils literal notranslate"><span class="pre">myenv</span></code> it is now possible to import <strong>galario</strong>.</p>
 <section id="uninstall">
-<h3><span class="section-number">1.6.1. </span>Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this heading">¶</a></h3>
+<h3><span class="section-number">1.7.1. </span>Uninstall<a class="headerlink" href="#uninstall" title="Permalink to this heading">¶</a></h3>
 <p>After installation, remove all installed files with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make uninstall
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>uninstall
 </pre></div>
 </div>
 </section>
 </section>
 <section id="tests">
-<h2><span class="section-number">1.7. </span>Tests<a class="headerlink" href="#tests" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">1.8. </span>Tests<a class="headerlink" href="#tests" title="Permalink to this heading">¶</a></h2>
 <p>After building, just run <code class="code docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-V</span> <span class="pre">--output-on-failure</span></code> from within the <code class="code docutils literal notranslate"><span class="pre">build/</span></code> directory.</p>
 <p>Every time <code class="code docutils literal notranslate"><span class="pre">python/test_galario.py</span></code> is modified, it has to be copied over to the build directory: only when run there,
 <code class="code docutils literal notranslate"><span class="pre">import</span> <span class="pre">pygalario</span></code> works. The copy is performed in the configure step, <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> detects changes so always run <code class="code docutils literal notranslate"><span class="pre">make</span></code> first.</p>
 <p><code class="code docutils literal notranslate"><span class="pre">py.test</span></code> fails if it cannot collect any tests. This can be caused by C errors.
 To debug the testing, first find out the exact command of the test:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> ctest -V
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>ctest<span class="w"> </span>-V
 </pre></div>
 </div>
 <p><code class="code docutils literal notranslate"><span class="pre">py.test</span></code> captures the output from the test, in particular from C to stderr.
 Force it to show all output:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make <span class="o">&amp;&amp;</span> python/py.test.sh -sv python_package/tests/test_galario.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python/py.test.sh<span class="w"> </span>-sv<span class="w"> </span>python_package/tests/test_galario.py
 </pre></div>
 </div>
 <p>By default, tests do not run on the GPU. Activate them by setting an environment variable <code class="code docutils literal notranslate"><span class="pre">GALARIO_TEST_GPU</span></code>; e.g. <code class="code docutils literal notranslate"><span class="pre">GALARIO_TEST_GPU=1</span> <span class="pre">py.test.sh</span> <span class="pre">...</span></code>.
 To select a given parametrized test named <code class="code docutils literal notranslate"><span class="pre">test_sample</span></code>, just run <code class="code docutils literal notranslate"><span class="pre">py.test.sh</span> <span class="pre">-k</span> <span class="pre">sample</span></code>.</p>
 <p>A cuda error such as</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>ERROR<span class="o">]</span> Cuda call /home/user/workspace/galario/build/src/cuda_lib.cu: <span class="m">815</span>
-invalid argument
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>ERROR<span class="o">]</span><span class="w"> </span>Cuda<span class="w"> </span>call<span class="w"> </span>/home/user/workspace/galario/build/src/cuda_lib.cu:<span class="w"> </span><span class="m">815</span>
+invalid<span class="w"> </span>argument
 </pre></div>
 </div>
 <p>can mean that code cannot be executed on the GPU at all rather than that specific call being invalid.
 Check if <code class="code docutils literal notranslate"><span class="pre">nvidia-smi</span></code> fails</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ nvidia-smi
-Failed to initialize NVML: Driver/library version mismatch
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>nvidia-smi
+Failed<span class="w"> </span>to<span class="w"> </span>initialize<span class="w"> </span>NVML:<span class="w"> </span>Driver/library<span class="w"> </span>version<span class="w"> </span>mismatch
 </pre></div>
 </div>
 </section>
@@ -456,27 +475,28 @@ Failed to initialize NVML: Driver/library version mismatch
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. Setup</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#operating-system">1.1. Operating system</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#quickest-installation-using-conda">1.2. Quickest installation: using conda</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#build-requirements">1.3. Build requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#quick-steps-to-build-and-install">1.4. Quick steps to build and install</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#detailed-build-instructions">1.5. Detailed build instructions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#compiler">1.5.1. Compiler</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#optimization-level">1.5.2. Optimization level</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#python">1.5.3. Python</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fftw">1.5.4. FFTW</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#manual-compilation">1.5.4.1. Manual compilation</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#setting-paths">1.5.4.2. Setting paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#linux-installation-test-containers">1.3. Linux installation test containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-requirements">1.4. Build requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-steps-to-build-and-install">1.5. Quick steps to build and install</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detailed-build-instructions">1.6. Detailed build instructions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compiler">1.6.1. Compiler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optimization-level">1.6.2. Optimization level</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python">1.6.3. Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fftw">1.6.4. FFTW</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#manual-compilation">1.6.4.1. Manual compilation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#setting-paths">1.6.4.2. Setting paths</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#cuda">1.5.5. CUDA</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#timing">1.5.6. Timing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#documentation">1.5.7. Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cuda">1.6.5. CUDA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#timing">1.6.6. Timing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation">1.6.7. Documentation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#install">1.6. Install</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#uninstall">1.6.1. Uninstall</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install">1.7. Install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#uninstall">1.7.1. Uninstall</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#tests">1.7. Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tests">1.8. Tests</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="basic_usage.html">2. Basic Usage</a></li>
@@ -543,7 +563,7 @@ Failed to initialize NVML: Driver/library version mismatch
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2023, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+        &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>

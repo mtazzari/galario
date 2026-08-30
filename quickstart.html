@@ -128,7 +128,7 @@ For more details, refer to Sect. 3.2 in <a class="reference external" href="http
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario</span> <span class="kn">import</span> <span class="n">arcsec</span>
 
 <span class="k">def</span> <span class="nf">GaussianProfile</span><span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nR</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Gaussian brightness profile. &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Gaussian brightness profile. &quot;&quot;&quot;</span>
 
     <span class="c1"># radial grid</span>
     <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">Rmin</span><span class="p">,</span> <span class="n">Rmin</span> <span class="o">+</span> <span class="n">dR</span><span class="o">*</span><span class="n">nR</span><span class="p">,</span> <span class="n">nR</span><span class="p">,</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -185,7 +185,7 @@ for the <code class="code docutils literal notranslate"><span class="pre">chi2Im
 <span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">chi2Profile</span>
 
 <span class="k">def</span> <span class="nf">lnpostfn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p_ranges</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Im</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Log of posterior probability function &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Log of posterior probability function &quot;&quot;&quot;</span>
 
     <span class="n">lnprior</span> <span class="o">=</span> <span class="n">lnpriorfn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p_ranges</span><span class="p">)</span>  <span class="c1"># apply prior</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">lnprior</span><span class="p">):</span>
@@ -217,7 +217,7 @@ for the <code class="code docutils literal notranslate"><span class="pre">chi2Im
 <p>where the normalization <code class="code docutils literal notranslate"><span class="pre">f0</span></code> is explored in the logarithmic space to achieve a faster convergence and <code class="code docutils literal notranslate"><span class="pre">lnpriorfn</span></code>
 is the prior probability function defined as a uniform prior:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">lnpriorfn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">par_ranges</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Uniform prior probability function &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Uniform prior probability function &quot;&quot;&quot;</span>
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)):</span>
         <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">par_ranges</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">par_ranges</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
@@ -408,7 +408,7 @@ is the prior probability function defined as a uniform prior:</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2023, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+        &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>

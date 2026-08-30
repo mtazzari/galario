@@ -76,10 +76,10 @@
 </pre></div>
 </div>
 <p>and I get the following error:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>File <span class="s2">&quot;libcommon.pyx&quot;</span>, line <span class="m">630</span>, <span class="k">in</span> libcommon.chi2Profile
-File <span class="s2">&quot;stringsource&quot;</span>, line <span class="m">653</span>, <span class="k">in</span> View.MemoryView.memoryview_cwrapper
-File <span class="s2">&quot;stringsource&quot;</span>, line <span class="m">348</span>, <span class="k">in</span> View.MemoryView.memoryview.__cinit__
-ValueError: ndarray is not C-contiguous
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>File<span class="w"> </span><span class="s2">&quot;libcommon.pyx&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">630</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>libcommon.chi2Profile
+File<span class="w"> </span><span class="s2">&quot;stringsource&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">653</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>View.MemoryView.memoryview_cwrapper
+File<span class="w"> </span><span class="s2">&quot;stringsource&quot;</span>,<span class="w"> </span>line<span class="w"> </span><span class="m">348</span>,<span class="w"> </span><span class="k">in</span><span class="w"> </span>View.MemoryView.memoryview.__cinit__
+ValueError:<span class="w"> </span>ndarray<span class="w"> </span>is<span class="w"> </span>not<span class="w"> </span>C-contiguous
 </pre></div>
 </div>
 <p>The issue is caused by one of the arrays passed in input to <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> being not C-contiguous, which is a requirement for the C++ code in GALARIO. You can check whether a NumPy array <code class="code docutils literal notranslate"><span class="pre">x</span></code> is C-contiguous by printing <code class="code docutils literal notranslate"><span class="pre">x.flags</span></code>. The first action to debug this issue is to print the flags of all the arrays in input to the function.</p>
@@ -181,7 +181,7 @@ ValueError: ndarray is not C-contiguous
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2023, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+        &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
       Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
     </div>
   </body>
