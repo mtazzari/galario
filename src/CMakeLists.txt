@@ -78,11 +78,17 @@ foreach(t IN ITEMS galario_single galario)
 endforeach()
 
 if (CUDA_FOUND)
-  # We require at least 30 because anything before is deprecated in cuda 8. For
-  # maximum compatibility with future GPUs, we don't specify an exact GPU code
-  # like such as sm_53. The code is JIT compiled incurring a startup delay.
-  # http://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#further-mechanisms
-  list(APPEND CUDA_NVCC_FLAGS --gpu-architecture=compute_30 --gpu-code=compute_30)
+  # Leave the GPU architecture to nvcc by default. CUDA toolkits eventually
+  # drop support for old virtual architectures (compute_30 was last supported in CUDA 10.2, for
+  # example), while nvcc's default remains valid for the installed toolkit.
+  # Set GALARIO_CUDA_ARCHITECTURE when a specific target is required, e.g.
+  # -DGALARIO_CUDA_ARCHITECTURE=sm_80.
+  set(GALARIO_CUDA_ARCHITECTURE "" CACHE STRING "CUDA GPU architecture passed to nvcc (empty: use nvcc default so it matches what is available): example value `sm_80`. Check https://docs.nvidia.com/datacenter/tesla/drivers/latest/cuda-toolkit-driver-and-architecture-matrix.html")
+  if(GALARIO_CUDA_ARCHITECTURE)
+    list(APPEND CUDA_NVCC_FLAGS
+      --gpu-architecture=${GALARIO_CUDA_ARCHITECTURE}
+      --gpu-code=${GALARIO_CUDA_ARCHITECTURE})
+  endif()
 
   # Issue with cuda 7.5 on Ubuntu 16.04
   # https://github.com/BVLC/caffe/issues/4046
@@ -130,7 +136,7 @@ install (TARGETS ${install_libs}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  )
+)
 install(FILES galario.h galario_py.h galario_defs.h DESTINATION include)
 
 ###

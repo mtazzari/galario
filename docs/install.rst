@@ -355,6 +355,14 @@ To manually enable or disable checking for cuda, do
    cmake -DGALARIO_CHECK_CUDA=0 .. # don't check
    cmake -DGALARIO_CHECK_CUDA=1 .. # check
 
+By default, galario lets ``nvcc`` select the CUDA architecture. To target a
+specific GPU, set the optional ``GALARIO_CUDA_ARCHITECTURE`` variable to an
+architecture supported by your toolkit, for example ``sm_86`` for an RTX A2000:
+
+.. code-block:: bash
+
+   cmake -DGALARIO_CUDA_ARCHITECTURE=sm_86 ..
+
 If cuda is installed in a non-standard directory or you want to specify the
 exact version, you can point cmake
 
