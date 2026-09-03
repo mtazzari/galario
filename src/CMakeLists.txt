@@ -107,18 +107,24 @@ if (CUDA_FOUND)
   # Specify include directories
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 
-  # copy over common file and rename to .cu, else cmake doesn't call nvcc on it
-  set(common_cu "${CMAKE_CURRENT_BINARY_DIR}/cuda_lib.cu")
-  configure_file(${common_cpp} ${common_cu})
+  # Copy over the common file and rename it to .cu, otherwise CMake does not
+  # call nvcc on it. Keep separate generated sources for the two precision
+  # variants: FindCUDA creates intermediate dependency files from the source
+  # basename, and sharing one generated source can make parallel Make builds
+  # reuse the same dependency rule.
+  set(common_single_cu "${CMAKE_CURRENT_BINARY_DIR}/cuda_lib_single.cu")
+  set(common_double_cu "${CMAKE_CURRENT_BINARY_DIR}/cuda_lib_double.cu")
+  configure_file(${common_cpp} ${common_single_cu})
+  configure_file(${common_cpp} ${common_double_cu})
 
   # first compile float version
-  cuda_add_library(galario_single_cuda ${common_cu})
+  cuda_add_library(galario_single_cuda ${common_single_cu})
 
   # add_definitions(-DDOUBLE_PRECISION) only add now because undefined
   # means single precision, else we'd have to remove the -D... from
   # NVCC_FLAGS and that would be more work
   list(APPEND CUDA_NVCC_FLAGS -DDOUBLE_PRECISION)
-  cuda_add_library(galario_cuda ${common_cu})
+  cuda_add_library(galario_cuda ${common_double_cu})
 
   foreach(t IN ITEMS galario_single_cuda galario_cuda)
     cuda_add_cublas_to_target(${t})
