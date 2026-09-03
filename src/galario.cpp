@@ -1192,8 +1192,8 @@ void create_image_h(int const nr, const dreal *const intensity, dreal const Rmin
 
     // start with zero image
     auto const ncol = nxy/2+1;
-    auto const nbytes = sizeof(dcomplex)*nxy*ncol;
-    memset(image, 0, nbytes);
+    auto const npixels = nxy*ncol;
+    std::fill_n(image, npixels, dcomplex{0.0, 0.0});
 
     // now sweep
     dreal const cos_inc = cos(inc);
