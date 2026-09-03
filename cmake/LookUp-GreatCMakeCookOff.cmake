@@ -30,9 +30,23 @@ if(NOT GreatCMakeCookOff_FOUND)
       OUTPUT_QUIET
     )
   endif()
-  if(NOT COOKOFF_GITREPO)
-      set(COOKOFF_GITREPO https://github.com/UCL/GreatCMakeCookOff.git)
+  # Match the transport used by the galario checkout. This lets users with an
+  # SSH checkout use their SSH credentials for this dependency as well, while
+  # retaining HTTPS for source archives and HTTPS checkouts.
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_LIST_DIR}/.."
+            config --get remote.origin.url
+    OUTPUT_VARIABLE GALARIO_GIT_REMOTE
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+  set(github_address "UCL/GreatCMakeCookOff.git")
+  if(GALARIO_GIT_REMOTE MATCHES "^(git@|ssh://)")
+    set(COOKOFF_GITREPO "git@github.com:${github_address}")
+  else()
+    set(COOKOFF_GITREPO "https://github.com/${github_address}")
   endif()
+  message(STATUS "[GreatCMakeCookOff] using ${COOKOFF_GITREPO}")
   execute_process(
     COMMAND ${GIT_EXECUTABLE} clone "${COOKOFF_GITREPO}"
          "${COOKOFF_DOWNLOAD_DIR}"
@@ -43,7 +57,7 @@ if(NOT GreatCMakeCookOff_FOUND)
 
   if(NOT ${CLONING_COOKOFF} EQUAL 0)
     message(STATUS "${CLONING_ERROR}")
-    message(FATAL_ERROR "[GreatCMakeCookOff] git cloning failed.")
+    message(FATAL_ERROR "[GreatCMakeCookOff] git cloning failed from ${COOKOFF_GITREPO}.")
   else()
     message(STATUS "[GreatCMakeCookOff] downloaded to ${COOKOFF_DOWNLOAD_DIR}")
     find_package(GreatCMakeCookOff NO_MODULE PATHS "${COOKOFF_DOWNLOAD_DIR}" QUIET)
