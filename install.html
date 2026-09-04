@@ -106,7 +106,7 @@ with a compatible NVIDIA toolkit.</p>
 <ul class="simple">
 <li><p>a working internet connection (to download 1.5 MB of an external library)</p></li>
 <li><p>either <code class="code docutils literal notranslate"><span class="pre">g++</span></code>&gt;=4.8.1 or <code class="code docutils literal notranslate"><span class="pre">clang++</span></code>&gt;=3.3 with full support of C++11. To use multiple threads, the compiler has to support <a class="reference external" href="http://www.openmp.org/resources/openmp-compilers/">openMP</a></p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">cmake</span></code>: download from the <a class="reference external" href="https://cmake.org">cmake website</a> or install with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">cmake</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">cmake</span></code>&gt;=3.14: download from the <a class="reference external" href="https://cmake.org">cmake website</a> or install with <code class="code docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">cmake</span></code></p></li>
 <li><p><code class="code docutils literal notranslate"><span class="pre">make</span></code></p></li>
 <li><p>the <a class="reference external" href="http://www.fftw.org">FFTW libraries</a>, for the CPU version: more details are given <a class="reference internal" href="#fftw-requirement"><span class="std std-ref">below</span></a></p></li>
 <li><p>[optional] the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">CUDA toolkit</a> &gt;=8.0 for the GPU version: it can be easily installed from the <a class="reference external" href="https://developer.nvidia.com/cuda-toolkit">NVIDIA website</a></p></li>
@@ -137,7 +137,7 @@ mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&
 <li><p>to make the compilation easier, let’s work in a Python environment. <strong>galario</strong> works in Python 2.7, 3.5, 3.6, 3.7, and 3.8</p>
 <p>For example, if you are using the <a class="reference external" href="https://www.continuum.io/downloads">Anaconda</a> distribution, you can create and
 activate a Python 3.7 environment with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario3<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7<span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest<span class="w"> </span>scipy
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario3<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.7<span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest<span class="w"> </span>pytest-cov<span class="w"> </span>scipy
 <span class="nb">source</span><span class="w"> </span>activate<span class="w"> </span>galario3
 </pre></div>
 </div>
@@ -219,7 +219,7 @@ cmake<span class="w"> </span>-DCMAKE_C_COMPILER<span class="o">=</span>/path/to/
 <section id="python">
 <span id="python-requirement"></span><h3><span class="section-number">1.6.3. </span>Python<a class="headerlink" href="#python" title="Link to this heading">¶</a></h3>
 <p>To build the python bindings, we require python 2.7 or 3.x, <code class="code docutils literal notranslate"><span class="pre">numpy</span></code>,
-<code class="code docutils literal notranslate"><span class="pre">cython</span></code>, and <code class="code docutils literal notranslate"><span class="pre">pytest</span></code>. To run the tests, we additionally need
+<code class="code docutils literal notranslate"><span class="pre">cython</span></code>, <code class="code docutils literal notranslate"><span class="pre">pytest</span></code>, and <code class="code docutils literal notranslate"><span class="pre">pytest-cov</span></code>. To run the tests, we additionally need
 <code class="code docutils literal notranslate"><span class="pre">scipy&gt;0.14</span></code>.</p>
 <p>Specify a Python version if Python 2.7 and 3.x are in the system and
 conflicting versions of the interpreter and the libraries are found
@@ -229,11 +229,11 @@ and reported by <code class="code docutils literal notranslate"><span class="pre
 </div>
 <p>galario should work with both python 2 and 3. For example, if you are using the <a class="reference external" href="https://www.continuum.io/downloads">Anaconda</a> distribution, you can create conda environments with</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># python 2</span>
-conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario2<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest
+conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario2<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest<span class="w"> </span>pytest-cov
 <span class="nb">source</span><span class="w"> </span>activate<span class="w"> </span>galario2
 
 <span class="c1"># or python3</span>
-conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario3<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span><span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest
+conda<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>galario3<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span><span class="w"> </span>numpy<span class="w"> </span>cython<span class="w"> </span>pytest<span class="w"> </span>pytest-cov
 <span class="nb">source</span><span class="w"> </span>activate<span class="w"> </span>galario3
 </pre></div>
 </div>
@@ -340,6 +340,12 @@ often lead to problems; see for example <a class="reference external" href="http
 cmake<span class="w"> </span>-DGALARIO_CHECK_CUDA<span class="o">=</span><span class="m">1</span><span class="w"> </span>..<span class="w"> </span><span class="c1"># check</span>
 </pre></div>
 </div>
+<p>By default, galario lets <code class="docutils literal notranslate"><span class="pre">nvcc</span></code> select the CUDA architecture. To target a
+specific GPU, set the optional <code class="docutils literal notranslate"><span class="pre">GALARIO_CUDA_ARCHITECTURE</span></code> variable to an
+architecture supported by your toolkit, for example <code class="docutils literal notranslate"><span class="pre">sm_86</span></code> for an RTX A2000:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DGALARIO_CUDA_ARCHITECTURE<span class="o">=</span>sm_86<span class="w"> </span>..
+</pre></div>
+</div>
 <p>If cuda is installed in a non-standard directory or you want to specify the
 exact version, you can point cmake</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-DCUDA_TOOLKIT_ROOT_DIR<span class="o">=</span>/usr/local/cuda-9.1<span class="w"> </span>..
@@ -436,10 +442,10 @@ To debug the testing, first find out the exact command of the test:</p>
 </div>
 <p><code class="code docutils literal notranslate"><span class="pre">py.test</span></code> captures the output from the test, in particular from C to stderr.
 Force it to show all output:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python/py.test.sh<span class="w"> </span>-sv<span class="w"> </span>python_package/tests/test_galario.py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python/py.test.sh<span class="w"> </span>-sv<span class="w"> </span>python/test_galario.py
 </pre></div>
 </div>
-<p>By default, tests do not run on the GPU. Activate them by setting an environment variable <code class="code docutils literal notranslate"><span class="pre">GALARIO_TEST_GPU</span></code>; e.g. <code class="code docutils literal notranslate"><span class="pre">GALARIO_TEST_GPU=1</span> <span class="pre">py.test.sh</span> <span class="pre">...</span></code>.
+<p>By default, tests do not run on the GPU. Activate them by setting an environment variable <code class="code docutils literal notranslate"><span class="pre">GALARIO_TEST_GPU</span></code>; e.g. <code class="code docutils literal notranslate"><span class="pre">GALARIO_TEST_GPU=1</span> <span class="pre">python/py.test.sh</span> <span class="pre">...</span></code>.
 To select a given parametrized test named <code class="code docutils literal notranslate"><span class="pre">test_sample</span></code>, just run <code class="code docutils literal notranslate"><span class="pre">py.test.sh</span> <span class="pre">-k</span> <span class="pre">sample</span></code>.</p>
 <p>A cuda error such as</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="o">[</span>ERROR<span class="o">]</span><span class="w"> </span>Cuda<span class="w"> </span>call<span class="w"> </span>/home/user/workspace/galario/build/src/cuda_lib.cu:<span class="w"> </span><span class="m">815</span>
