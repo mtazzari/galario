@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>6. Python API reference &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css" />
-    <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css?v=95c42d5b" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=87c4be24" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script src="_static/documentation_options.js?v=fd7cadf9"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -66,25 +63,25 @@
           <div class="body" role="main">
             
   <section id="python-api-reference">
-<h1><span class="section-number">6. </span>Python API reference<a class="headerlink" href="#python-api-reference" title="Permalink to this heading">¶</a></h1>
+<h1><span class="section-number">6. </span>Python API reference<a class="headerlink" href="#python-api-reference" title="Link to this heading">¶</a></h1>
 <p>The documentation of each function that is reported in this page can also be directly accessed from Python with, e.g.:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double</span> <span class="kn">import</span> <span class="n">sampleImage</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">galario.double</span><span class="w"> </span><span class="kn">import</span> <span class="n">sampleImage</span>
 
 <span class="n">help</span><span class="p">(</span><span class="n">sampleImage</span><span class="p">)</span>
 </pre></div>
 </div>
 <section id="computing-synthetic-visibilities">
-<h2><span class="section-number">6.1. </span>Computing synthetic visibilities<a class="headerlink" href="#computing-synthetic-visibilities" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">6.1. </span>Computing synthetic visibilities<a class="headerlink" href="#computing-synthetic-visibilities" title="Link to this heading">¶</a></h2>
 <p>To compute the synthetic visibilities of a model use the <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a> and
 <a class="reference internal" href="#galario.double.sampleProfile" title="galario.double.sampleProfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleProfile()</span></code></a> functions.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.sampleImage">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">sampleImage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleImage" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">sampleImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dRA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dDec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'upper'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleImage" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the synthetic visibilities of a model image at the specified (u, v) locations.</p>
 <p>The 2D surface brightness in <code class="code docutils literal notranslate"><span class="pre">image</span></code> is Fourier transformed and sampled in the
 (u, v) locations given in the <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code> arrays.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">'upper'</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -134,7 +131,7 @@ For more details see the Technical Requirements page in the online docs.</p></li
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.sampleProfile">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">sampleProfile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleProfile" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">sampleProfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dRA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dDec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sampleProfile" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the synthetic visibilities of a model with an axisymmetric brightness profile.</p>
 <p>The brightness profile <code class="code docutils literal notranslate"><span class="pre">intensity</span></code> is used to build a 2D image of the model, which is
 then Fourier transformed and sampled in the (u, v) locations given in the <code class="code docutils literal notranslate"><span class="pre">u</span></code> and <code class="code docutils literal notranslate"><span class="pre">v</span></code> arrays.</p>
@@ -210,12 +207,12 @@ the results obtained are correct. Once a combination of matrix size and
 </div>
 </section>
 <section id="computing-chi-squared-directly">
-<h2><span class="section-number">6.2. </span>Computing chi squared directly<a class="headerlink" href="#computing-chi-squared-directly" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">6.2. </span>Computing chi squared directly<a class="headerlink" href="#computing-chi-squared-directly" title="Link to this heading">¶</a></h2>
 <p>To compute the <span class="math notranslate nohighlight">\(\chi^2\)</span> of a model use the <a class="reference internal" href="#galario.double.chi2Image" title="galario.double.chi2Image"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Image()</span></code></a> and
 <a class="reference internal" href="#galario.double.chi2Profile" title="galario.double.chi2Profile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chi2Profile()</span></code></a> functions.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.chi2Image">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">chi2Image</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Image" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">chi2Image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dRA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dDec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'upper'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Image" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the chi square of a model image given the observed visibilities.</p>
 <p>The chi square is computed from the observed and synthetic visibilities as:</p>
 <div class="math notranslate nohighlight">
@@ -224,7 +221,7 @@ the results obtained are correct. Once a combination of matrix size and
 as in <a class="reference internal" href="#galario.double.sampleImage" title="galario.double.sampleImage"><code class="xref py py-func docutils literal notranslate"><span class="pre">sampleImage()</span></code></a>.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span>
-                 <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">)</span>
+                 <span class="n">dRA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">'upper'</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -285,7 +282,7 @@ For more details see the Technical Requirements page in the online docs.</p></li
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.chi2Profile">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">chi2Profile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Profile" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">chi2Profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dRA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dDec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PA</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.chi2Profile" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the chi square of a model with an axisymmetric brightness profile
 given the observed visibilities.</p>
 <p>The image is created from the intensity profile as in <a class="reference internal" href="#galario.double.sweep" title="galario.double.sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">sweep()</span></code></a>.
@@ -360,10 +357,10 @@ time. For executions where speed is important, set to False.</p></li>
 
 </section>
 <section id="gpu-related">
-<h2><span class="section-number">6.3. </span>GPU related<a class="headerlink" href="#gpu-related" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">6.3. </span>GPU related<a class="headerlink" href="#gpu-related" title="Link to this heading">¶</a></h2>
 <dl class="py data">
 <dt class="sig sig-object py" id="galario.HAVE_CUDA">
-<span class="sig-prename descclassname"><span class="pre">galario.</span></span><span class="sig-name descname"><span class="pre">HAVE_CUDA</span></span><a class="headerlink" href="#galario.HAVE_CUDA" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.</span></span><span class="sig-name descname"><span class="pre">HAVE_CUDA</span></span><a class="headerlink" href="#galario.HAVE_CUDA" title="Link to this definition">¶</a></dt>
 <dd><p>Global variable (<code class="code docutils literal notranslate"><span class="pre">bool</span></code>). It is <code class="code docutils literal notranslate"><span class="pre">True</span></code> if the GPU libraries
 (<code class="code docutils literal notranslate"><span class="pre">galario.double_cuda</span></code> and <code class="code docutils literal notranslate"><span class="pre">galario.single_cuda</span></code>) are available, <code class="code docutils literal notranslate"><span class="pre">False</span></code>
 otherwise. On a machine without a CUDA-enabled GPU it is always <code class="code docutils literal notranslate"><span class="pre">False</span></code>.</p>
@@ -371,7 +368,7 @@ otherwise. On a machine without a CUDA-enabled GPU it is always <code class="cod
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.ngpus">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">ngpus</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.ngpus" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">ngpus</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.ngpus" title="Link to this definition">¶</a></dt>
 <dd><p>Return how many GPUs are available on the machine.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -385,7 +382,7 @@ otherwise. On a machine without a CUDA-enabled GPU it is always <code class="cod
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.use_gpu">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">use_gpu</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.use_gpu" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">use_gpu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.use_gpu" title="Link to this definition">¶</a></dt>
 <dd><p>Select the GPU to be used for the computation.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use_gpu</span><span class="p">(</span><span class="n">device_id</span><span class="p">)</span>
@@ -406,10 +403,10 @@ we recommend to start from <code class="code docutils literal notranslate"><span
 
 </section>
 <section id="other-useful-functions">
-<h2><span class="section-number">6.4. </span>Other useful functions<a class="headerlink" href="#other-useful-functions" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">6.4. </span>Other useful functions<a class="headerlink" href="#other-useful-functions" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.threads">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">threads</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.threads" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">threads</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.threads" title="Link to this definition">¶</a></dt>
 <dd><p>Set and get the number of threads to be used in parallel sections of the code.</p>
 <p>To set, pass <code class="code docutils literal notranslate"><span class="pre">num&gt;0</span></code>. To get the current setting, call without any argument.</p>
 <p>Typical call signatures:</p>
@@ -441,7 +438,7 @@ cores to see if hyperthreading provides any benefit.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.get_image_size">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">get_image_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_image_size" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">get_image_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f_max</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_image_size" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the recommended image size given the (u, v) locations.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span> <span class="o">=</span> <span class="n">get_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">PB</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">f_min</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span> <span class="n">f_max</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -484,7 +481,7 @@ Size of the image cell, assumed equal and uniform in both x and y direction.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.check_image_size">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">check_image_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.check_image_size" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">check_image_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duv</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PB</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.check_image_size" title="Link to this definition">¶</a></dt>
 <dd><p>Check whether the setup of the (u, v) plane satisfies Nyquist criteria for (u, v) plane sampling.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">check_image_size</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">duv</span><span class="p">,</span> <span class="n">PB</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -512,14 +509,14 @@ The length of v must be equal to the length of u.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.get_coords_meshgrid">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">get_coords_meshgrid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_coords_meshgrid" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">get_coords_meshgrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nrow</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Dy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'upper'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.get_coords_meshgrid" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the (R.A, Dec.) coordinate mesh grid to create the image.
 (x, y) axes are the (R.A, Dec.) axes: x increases leftwards, y increases upwards.
 All coordinates are computed in linear pixels units. To convert to angular units,
 just multiply the output by the angular pixel size.
 To put (0, 0) coordinates offset by (Dx, Dy) w.r.t. the image center, specify Dx, Dy.</p>
 <p>Typical call signature:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">,</span> <span class="n">R_m</span> <span class="o">=</span> <span class="n">get_coords_meshgrid</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">Dx</span><span class="o">=</span><span class="n">Dx</span><span class="p">,</span> <span class="n">Dy</span><span class="o">=</span><span class="n">Dy</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_m</span><span class="p">,</span> <span class="n">y_m</span><span class="p">,</span> <span class="n">R_m</span> <span class="o">=</span> <span class="n">get_coords_meshgrid</span><span class="p">(</span><span class="n">nrow</span><span class="p">,</span> <span class="n">ncol</span><span class="p">,</span> <span class="n">dxy</span><span class="o">=</span><span class="n">dxy</span><span class="p">,</span> <span class="n">inc</span><span class="o">=</span><span class="n">inc</span><span class="p">,</span> <span class="n">Dx</span><span class="o">=</span><span class="n">Dx</span><span class="p">,</span> <span class="n">Dy</span><span class="o">=</span><span class="n">Dy</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">'lower'</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -561,7 +558,7 @@ For more details see the Technical Requirements page in the online docs.</p></li
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.sweep">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sweep" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">intensity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Rmin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.sweep" title="Link to this definition">¶</a></dt>
 <dd><p>Create a 2D model image from an axisymmetric brightness profile.</p>
 <p>The image is created assuming that the x-axis (R.A.) increases
 from right (West) to left (East) and the y-axis (Dec.) increases
@@ -602,7 +599,7 @@ If inc=0. the image is face-on; if inc=pi/2 the image is edge-on.
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.apply_phase_vis">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">apply_phase_vis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.apply_phase_vis" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">apply_phase_vis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dRA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dDec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.apply_phase_vis" title="Link to this definition">¶</a></dt>
 <dd><p>Apply phase to sampled visibility points as to translate the image in the real
 space by an offset dRA along Right Ascension (R.A.) and dDec along Declination.
 R.A. increases towards left (East), thus dRA&gt;0 translates the image towards East.</p>
@@ -637,7 +634,7 @@ R.A. increases towards left (East), thus dRA&gt;0 translates the image towards E
 
 <dl class="py function">
 <dt class="sig sig-object py" id="galario.double.reduce_chi2">
-<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">reduce_chi2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.reduce_chi2" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">galario.double.</span></span><span class="sig-name descname"><span class="pre">reduce_chi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vis_obs_re</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis_obs_w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#galario.double.reduce_chi2" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the chi square of observed and model visibilities.</p>
 <p>Typical call signature:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chi2</span> <span class="o">=</span> <span class="n">reduce_chi2</span><span class="p">(</span><span class="n">vis_obs_re</span><span class="p">,</span> <span class="n">vis_obs_im</span><span class="p">,</span> <span class="n">vis_obs_w</span><span class="p">,</span> <span class="n">vis</span><span class="p">)</span>
@@ -669,7 +666,7 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
 
 </section>
 <section id="exceptions">
-<span id="galario-exceptions"></span><h2><span class="section-number">6.5. </span>Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this heading">¶</a></h2>
+<span id="galario-exceptions"></span><h2><span class="section-number">6.5. </span>Exceptions<a class="headerlink" href="#exceptions" title="Link to this heading">¶</a></h2>
 <p><strong>galario</strong>’s C++ core throws various exception. They can be distinguished by the type and the error message.</p>
 <table class="docutils align-default">
 <tbody>
@@ -699,7 +696,7 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
     <a id="sidebar-anchor"></a>
     
@@ -768,7 +765,7 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -776,7 +773,7 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -802,8 +799,8 @@ The length of <code class="code docutils literal notranslate"><span class="pre">
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

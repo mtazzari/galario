@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>8. Using galario from C++ &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css" />
-    <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css?v=95c42d5b" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=87c4be24" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/documentation_options.js?v=fd7cadf9"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -65,10 +62,10 @@
           <div class="body" role="main">
             
   <section id="using-galario-from-c">
-<h1><span class="section-number">8. </span>Using galario from C++<a class="headerlink" href="#using-galario-from-c" title="Permalink to this heading">¶</a></h1>
+<h1><span class="section-number">8. </span>Using galario from C++<a class="headerlink" href="#using-galario-from-c" title="Link to this heading">¶</a></h1>
 <p>The core of <strong>galario</strong> is written in C++/Cuda, all functions are in the header <code class="code docutils literal notranslate"><span class="pre">galario.h</span></code>.</p>
 <section id="a-small-example">
-<h2><span class="section-number">8.1. </span>A small example<a class="headerlink" href="#a-small-example" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">8.1. </span>A small example<a class="headerlink" href="#a-small-example" title="Link to this heading">¶</a></h2>
 <p>Here is a small test program that performs the FFT in 2D on an image with random values. It is part of the <strong>galario</strong> test suite.</p>
 <div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cm">/******************************************************************************</span>
 <span class="cm">* This file is part of GALARIO:                                               *</span>
@@ -92,7 +89,7 @@
 <span class="cm">/*</span>
 <span class="cm"> * A simple test to make sure we can include, link, and run galario from pure C++.</span>
 <span class="cm"> */</span>
-<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;galario.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"galario.h"</span>
 
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cassert&gt;</span>
 <span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;complex&gt;</span>
@@ -154,9 +151,9 @@ precision can be built with:</p>
 <p>If <strong>galario</strong> was installed with <code class="code docutils literal notranslate"><span class="pre">cuda</span></code> support, you can link in <code class="code docutils literal notranslate"><span class="pre">-lgalario_cuda</span></code> or <code class="code docutils literal notranslate"><span class="pre">-lgalario_single_cuda</span></code> instead.</p>
 </section>
 <section id="example-walk-through">
-<h2><span class="section-number">8.2. </span>Example walk-through<a class="headerlink" href="#example-walk-through" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">8.2. </span>Example walk-through<a class="headerlink" href="#example-walk-through" title="Link to this heading">¶</a></h2>
 <p>A small walk through the example’s <code class="code docutils literal notranslate"><span class="pre">main</span></code> function line by line:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include &quot;galario.h&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#include "galario.h"</span>
 <span class="o">...</span>
 <span class="n">using</span> <span class="n">namespace</span> <span class="n">galario</span><span class="p">;</span>
 </pre></div>
@@ -193,7 +190,7 @@ precision can be built with:</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
     <a id="sidebar-anchor"></a>
     
@@ -237,7 +234,7 @@ precision can be built with:</p>
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -245,7 +242,7 @@ precision can be built with:</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -271,8 +268,8 @@ precision can be built with:</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>

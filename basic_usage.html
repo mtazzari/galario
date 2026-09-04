@@ -1,22 +1,19 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="./">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>2. Basic Usage &#8212; galario 1.2.2 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css" />
-    <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="_static/pydoctheme.css?v=95c42d5b" />
+    <link rel="stylesheet" type="text/css" href="_static/css/custom.css?v=87c4be24" />
     
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/sphinx_highlight.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+    <script src="_static/documentation_options.js?v=fd7cadf9"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script defer="defer" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     
     <script src="_static/sidebar.js"></script>
     
@@ -66,13 +63,13 @@
           <div class="body" role="main">
             
   <section id="basic-usage">
-<h1><span class="section-number">2. </span>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">¶</a></h1>
+<h1><span class="section-number">2. </span>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h1>
 <p>Let’s say you have an observational dataset of <code class="code docutils literal notranslate"><span class="pre">M</span></code> visibility points located at <span class="math notranslate nohighlight">\((u_j, v_j)\)</span>, with <span class="math notranslate nohighlight">\(j=1...M\)</span> and <span class="math notranslate nohighlight">\(u_j\)</span>, <span class="math notranslate nohighlight">\(v_j\)</span> expressed in units of the observing wavelength. <span class="math notranslate nohighlight">\(V_{obs\ j}\)</span> (Jy) is the <span class="math notranslate nohighlight">\(j\)</span>-th complex visibility with associated theoretical weight <span class="math notranslate nohighlight">\(w_j\)</span>.
 With <strong>galario</strong> you can:</p>
 <p><strong>1) Compute visibilities from a model image</strong></p>
 <blockquote>
 <div><p>If you want to compute the visibilities of a model <code class="code docutils literal notranslate"><span class="pre">image</span></code> (Jy/px) with pixel size <code class="code docutils literal notranslate"><span class="pre">dxy</span></code> (rad) in the same <span class="math notranslate nohighlight">\((u_j, v_j)\)</span> locations of the observations, you can easily do it with the GPU accelerated <strong>galario</strong>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">galario.double_cuda</span><span class="w"> </span><span class="kn">import</span> <span class="n">sampleImage</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
@@ -83,7 +80,7 @@ With <strong>galario</strong> you can:</p>
 <blockquote>
 <div><p>If you want to compare the observations with a model characterized by an <strong>axisymmetric brightness profile</strong>, <strong>galario</strong> offers dedicated functions that exploit the symmetry of the model to accelerate the image creation.</p>
 <p>If <span class="math notranslate nohighlight">\(I(R)\)</span> (Jy/sr) is the radial brightness profile, the command is as simple as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleProfile</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">galario.double_cuda</span><span class="w"> </span><span class="kn">import</span> <span class="n">sampleProfile</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleProfile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 </pre></div>
@@ -94,7 +91,7 @@ With <strong>galario</strong> you can:</p>
 <p><strong>3) Compute the</strong> <span class="math notranslate nohighlight">\(\chi^2\)</span> <strong>of a model (image or brightness profile)</strong></p>
 <blockquote>
 <div><p>If you are doing a <strong>fit</strong> and the only number you are interested in is the <span class="math notranslate nohighlight">\(\chi^2\)</span> for the likelihood computation, you can use directly one of these:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">chi2Image</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">galario.double_cuda</span><span class="w"> </span><span class="kn">import</span> <span class="n">chi2Image</span>
 
 <span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
 <span class="n">chi2</span> <span class="o">=</span> <span class="n">chi2Profile</span><span class="p">(</span><span class="n">I</span><span class="p">,</span> <span class="n">Rmin</span><span class="p">,</span> <span class="n">dR</span><span class="p">,</span> <span class="n">nxy</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">real</span><span class="p">,</span> <span class="n">V_obs</span><span class="o">.</span><span class="n">imag</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
@@ -106,7 +103,7 @@ With <strong>galario</strong> you can:</p>
 <div><p>To translate the model image in Right Ascension and Declination direction by (dRA, dDec) offsets (rad),
 or to rotate the image by a Position Angle PA (rad) (defined East of North), you can specify them as optional parameters.</p>
 <p>This works for all the <code class="code docutils literal notranslate"><span class="pre">sampleImage</span></code>, <code class="code docutils literal notranslate"><span class="pre">sampleProfile</span></code>, <code class="code docutils literal notranslate"><span class="pre">chi2Image</span></code> and <code class="code docutils literal notranslate"><span class="pre">chi2Profile</span></code> functions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">galario.double_cuda</span> <span class="kn">import</span> <span class="n">sampleImage</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">galario.double_cuda</span><span class="w"> </span><span class="kn">import</span> <span class="n">sampleImage</span>
 
 <span class="n">vis</span> <span class="o">=</span> <span class="n">sampleImage</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dxy</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">dRA</span><span class="o">=</span><span class="n">dRA</span><span class="p">,</span> <span class="n">dDec</span><span class="o">=</span><span class="n">dDec</span><span class="p">,</span> <span class="n">PA</span><span class="o">=</span><span class="n">PA</span><span class="p">)</span>
 </pre></div>
@@ -125,7 +122,7 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
     <a id="sidebar-anchor"></a>
     
@@ -165,7 +162,7 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
@@ -173,7 +170,7 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
       <input type="submit" value="Go" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
         </div>
 <div id="sidebarbutton" title="Collapse sidebar">
@@ -199,8 +196,8 @@ All the function names and interfaces are the same for GPU and CPU version!</p>
     </div>
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 5.3.0.
+    &#169; Copyright 2017-2026, Marco Tazzari, Frederik Beaujean, Leonardo Testi.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
     </div>
   </body>
 </html>
