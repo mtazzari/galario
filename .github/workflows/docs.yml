@@ -1,0 +1,79 @@
+name: documentation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/docs.yml'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'docs/**'
+      - 'python/**'
+      - 'src/**'
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: documentation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v4
+        with:
+          activate-environment: docs
+          python-version: '3.12'
+          channels: conda-forge
+          allow-softlinks: true
+          channel-priority: flexible
+      - name: Install dependencies
+        run: |
+          conda install cython nomkl numpy pytest scipy sphinx
+          pip install sphinx_py3doc_enhanced_theme sphinxcontrib-fulltoc
+          sudo apt-get install libfftw3-dev
+      - name: Build documentation
+        run: |
+          mkdir build && cd build
+          cmake -DCMAKE_INSTALL_PREFIX=/tmp -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" ..
+          make
+          make docs
+      - name: Upload built documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: galario-documentation
+          path: build/docs/html
+          include-hidden-files: true
+          retention-days: 7
+  deploy:
+    name: Publish documentation
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Download built documentation
+        uses: actions/download-artifact@v5
+        with:
+          name: galario-documentation
+          path: build/docs/html
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: build/docs/html
+          clean: true
